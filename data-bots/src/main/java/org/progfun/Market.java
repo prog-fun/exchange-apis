@@ -30,6 +30,7 @@ public class Market {
      * (LTC), etc
      * @param quoteCurrency Currency in which the trade is happening: USD, EUR,
      * NOK, etc
+     * @throws java.lang.Exception when one of currencies missing
      */
     public Market(String baseCurrency, String quoteCurrency) throws Exception {
         if (baseCurrency == null || "".equals(baseCurrency)) {
