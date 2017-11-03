@@ -1,3 +1,6 @@
 /data-bots/nbproject/
 /data-bots/target/
 /sandbox/websocket-test/target/
+/sandbox/bitstamp/target/
+/sandbox/bitstamp/.idea
+/sandbox/bitstamp/bitstamp.iml
