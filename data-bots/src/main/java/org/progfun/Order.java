@@ -8,8 +8,8 @@ package org.progfun;
  */
 public class Order {
 
-    private float price;
-    private float amount;
+    private double price;
+    private double amount;
     private Integer numOrders;
 
     /**
@@ -22,7 +22,7 @@ public class Order {
      * know the aggregated information). Value null, 0 or negative is
      * interpreted as "information not available"
      */
-    public Order(float price, float amount, Integer numOrders) {
+    public Order(double price, double amount, Integer numOrders) {
         this.price = price;
         this.amount = amount;
         this.numOrders = numOrders;
@@ -32,7 +32,7 @@ public class Order {
         }
     }
 
-    public float getPrice() {
+    public double getPrice() {
         return price;
     }
 
@@ -40,11 +40,11 @@ public class Order {
         this.price = price;
     }
 
-    public float getSize() {
+    public double getAmount() {
         return amount;
     }
 
-    public void setSize(float size) {
+    public void setAmount(float size) {
         this.amount = size;
     }
 
@@ -75,7 +75,7 @@ public class Order {
      * @param amount
      * @param orderCount 
      */
-    public void increase(float amount, int orderCount) {
+    public void increase(double amount, int orderCount) {
         this.amount += amount;
     }
 

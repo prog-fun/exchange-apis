@@ -3,10 +3,6 @@ package org.progfun;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-/**
- *
- * @author girts
- */
 public class MarketTest {
 
     /**
