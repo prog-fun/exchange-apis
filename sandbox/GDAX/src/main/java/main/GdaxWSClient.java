@@ -2,10 +2,13 @@ package main;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * Example WebSocket client subscribing to BitFinex stream
@@ -39,7 +42,8 @@ public class GdaxWSClient extends WebSocketClient {
             if (!connectBlocking()) {
                 log("Could not connect to WebSocket server");
             }
-            send("{\"type\": \"subscribe\",\"product_ids\": [\"BTC-USD\"],\"channels\": [\"level2\",\"heartbeat\",{\"name\": \"ticker\", \"prodict_id\": [\"BTC-USD\"]}]}");
+            //send("{\"type\": \"subscribe\",\"product_ids\": [\"BTC-USD\"],\"channels\": [\"level2\",\"heartbeat\",{\"name\": \"ticker\", \"product_id\": [\"BTC-USD\"]}]}");
+            send("{\"type\": \"subscribe\",\"product_ids\": [\"BTC-USD\"],\"channels\": [\"level2\"]}");
             // The easiest (hacky) way to wait for the response: sleep for some time
             Thread.sleep(10000);
             close();
@@ -60,7 +64,15 @@ public class GdaxWSClient extends WebSocketClient {
 
     @Override
     public void onMessage(String message) {
-        log("Received: " + message);
+        JSONObject JSONMessage = new JSONObject(message);
+        Iterator it = JSONMessage.keys();
+        JSONArray jsonArray = new JSONArray();
+        while (it.hasNext()) {
+            String key = (String) it.next();
+            jsonArray.put(JSONMessage.get(key));
+        }
+        log("Received: " + jsonArray.getJSONArray(1).getJSONArray(0).getString(2));
+        //log("Received: " + jsonArray);
     }
 
     @Override
