@@ -9,30 +9,27 @@ package org.progfun;
 public class Order {
 
     private float price;
-    private float size;
+    private float amount;
     private Integer numOrders;
-    public boolean bid;
 
     /**
      * Create a Bid or Ask order
      *
      * @param price
-     * @param size volume of the order, in base currency units
+     * @param amount volume of the order, in base currency units
      * @param numOrders number of real orders that have been aggregated in this
      * record (sometimes there are so many orders that we are interested to only
      * know the aggregated information). Value null, 0 or negative is
      * interpreted as "information not available"
-     * @param bid when true, this is a Bid order, when false: Ask order
      */
-    public Order(float price, float size, Integer numOrders, boolean bid) {
+    public Order(float price, float amount, Integer numOrders) {
         this.price = price;
-        this.size = size;
+        this.amount = amount;
         this.numOrders = numOrders;
         if (numOrders != null && numOrders <= 0) {
             // Mark as "no order count info available"
             this.numOrders = null;
         }
-        this.bid = bid;
     }
 
     public float getPrice() {
@@ -44,11 +41,11 @@ public class Order {
     }
 
     public float getSize() {
-        return size;
+        return amount;
     }
 
     public void setSize(float size) {
-        this.size = size;
+        this.amount = size;
     }
 
     /**
@@ -71,6 +68,15 @@ public class Order {
             // Mark as "no order count info available"
             this.numOrders = null;
         }
+    }
+
+    /**
+     * Increase amount and count of orders for this specific price
+     * @param amount
+     * @param orderCount 
+     */
+    public void increase(float amount, int orderCount) {
+        this.amount += amount;
     }
 
 }
