@@ -21,17 +21,14 @@ public class Order {
      * @param amount volume of the order, in base currency units
      * @param count number of real orders that have been aggregated in this
      * record (sometimes there are so many orders that we are interested to only
-     * know the aggregated information). Value null, 0 or negative is
-     * interpreted as "information not available"
+     * know the aggregated information). Value null or zero is interpreted as
+     * "information not available". Negative count is allowed (negative values
+     * can be used as a "relative order change")
      */
     public Order(double price, double amount, Integer count) {
         this.price = price;
         this.amount = amount;
         this.count = count;
-        if (count != null && count <= 0) {
-            // Mark as "no order count info available"
-            this.count = null;
-        }
     }
 
     public double getPrice() {
@@ -67,10 +64,6 @@ public class Order {
      */
     public void setCount(Integer count) {
         this.count = count;
-        if (count != null && count <= 0) {
-            // Mark as "no order count info available"
-            this.count = null;
-        }
     }
 
     /**
@@ -84,6 +77,10 @@ public class Order {
         if (this.count != null) {
             if (count != null) {
                 this.count += count;
+                // If count becomes negative, make it null
+                if (this.count < 0) {
+                    this.count = null;
+                }
             }
         } else {
             this.count = count;
