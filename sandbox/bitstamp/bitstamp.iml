@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8" inherit-compiler-output="false">
+    <output url="file://$MODULE_DIR$/target/classes" />
+    <output-test url="file://$MODULE_DIR$/target/test-classes" />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/target" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Maven: com.pusher:pusher-java-client:1.5.0" level="project" />
+    <orderEntry type="library" name="Maven: com.google.code.gson:gson:2.2.2" level="project" />
+    <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.5" level="project" />
+    <orderEntry type="library" name="Maven: com.pusher:java-websocket:1.4.1" level="project" />
+    <orderEntry type="library" name="Maven: org.json:json:20160810" level="project" />
+    <orderEntry type="module" module-name="data-bots" />
+    <orderEntry type="library" name="Maven: org.java-websocket:Java-WebSocket:1.3.5" level="project" />
+  </component>
+</module>
