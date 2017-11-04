@@ -20,6 +20,8 @@ public class BitFinexWSClient extends WebSocketClient {
     private int SNAPSHOT = 3;
     private int UPDATING = 4;
     
+    private Orderbook orderbook;
+    
     private int state = 0;
 
     private static void log(String msg) {
@@ -29,6 +31,7 @@ public class BitFinexWSClient extends WebSocketClient {
 
     BitFinexWSClient() throws URISyntaxException {
         super(new URI(API_URL));
+        orderbook = new Orderbook();
     }
 
     public static void main(String[] args) {
@@ -96,8 +99,17 @@ public class BitFinexWSClient extends WebSocketClient {
         try {
         JSONArray data = new JSONArray(message);
         JSONArray values = data.getJSONArray(1);
-        double string = values.getDouble(0);
-        System.out.println("" + string);
+        double price = values.getDouble(0);
+        double count = values.getDouble(1);
+        double amount = values.getDouble(2);
+        System.out.println("Price: " + price + ", Count: " + count + ", Amount: " + amount);
+        if(count > 0) {
+            if (amount > 0) {
+                orderbook.addBid(price, SNAPSHOT, CONNECTING);
+            } else if (amount < 0) {
+                orderbook.addAsk(price, SNAPSHOT, CONNECTING);
+            }
+        }
         } catch (Exception e) {
             System.out.println("ops");
         }
