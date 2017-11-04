@@ -60,6 +60,8 @@ public class GdaxParser implements Parser {
                 }
             }
         }
+        System.out.println(orderbook.getAsks().size());
+        System.out.println(orderbook.getBids().size());
     }
     /**
      * Prints out errors from the API
