@@ -1,8 +1,8 @@
 package org.progfun;
 
-import org.progfun.orderbook.Order;
 import java.util.ArrayList;
 import java.util.List;
+import org.progfun.orderbook.Orderbook;
 
 /**
  * Represents a market trading a pair of assets (Currencies). Example markets:
@@ -20,7 +20,7 @@ public class Market {
 
     private final String baseCurrency;
     private final String quoteCurrency;
-    private final List<Order> orders = new ArrayList<>();
+    private final Orderbook orderbook = new Orderbook();
     private final List<Trade> trades = new ArrayList<>();
 
     /**
@@ -31,9 +31,9 @@ public class Market {
      * (LTC), etc
      * @param quoteCurrency Currency in which the trade is happening: USD, EUR,
      * NOK, etc
-     * @throws java.lang.Exception when one of currencies missing
+     * @throws InvalidFormatException when one of currencies missing
      */
-    public Market(String baseCurrency, String quoteCurrency) throws Exception {
+    public Market(String baseCurrency, String quoteCurrency) throws InvalidFormatException {
         if (baseCurrency == null || "".equals(baseCurrency)) {
             throw new InvalidFormatException("Base currency must be specified");
         }
@@ -52,4 +52,7 @@ public class Market {
         return quoteCurrency;
     }
 
+    public Orderbook getOrderbook() {
+        return orderbook;
+    }
 }
