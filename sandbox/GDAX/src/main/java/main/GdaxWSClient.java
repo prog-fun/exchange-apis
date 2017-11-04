@@ -69,8 +69,15 @@ public class GdaxWSClient extends WebSocketClient {
         // if you plan to refuse connection based on ip or httpfields overload: onWebsocketHandshakeReceivedAsClient
     }
 
+    /**
+     * Gets called when a message is received, performes all required logic on
+     * the message and sends it to the orderbook
+     *
+     * @param message The incoming message
+     */
     @Override
     public void onMessage(String message) {
+
         JSONObject JSONMessage = new JSONObject(message);
         Iterator it = JSONMessage.keys();
         JSONArray jsonArray = new JSONArray();
@@ -79,37 +86,23 @@ public class GdaxWSClient extends WebSocketClient {
             jsonArray.put(JSONMessage.get(key));
         }
 
-        if (JSONMessage.getString("bids").equals("snapshot")) {
+        if (JSONMessage.getString("type").equals("snapshot")) {
             System.out.println(jsonArray);
-            for (Object keys : jsonArray.getJSONArray(1)){
+            for (Object keys : jsonArray.getJSONArray(1)) {
                 JSONArray bids = (JSONArray) keys;
                 orderbook.addBid(bids.getDouble(0), bids.getDouble(1), 0);
             }
-            for (Object keys : jsonArray.getJSONArray(2)){
+            for (Object keys : jsonArray.getJSONArray(2)) {
                 JSONArray asks = (JSONArray) keys;
                 orderbook.addAsk(asks.getDouble(0), asks.getDouble(1), 0);
             }
-            System.out.println("yup");
-            /*it = null;
-                it = jsonArray.iterator();
-                System.out.println(jsonArray);
-                while (it.hasNext()) {
-                Object keys = it.next();
-                if (keys instanceof String){
-                System.out.println(keys);
-                } else {
-                snapshot = (JSONArray) keys;
-                }
-                }*/
 
         } else if (JSONMessage.getString("type").equals("l2update")) {
-            //System.out.println("full:" + message);
-            //System.out.println("Received: " + jsonArray.getJSONArray(1).getJSONArray(0));
             String type = jsonArray.getJSONArray(1).getJSONArray(0).getString(0);
             double price = jsonArray.getJSONArray(1).getJSONArray(0).getDouble(1);
-            double count = jsonArray.getJSONArray(1).getJSONArray(0).getDouble(2);
+            String countString = jsonArray.getJSONArray(1).getJSONArray(0).getString(2);
 
-            if (count == 0) {
+            if (countString.equals("0")) {
                 if (type.equals("buy")) {
                     orderbook.removeAsk(price);
                 } else if (type.equals("sell")) {
@@ -117,6 +110,7 @@ public class GdaxWSClient extends WebSocketClient {
 
                 }
             } else {
+                Double count = Double.parseDouble(countString);
                 if (type.equals("buy")) {
                     orderbook.addAsk(price, count, 0);
                 } else if (type.equals("sell")) {
@@ -124,6 +118,8 @@ public class GdaxWSClient extends WebSocketClient {
                 }
             }
         }
+        System.out.println("Number of bids: " + orderbook.getBids().size());
+        System.out.println("Number of asks: " + orderbook.getAsks().size());
 
         //log("Received: " + jsonArray);
     }
