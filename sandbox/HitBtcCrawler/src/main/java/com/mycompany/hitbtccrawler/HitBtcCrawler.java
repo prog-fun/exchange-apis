@@ -16,11 +16,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.progfun.orderbook.Orderbook;
+
 /**
  *
  * @author Simon
  */
 public class HitBtcCrawler extends WebSocketClient {
+
     private Orderbook orderBook = new Orderbook();
     private static final String API_URL = "wss://api.hitbtc.com/api/2/ws";
 
@@ -50,19 +52,22 @@ public class HitBtcCrawler extends WebSocketClient {
                 log("Could not connect to WebSocket server");
             }
             log("Sending request, awaiting feedback...");
-            
+
             //Creating orderbook data request
             JSONObject obj = new JSONObject();
-		obj.put("method", "subscribeOrderbook");
+            obj.put("method", "subscribeOrderbook");
             JSONObject obj2 = new JSONObject();
-            obj2.put("symbol" , "BTCUSD");
-		obj.put("params", obj2);
-                obj.put("id", "123");
-                String object = obj.toString();
-                send(object);
-                
+            obj2.put("symbol", "BTCUSD");
+            obj.put("params", obj2);
+            obj.put("id", "123");
+            String object = obj.toString();
+            send(object);
+
             // The easiest (hacky) way to wait for the response: sleep for some time
-            Thread.sleep(10000);
+            try {
+                System.in.read();
+            } catch (Exception e) {
+            }
             close();
 
         } catch (InterruptedException ex) {
@@ -80,30 +85,50 @@ public class HitBtcCrawler extends WebSocketClient {
     }
 
     @Override
-    public void onMessage(String message) { 
+    public void onMessage(String message) {
         JSONObject msg = new JSONObject(message);
-      /*  Iterator it = msg.keys();
+        System.out.println(msg);
+        /*  Iterator it = msg.keys();
         JSONArray arr = new JSONArray(); 
         while (it.hasNext()) { 
             String key = (String) it.next(); 
             arr.put(msg.get(key));
         } */
         try {
-           
-       double askSize = msg.getJSONObject("params").getJSONArray("ask").getJSONObject(0).getDouble("size");
-       double askPrice = msg.getJSONObject("params").getJSONArray("ask").getJSONObject(0).getDouble("price");
-       double bidSize = msg.getJSONObject("params").getJSONArray("bid").getJSONObject(0).getDouble("size");
-       double bidPrice = msg.getJSONObject("params").getJSONArray("bid").getJSONObject(0).getDouble("price");
-       orderBook.addBid(bidPrice, bidSize, 0);
-       orderBook.addAsk(askPrice, askSize, 0);
-        }
-        catch (JSONException e) {
+            if (msg.getString("method").equals("snapshotOrderbook")) {
+                /*if (msg.getJSONObject("params").getString("ask")) {
+                
+                }*/
+                JSONArray asks = msg.getJSONObject("params").getJSONArray("ask");
+                for (Object obj : asks) {
+                    JSONObject ask = (JSONObject) obj;
+                    double price = ask.getDouble("price");
+                    double size = ask.getDouble("size");
+                    orderBook.addAsk(price, size, 0);
+                    
+                }
+                JSONArray bids = msg.getJSONObject("params").getJSONArray("bid");
+                for (Object obj : bids) {
+                    JSONObject bid = (JSONObject) obj;
+                    double price = bid.getDouble("price");
+                    double size = bid.getDouble("size");
+                    orderBook.addAsk(price, size, 0);
+                    
+                }
+            } else {
+                double askSize = msg.getJSONObject("params").getJSONArray("ask").getJSONObject(0).getDouble("size");
+                double askPrice = msg.getJSONObject("params").getJSONArray("ask").getJSONObject(0).getDouble("price");
+                double bidSize = msg.getJSONObject("params").getJSONArray("bid").getJSONObject(0).getDouble("size");
+                double bidPrice = msg.getJSONObject("params").getJSONArray("bid").getJSONObject(0).getDouble("price");
+                orderBook.addBid(bidPrice, bidSize, 0);
+                orderBook.addAsk(askPrice, askSize, 0);
+            }
+        } catch (JSONException e) {
             System.out.println("test" + e);
         }
-        
-       //log(message); 
-                //log("Received: " + arr.getJSONArray(0).getString()
-         
+
+        log(message); 
+        //log("Received: " + arr.getJSONArray(0).getString()
     }
 
     @Override
