@@ -1,5 +1,6 @@
 package main;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Iterator;
@@ -8,6 +9,7 @@ import java.util.logging.Logger;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.progfun.Orderbook;
 
@@ -18,6 +20,7 @@ public class GdaxWSClient extends WebSocketClient {
 
     private static final String API_URL = "wss://ws-feed.gdax.com";
     private Orderbook orderbook = new Orderbook();
+
     private static void log(String msg) {
         Thread t = Thread.currentThread();
         System.out.println(msg + "[Thread #" + t.getId() + "]");
@@ -46,8 +49,12 @@ public class GdaxWSClient extends WebSocketClient {
             //send("{\"type\": \"subscribe\",\"product_ids\": [\"BTC-USD\"],\"channels\": [\"level2\",\"heartbeat\",{\"name\": \"ticker\", \"product_id\": [\"BTC-USD\"]}]}");
             send("{\"type\": \"subscribe\",\"product_ids\": [\"BTC-USD\"],\"channels\": [\"level2\"]}");
             // The easiest (hacky) way to wait for the response: sleep for some time
-            Thread.sleep(10000);
-            System.out.println("yolo");
+            //Thread.sleep(10000);
+            try {
+                System.in.read();
+            } catch (IOException e) {
+            }
+
             close();
 
         } catch (InterruptedException ex) {
@@ -73,18 +80,28 @@ public class GdaxWSClient extends WebSocketClient {
             String key = (String) it.next();
             jsonArray.put(JSONMessage.get(key));
         }
-        //log("Received: " + jsonArray.getJSONArray(1).getJSONArray(0).getString(2));
-        String type = jsonArray.getJSONArray(1).getJSONArray(0).getString(0);
-        float price = Float.parseFloat(jsonArray.getJSONArray(1).getJSONArray(0).getString(1));
-        float count = Float.parseFloat(jsonArray.getJSONArray(1).getJSONArray(0).getString(2));
-        if (count == 0f) {
-        }else {
-            if(type.equals("buy")){
-                orderbook.addAsk(price, count, 0);
-            } else if (type.equals("sell")){
-                orderbook.addBid(price, count, 0);
+        try {
+            log("Received: " + jsonArray.getJSONArray(1).getJSONArray(0));
+            String type = jsonArray.getJSONArray(1).getJSONArray(0).getString(0);
+            float price = Float.parseFloat(jsonArray.getJSONArray(1).getJSONArray(0).getString(1));
+            float count = Float.parseFloat(jsonArray.getJSONArray(1).getJSONArray(0).getString(2));
+            if (count == 0f) {
+                if (type.equals("buy")) {
+                    orderbook.removeAsk(price);
+                } else if (type.equals("sell")) {
+                    orderbook.removeBid(price);
+                }
+            } else {
+                if (type.equals("buy")) {
+                    orderbook.addAsk(price, count, 0);
+                } else if (type.equals("sell")) {
+                    orderbook.addBid(price, count, 0);
+                }
             }
+        } catch (JSONException e) {
+            System.out.println("JSON not recognized");
         }
+
         //log("Received: " + jsonArray);
     }
 
