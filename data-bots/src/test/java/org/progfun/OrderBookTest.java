@@ -9,6 +9,8 @@ import org.progfun.orderbook.Listener;
 
 public class OrderBookTest {
 
+    final double DELTA = 0.00000000001;
+
     @Test
     public void testEmpty() {
         Orderbook b = new Orderbook();
@@ -91,8 +93,7 @@ public class OrderBookTest {
         Book asks = ob.getAsks();
         assertEquals(3, asks.size());
         Double[] prices = asks.getOrderedPrices(true);
-        final double DELTA = 0.00000000001;
-        
+
         assertEquals(60.00008, prices[0], DELTA);
         assertEquals(7000, prices[1], DELTA);
         assertEquals(7100, prices[2], DELTA);
@@ -106,6 +107,23 @@ public class OrderBookTest {
         Order o3 = asks.getOrderForPrice(60.00008);
         assertEquals(12, o3.getAmount(), DELTA);
         assertEquals(8, o3.getCount(), DELTA);
+    }
+
+    // Check if merge with negative amount works correctly
+    @Test
+    public void testNegativeMerge() {
+        Orderbook ob = new Orderbook();
+        Book asks = ob.getAsks();
+        ob.addAsk(7000, 3, 1);
+        Order a = asks.getOrderForPrice(7000);
+        assertEquals(3, a.getAmount(), DELTA);
+        ob.addAsk(7000, -1, 1);
+        assertEquals(2, a.getAmount(), DELTA);
+        ob.addAsk(7000, -1, 0);
+        assertEquals(1, a.getAmount(), DELTA);
+        ob.addAsk(7000, -3, 1);
+        // Now the ask should be deleted
+        assertEquals(0, asks.size());
     }
 
     @Test
