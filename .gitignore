@@ -1,4 +1,9 @@
 /data-bots/nbproject/
+/data-bots/.idea/
+/data-bots/data-bots.iml
 /data-bots/target/
 /sandbox/websocket-test/target/
-sandbox/gemini-crawler/target
+/sandbox/bitstamp/target/
+/sandbox/bitstamp/.idea
+/sandbox/bitstamp/bitstamp.iml
+/sandbox/gemini-crawler/target
