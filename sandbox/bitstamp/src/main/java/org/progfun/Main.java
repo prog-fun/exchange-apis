@@ -9,7 +9,7 @@ public class Main {
         try {
 
             Market market = new Market("btc", "usd");
-            market.getOrderbook().addListener(new SQLOrderbookListener());
+            market.addListener(new SQLOrderbookListener());
 
             BitstampBot bot = new BitstampBot();
             bot.bindMarket(market);

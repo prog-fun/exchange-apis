@@ -29,10 +29,10 @@ public class BitstampParser implements Parser {
                 String amount = bid.getString(1);
 
                 if (amount.equals("0")) {
-                    market.getOrderbook().removeBid(Double.valueOf(price));
+                    market.removeBid(Double.valueOf(price));
                     log("Bid removed. " + amount + " at " + price);
                 } else {
-                    market.getOrderbook().addBid(Double.valueOf(price), Double.valueOf(amount), 1);
+                    market.addBid(Double.valueOf(price), Double.valueOf(amount), 1);
                     log("Bid added. " + amount + " at " + price);
                 }
             }
@@ -44,10 +44,10 @@ public class BitstampParser implements Parser {
                 String amount = ask.getString(1);
 
                 if (amount.equals("0")) {
-                    market.getOrderbook().removeAsk(Double.valueOf(price));
+                    market.removeAsk(Double.valueOf(price));
                     log("Ask removed. " + amount + " at " + price);
                 } else {
-                    market.getOrderbook().addAsk(Double.valueOf(price), Double.valueOf(amount), 1);
+                    market.addAsk(Double.valueOf(price), Double.valueOf(amount), 1);
                     log("Ask added. " + amount + " at " + price);
                 }
             }
