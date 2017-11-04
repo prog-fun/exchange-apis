@@ -1,4 +1,4 @@
-package org.progfun;
+package org.progfun.orderbook;
 
 /**
  * Represents one market order: Bid or Ask Bid: someone wants to buy the base

@@ -1,4 +1,4 @@
-package org.progfun;
+package org.progfun.orderbook;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +11,7 @@ public class Orderbook {
     private final Book bids = new Book();
     private final Book asks = new Book();
 
-    private final List<OrderbookListener> listeners = new ArrayList<>();
+    private final List<Listener> listeners = new ArrayList<>();
 
     public Book getBids() {
         return bids;
@@ -31,7 +31,16 @@ public class Orderbook {
      * zero if count is not known.
      */
     public void addBid(double price, double amount, int orderCount) {
-        bids.add(price, amount, orderCount);
+        Order bid = new Order(price, amount, orderCount);
+        Order updatedBid = bids.add(bid);
+        // Notify listeners about changes
+        for (Listener l : listeners) {
+            if (updatedBid != null) {
+                l.bidUpdated(updatedBid);
+            } else {
+                l.bidAdded(bid);
+            }
+        }
     }
 
     /**
@@ -44,7 +53,16 @@ public class Orderbook {
      * zero if count is not known.
      */
     public void addAsk(double price, double amount, int orderCount) {
-        asks.add(price, amount, orderCount);
+        Order ask = new Order(price, amount, orderCount);
+        Order updatedAsk = asks.add(ask);
+        // Notify listeners about changes
+        for (Listener l : listeners) {
+            if (updatedAsk != null) {
+                l.askUpdated(updatedAsk);
+            } else {
+                l.askAdded(ask);
+            }
+        }
     }
 
     /**
@@ -54,6 +72,10 @@ public class Orderbook {
      */
     public void removeBid(double price) {
         bids.remove(price);
+        // Notify listeners about changes
+        for (Listener l : listeners) {
+            l.bidRemoved(price);
+        }
     }
 
     /**
@@ -63,16 +85,24 @@ public class Orderbook {
      */
     public void removeAsk(double price) {
         asks.remove(price);
+        // Notify listeners about changes
+        for (Listener l : listeners) {
+            l.askRemoved(price);
+        }
     }
 
     /**
      * Add a new listener, if it is not already registered
      *
      * @param listener
+     * @return true if listener was added 
      */
-    public void addListener(OrderbookListener listener) {
-        if (!listeners.contains(listener)) {
+    public boolean addListener(Listener listener) {
+        if (listener != null && !listeners.contains(listener)) {
             listeners.add(listener);
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -82,7 +112,7 @@ public class Orderbook {
      * @param listener
      * @return
      */
-    public boolean removeListener(OrderbookListener listener) {
+    public boolean removeListener(Listener listener) {
         return listeners.remove(listener);
     }
 

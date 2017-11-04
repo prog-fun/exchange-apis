@@ -1,5 +1,7 @@
 package org.progfun;
 
+import org.progfun.orderbook.Orderbook;
+import org.progfun.orderbook.Order;
 import org.junit.Test;
 import static org.junit.Assert.*;
 

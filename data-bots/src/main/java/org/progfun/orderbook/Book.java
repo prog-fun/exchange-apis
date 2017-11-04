@@ -1,4 +1,4 @@
-package org.progfun;
+package org.progfun.orderbook;
 
 import java.util.NavigableSet;
 import java.util.TreeMap;
@@ -14,19 +14,25 @@ public class Book {
      * Add a new bid/ask order. If an order with that price is already
      * registered, the amount and orderCount will be added to it.
      *
-     * @param price
-     * @param amount
-     * @param orderCount
+     * @param order the new order to add to the book
+     * @return if this was a new order for the specific price, return null;
+     * if an order with that price was already registered and is
+     * now updated, return the updated order; if order == null return null
      */
-    public void add(double price, double amount, int orderCount) {
-        Order o = orders.get(price);
+    public Order add(Order order) {
+        if (order == null) {
+            return null;
+        }
+
+        Order o = orders.get(order.getPrice());
         if (o == null) {
             // First order for this price
-            o = new Order(price, amount, orderCount);
-            orders.put(price, o);
+            orders.put(order.getPrice(), order);
+            return null;
         } else {
             // Existing order, update amount and count
-            o.increase(amount, orderCount);
+            o.increase(order.getAmount(), order.getNumberOfOrders());
+            return o;
         }
     }
 
