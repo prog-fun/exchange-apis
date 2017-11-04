@@ -2,6 +2,7 @@ package org.progfun.connector;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -11,8 +12,6 @@ import java.util.logging.Logger;
 public class WebSocketConnector {
 
     WSClient client;
-
-    private static final Logger LOGGER = Logger.getLogger(WebSocketConnector.class.getName());
 
     // Only one listener allowed
     Parser listener;
@@ -50,6 +49,7 @@ public class WebSocketConnector {
                         listener.onMessage(message);
                     }
                 }
+
                 @Override
                 public void onError(Exception excptn) {
                     // On error we stop the party and notify the listener
@@ -59,11 +59,15 @@ public class WebSocketConnector {
                         listener.onError(excptn);
                     }
                 }
-                
             };
+            
+            client.connectBlocking();
 
         } catch (URISyntaxException ex) {
-            LOGGER.severe("Invalid WSS URL format: " + ex.getMessage());
+            System.out.println("Invalid WSS URL format: " + ex.getMessage());
+            return false;
+        } catch (InterruptedException ex) {
+            System.out.println("Could not connect: " + ex.getMessage());
             return false;
         }
         return true;
@@ -82,9 +86,24 @@ public class WebSocketConnector {
         try {
             client.closeBlocking();
         } catch (InterruptedException ex) {
-            LOGGER.info("Interrupted while closing connection");
+            System.out.println("Interrupted while closing connection");
         }
         return true;
+    }
+
+    /**
+     * Send a message to the WebSocket server (API)
+     *
+     * @param msg
+     * @return true on success, false on error (client not connected, etc)
+     */
+    public boolean send(String msg) {
+        if (client != null) {
+            client.send(msg);
+            return true;
+        } else {
+            return false;
+        }
     }
 
 }

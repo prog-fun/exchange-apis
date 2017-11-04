@@ -1,7 +1,6 @@
 package org.progfun.connector;
 
 import java.net.URI;
-import java.util.logging.Logger;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
@@ -10,26 +9,24 @@ import org.java_websocket.handshake.ServerHandshake;
  */
 abstract class WSClient extends WebSocketClient {
 
-    private static final Logger LOGGER = Logger.getLogger(WSClient.class.getName());
-
     WSClient(URI uri) {
         super(uri);
     }
 
     @Override
     public void onOpen(ServerHandshake sh) {
-        LOGGER.info("WebSocket connected");
+        System.out.println("WebSocket connected");
     }
 
     // onMessage class must be implemented in child class
     @Override
     public void onClose(int i, String string, boolean bln) {
-        LOGGER.info("WebSocket closed");
+        System.out.println("WebSocket closed");
     }
 
     @Override
     public void onError(Exception excptn) {
-        LOGGER.severe("WebSocket error: " + excptn.getMessage());
+        System.out.println("WebSocket error: " + excptn.getMessage());
     }
 
 }
