@@ -7,7 +7,8 @@ package org.progfun;
  * Currency pair information is stored in the associated market.
  */
 public class Order {
-
+    // TODO - test if double is good enough for prices! Maybe need to store it
+    // as an int with fixed precision? Or special Price class?
     private double price;
     private double amount;
     private Integer numOrders;

@@ -3,7 +3,7 @@ package org.progfun;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-public class OrderBookTests {
+public class OrderBookTest {
 
     @Test
     public void testEmpty() {
@@ -12,6 +12,7 @@ public class OrderBookTests {
         assertEquals(0, b.getAsks().size());
     }
 
+    // Test if simple adding works correctly
     @Test
     public void testAdd() {
         Orderbook b = new Orderbook();
@@ -23,14 +24,25 @@ public class OrderBookTests {
         b.addAsk(ASK_PRICE, ASK_AMOUNT, 1);
         assertEquals(1, b.getBids().size());
         assertEquals(1, b.getAsks().size());
+        // Check bid
         Double[] bidPrices = b.getBids().getOrderedPrices(false);
         assertNotNull(bidPrices);
-        double price = bidPrices[0];
         assertEquals(1, bidPrices.length);
-        assertEquals(BID_PRICE, price, 0.001);
-        Order b1 = b.getBids().getOrderForPrice(price);
+        double bp = bidPrices[0];
+        assertEquals(BID_PRICE, bp, 0.001);
+        Order b1 = b.getBids().getOrderForPrice(bp);
         assertNotNull(b1);
         assertEquals(BID_AMOUNT, b1.getAmount(), 0.001);
         assertEquals(BID_PRICE, b1.getPrice(), 0.001);
+        // Check ask
+        Double[] askPrices = b.getAsks().getOrderedPrices(true);
+        assertNotNull(askPrices);
+        assertEquals(1, bidPrices.length);
+        double ap = askPrices[0];
+        assertEquals(ASK_PRICE, ap, 0.001);
+        Order a1 = b.getAsks().getOrderForPrice(ap);
+        assertNotNull(a1);
+        assertEquals(ASK_AMOUNT, a1.getAmount(), 0.001);
+        assertEquals(ASK_PRICE, a1.getPrice(), 0.001);
     }
 }
