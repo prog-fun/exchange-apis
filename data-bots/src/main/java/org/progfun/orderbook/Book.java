@@ -31,7 +31,7 @@ public class Book {
             return null;
         } else {
             // Existing order, update amount and count
-            o.increase(order.getAmount(), order.getNumberOfOrders());
+            o.increase(order.getAmount(), order.getOrderCount());
             return o;
         }
     }

@@ -12,25 +12,25 @@ public class Order {
     // as an int with fixed precision? Or special Price class?
     private double price;
     private double amount;
-    private Integer numOrders;
+    private Integer orderCount;
 
     /**
      * Create a Bid or Ask order
      *
      * @param price
      * @param amount volume of the order, in base currency units
-     * @param numOrders number of real orders that have been aggregated in this
+     * @param orderCount number of real orders that have been aggregated in this
      * record (sometimes there are so many orders that we are interested to only
      * know the aggregated information). Value null, 0 or negative is
      * interpreted as "information not available"
      */
-    public Order(double price, double amount, Integer numOrders) {
+    public Order(double price, double amount, Integer orderCount) {
         this.price = price;
         this.amount = amount;
-        this.numOrders = numOrders;
-        if (numOrders != null && numOrders <= 0) {
+        this.orderCount = orderCount;
+        if (orderCount != null && orderCount <= 0) {
             // Mark as "no order count info available"
-            this.numOrders = null;
+            this.orderCount = null;
         }
     }
 
@@ -56,8 +56,8 @@ public class Order {
      *
      * @return
      */
-    public Integer getNumberOfOrders() {
-        return numOrders;
+    public Integer getOrderCount() {
+        return orderCount;
     }
 
     /**
@@ -65,11 +65,11 @@ public class Order {
      *
      * @param numOrders
      */
-    public void setNumberOfOrders(Integer numOrders) {
-        this.numOrders = numOrders;
+    public void setOrderCount(Integer numOrders) {
+        this.orderCount = numOrders;
         if (numOrders != null && numOrders <= 0) {
             // Mark as "no order count info available"
-            this.numOrders = null;
+            this.orderCount = null;
         }
     }
 
@@ -79,8 +79,13 @@ public class Order {
      * @param amount
      * @param orderCount
      */
-    public void increase(double amount, int orderCount) {
+    public void increase(double amount, Integer orderCount) {
         this.amount += amount;
+        if (this.orderCount != null && orderCount != null) {
+            this.orderCount += orderCount;
+        } else {
+            this.orderCount = orderCount;
+        }
     }
 
 }
