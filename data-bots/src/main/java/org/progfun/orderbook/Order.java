@@ -1,4 +1,4 @@
-package org.progfun;
+package org.progfun.orderbook;
 
 /**
  * Represents one market order: Bid or Ask Bid: someone wants to buy the base
@@ -8,31 +8,33 @@ package org.progfun;
  */
 public class Order {
 
-    private float price;
-    private float amount;
-    private Integer numOrders;
+    // TODO - test if double is good enough for prices! Maybe need to store it
+    // as an int with fixed precision? Or special Price class?
+    private double price;
+    private double amount;
+    private Integer count;
 
     /**
      * Create a Bid or Ask order
      *
      * @param price
      * @param amount volume of the order, in base currency units
-     * @param numOrders number of real orders that have been aggregated in this
+     * @param count number of real orders that have been aggregated in this
      * record (sometimes there are so many orders that we are interested to only
      * know the aggregated information). Value null, 0 or negative is
      * interpreted as "information not available"
      */
-    public Order(float price, float amount, Integer numOrders) {
+    public Order(double price, double amount, Integer count) {
         this.price = price;
         this.amount = amount;
-        this.numOrders = numOrders;
-        if (numOrders != null && numOrders <= 0) {
+        this.count = count;
+        if (count != null && count <= 0) {
             // Mark as "no order count info available"
-            this.numOrders = null;
+            this.count = null;
         }
     }
 
-    public float getPrice() {
+    public double getPrice() {
         return price;
     }
 
@@ -40,11 +42,11 @@ public class Order {
         this.price = price;
     }
 
-    public float getSize() {
+    public double getAmount() {
         return amount;
     }
 
-    public void setSize(float size) {
+    public void setAmount(float size) {
         this.amount = size;
     }
 
@@ -54,29 +56,38 @@ public class Order {
      *
      * @return
      */
-    public Integer getNumberOfOrders() {
-        return numOrders;
+    public Integer getCount() {
+        return count;
     }
 
     /**
      * Set the number of real orders that have been aggregated in this order.
-     * @param numOrders 
+     *
+     * @param count
      */
-    public void setNumberOfOrders(Integer numOrders) {
-        this.numOrders = numOrders;
-        if (numOrders != null && numOrders <= 0) {
+    public void setCount(Integer count) {
+        this.count = count;
+        if (count != null && count <= 0) {
             // Mark as "no order count info available"
-            this.numOrders = null;
+            this.count = null;
         }
     }
 
     /**
      * Increase amount and count of orders for this specific price
+     *
      * @param amount
-     * @param orderCount 
+     * @param count
      */
-    public void increase(float amount, int orderCount) {
+    public void increase(double amount, Integer count) {
         this.amount += amount;
+        if (this.count != null) {
+            if (count != null) {
+                this.count += count;
+            }
+        } else {
+            this.count = count;
+        }
     }
 
 }

@@ -1,5 +1,6 @@
 package org.progfun;
 
+import org.progfun.orderbook.Order;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,9 +24,9 @@ public class Market {
     private final List<Trade> trades = new ArrayList<>();
 
     /**
-     * Create a new market, convert the currencies to upper-case.
-     * Throws exception if one of currencies is null or empty
-     * 
+     * Create a new market, convert the currencies to upper-case. Throws
+     * exception if one of currencies is null or empty
+     *
      * @param baseCurrency Base currency that is traded: Bitcoin (BTC), Litecoin
      * (LTC), etc
      * @param quoteCurrency Currency in which the trade is happening: USD, EUR,
@@ -34,10 +35,10 @@ public class Market {
      */
     public Market(String baseCurrency, String quoteCurrency) throws Exception {
         if (baseCurrency == null || "".equals(baseCurrency)) {
-            throw new Exception("Base currency must be specified");
+            throw new InvalidFormatException("Base currency must be specified");
         }
         if (quoteCurrency == null || "".equals(quoteCurrency)) {
-            throw new Exception("Quote currency must be specified");
+            throw new InvalidFormatException("Quote currency must be specified");
         }
         this.baseCurrency = baseCurrency.toUpperCase();
         this.quoteCurrency = quoteCurrency.toUpperCase();
