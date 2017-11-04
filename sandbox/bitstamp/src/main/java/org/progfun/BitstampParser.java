@@ -1,16 +1,15 @@
 package org.progfun;
 
 import org.progfun.connector.Parser;
-import org.progfun.orderbook.Orderbook;
 
 import org.json.*;
 
 public class BitstampParser implements Parser {
 
-    private Orderbook orderbook;
+    private Market market;
 
-    public BitstampParser(Orderbook orderbook) {
-        this.orderbook = orderbook;
+    public BitstampParser(Market market) {
+        this.market = market;
     }
 
     public void onMessage(String jsonString) {
@@ -30,10 +29,10 @@ public class BitstampParser implements Parser {
                 String amount = bid.getString(1);
 
                 if (amount.equals("0")) {
-                    orderbook.removeBid(Double.valueOf(price));
+                    market.getOrderbook().removeBid(Double.valueOf(price));
                     log("Bid removed. " + amount + " at " + price);
                 } else {
-                    orderbook.addBid(Double.valueOf(price), Double.valueOf(amount), 1);
+                    market.getOrderbook().addBid(Double.valueOf(price), Double.valueOf(amount), 1);
                     log("Bid added. " + amount + " at " + price);
                 }
             }
@@ -45,10 +44,10 @@ public class BitstampParser implements Parser {
                 String amount = ask.getString(1);
 
                 if (amount.equals("0")) {
-                    orderbook.removeAsk(Double.valueOf(price));
+                    market.getOrderbook().removeAsk(Double.valueOf(price));
                     log("Ask removed. " + amount + " at " + price);
                 } else {
-                    orderbook.addAsk(Double.valueOf(price), Double.valueOf(amount), 1);
+                    market.getOrderbook().addAsk(Double.valueOf(price), Double.valueOf(amount), 1);
                     log("Ask added. " + amount + " at " + price);
                 }
             }

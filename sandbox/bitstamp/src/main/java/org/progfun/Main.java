@@ -1,24 +1,28 @@
 package org.progfun;
 
-import org.progfun.orderbook.Orderbook;
-
 import java.util.Scanner;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        Orderbook orderbook = new Orderbook();
-        orderbook.addListener(new SQLOrderbookListener());
+        try {
 
-        BitstampBot bot = new BitstampBot();
-        bot.bindMarket(orderbook,"btc", "usd");
+            Market market = new Market("btc", "usd");
+            market.getOrderbook().addListener(new SQLOrderbookListener());
 
-        // Wait for close...
-        Scanner scanner = new Scanner(System.in);
-        scanner.nextLine();
+            BitstampBot bot = new BitstampBot();
+            bot.bindMarket(market);
 
-        bot.disconnect();
+            // Wait for close...
+            Scanner scanner = new Scanner(System.in);
+            scanner.nextLine();
+
+            bot.disconnect();
+
+        } catch (InvalidFormatException e) {
+            e.printStackTrace();
+        }
 
     }
 
