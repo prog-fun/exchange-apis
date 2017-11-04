@@ -12,7 +12,7 @@ import org.progfun.Market;
 public class GeminiWebsocketClient extends WebSocketClient {
 
     Market market;
-    
+
     // The URL is wss://api.gemini.com/v1/marketdata/{symbol}
     private static final String API_URL_TEMPLATE = "wss://api.gemini.com/v1/marketdata/";
 
@@ -23,20 +23,22 @@ public class GeminiWebsocketClient extends WebSocketClient {
 
     /**
      * Creates a crawler for a specific market symbol (BTCUSD, etc)
-     * @param marketSymbol
-     * @throws URISyntaxException 
+     *
+     * @param baseCurrency BTC, etc
+     * @param quoteCurrency USD, etc
+     * @throws URISyntaxException
      */
-    GeminiWebsocketClient(String baseCurrency, String quoteCurrency) 
+    public GeminiWebsocketClient(String baseCurrency, String quoteCurrency)
             throws URISyntaxException, Exception {
         super(new URI(API_URL_TEMPLATE + getSymbol(baseCurrency, quoteCurrency)));
         market = new Market(baseCurrency, quoteCurrency);
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         log("Connecting...");
         GeminiWebsocketClient client;
         try {
-            client = new GeminiWebsocketClient("btcusd");
+            client = new GeminiWebsocketClient("BTC", "USD");
             client.start();
         } catch (URISyntaxException ex) {
             log("Something wrong with URL: " + ex.getMessage());
@@ -48,8 +50,6 @@ public class GeminiWebsocketClient extends WebSocketClient {
             if (!connectBlocking()) {
                 log("Could not connect to WebSocket server");
             }
-            log("Sending PING, should get PONG back...");
-            //send("{\"event\":\"ping\"}");
             // The easiest (hacky) way to wait for the response: sleep for some time
             Thread.sleep(3000);
             close();
@@ -83,6 +83,21 @@ public class GeminiWebsocketClient extends WebSocketClient {
     public void onError(Exception ex) {
         ex.printStackTrace();
         // if the error is fatal then onClose will be called additionally
+    }
+
+    /**
+     * Take a pair of currencies, convert it to a single symbols as understood
+     * by Gemini exchange
+     *
+     * @param baseCurrency
+     * @param quoteCurrency
+     * @return
+     */
+    private static String getSymbol(String baseCurrency, String quoteCurrency) {
+        if (baseCurrency == null || quoteCurrency == null) {
+            return null;
+        }
+        return baseCurrency.toLowerCase() + quoteCurrency.toLowerCase();
     }
 
 }
