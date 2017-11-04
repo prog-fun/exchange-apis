@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONArray;
@@ -80,16 +78,43 @@ public class GdaxWSClient extends WebSocketClient {
             String key = (String) it.next();
             jsonArray.put(JSONMessage.get(key));
         }
-        try {
-            log("Received: " + jsonArray.getJSONArray(1).getJSONArray(0));
+
+        if (JSONMessage.getString("bids").equals("snapshot")) {
+            System.out.println(jsonArray);
+            for (Object keys : jsonArray.getJSONArray(1)){
+                JSONArray bids = (JSONArray) keys;
+                orderbook.addBid(bids.getDouble(0), bids.getDouble(1), 0);
+            }
+            for (Object keys : jsonArray.getJSONArray(2)){
+                JSONArray asks = (JSONArray) keys;
+                orderbook.addAsk(asks.getDouble(0), asks.getDouble(1), 0);
+            }
+            System.out.println("yup");
+            /*it = null;
+                it = jsonArray.iterator();
+                System.out.println(jsonArray);
+                while (it.hasNext()) {
+                Object keys = it.next();
+                if (keys instanceof String){
+                System.out.println(keys);
+                } else {
+                snapshot = (JSONArray) keys;
+                }
+                }*/
+
+        } else if (JSONMessage.getString("type").equals("l2update")) {
+            //System.out.println("full:" + message);
+            //System.out.println("Received: " + jsonArray.getJSONArray(1).getJSONArray(0));
             String type = jsonArray.getJSONArray(1).getJSONArray(0).getString(0);
-            float price = Float.parseFloat(jsonArray.getJSONArray(1).getJSONArray(0).getString(1));
-            float count = Float.parseFloat(jsonArray.getJSONArray(1).getJSONArray(0).getString(2));
-            if (count == 0f) {
+            double price = jsonArray.getJSONArray(1).getJSONArray(0).getDouble(1);
+            double count = jsonArray.getJSONArray(1).getJSONArray(0).getDouble(2);
+
+            if (count == 0) {
                 if (type.equals("buy")) {
                     orderbook.removeAsk(price);
                 } else if (type.equals("sell")) {
                     orderbook.removeBid(price);
+
                 }
             } else {
                 if (type.equals("buy")) {
@@ -98,8 +123,6 @@ public class GdaxWSClient extends WebSocketClient {
                     orderbook.addBid(price, count, 0);
                 }
             }
-        } catch (JSONException e) {
-            System.out.println("JSON not recognized");
         }
 
         //log("Received: " + jsonArray);
