@@ -1,4 +1,8 @@
 /data-bots/nbproject/
 /data-bots/target/
 /sandbox/websocket-test/target/
+<<<<<<< HEAD
 /sandbox/HitBtcCrawler/target/
+=======
+sandbox/gemini-crawler/target
+>>>>>>> develop
