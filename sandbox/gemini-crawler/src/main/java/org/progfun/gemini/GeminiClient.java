@@ -41,9 +41,11 @@ public class GeminiClient {
     public void start() {
         System.out.println("Connecting...");
         WebSocketConnector connector = new WebSocketConnector();
-        // Here should be BitFinex parser
+
+        // Bind together different components: market, parser and listener
         parser = new GeminiParser();
         parser.setOrderbook(market.getOrderbook());
+        market.getOrderbook().addListener(new DummyOrderbookListener());
         connector.setListener(parser);
 
         String url = API_URL_TEMPLATE + symbol;
