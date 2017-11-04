@@ -50,6 +50,13 @@ public class WebSocketConnector {
                         listener.onMessage(message);
                     }
                 }
+                @Override
+                public void onError(Exception excptn) {
+                    // On error we stop the party
+                    super.onError(excptn);
+                    stop();
+                }
+                
             };
 
         } catch (URISyntaxException ex) {
