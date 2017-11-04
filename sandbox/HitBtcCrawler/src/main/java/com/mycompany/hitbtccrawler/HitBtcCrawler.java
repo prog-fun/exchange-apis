@@ -99,7 +99,8 @@ public class HitBtcCrawler extends WebSocketClient {
                 /*if (msg.getJSONObject("params").getString("ask")) {
                 
                 }*/
-                JSONArray asks = msg.getJSONObject("params").getJSONArray("ask");
+                JSONObject params = msg.getJSONObject("params");
+                JSONArray asks = params.getJSONArray("ask");
                 for (Object obj : asks) {
                     JSONObject ask = (JSONObject) obj;
                     double price = ask.getDouble("price");
@@ -107,7 +108,7 @@ public class HitBtcCrawler extends WebSocketClient {
                     orderBook.addAsk(price, size, 0);
                     
                 }
-                JSONArray bids = msg.getJSONObject("params").getJSONArray("bid");
+                JSONArray bids = params.getJSONArray("bid");
                 for (Object obj : bids) {
                     JSONObject bid = (JSONObject) obj;
                     double price = bid.getDouble("price");
@@ -116,8 +117,14 @@ public class HitBtcCrawler extends WebSocketClient {
                     
                 }
             } else {
-                double askSize = msg.getJSONObject("params").getJSONArray("ask").getJSONObject(0).getDouble("size");
-                double askPrice = msg.getJSONObject("params").getJSONArray("ask").getJSONObject(0).getDouble("price");
+                JSONObject params = msg.getJSONObject("params");
+                if (params.has("ask")) {
+                    JSONObject ask = params.getJSONObject("ask");
+                    // TODO - loop
+                    double askSize = ask.getJSONObject(0).getDouble("size");
+                    double askPrice = ask.getJSONObject(0).getDouble("price");
+                }
+                
                 double bidSize = msg.getJSONObject("params").getJSONArray("bid").getJSONObject(0).getDouble("size");
                 double bidPrice = msg.getJSONObject("params").getJSONArray("bid").getJSONObject(0).getDouble("price");
                 orderBook.addBid(bidPrice, bidSize, 0);
