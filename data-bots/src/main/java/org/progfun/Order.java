@@ -7,6 +7,7 @@ package org.progfun;
  * Currency pair information is stored in the associated market.
  */
 public class Order {
+
     // TODO - test if double is good enough for prices! Maybe need to store it
     // as an int with fixed precision? Or special Price class?
     private double price;
@@ -61,7 +62,8 @@ public class Order {
 
     /**
      * Set the number of real orders that have been aggregated in this order.
-     * @param numOrders 
+     *
+     * @param numOrders
      */
     public void setNumberOfOrders(Integer numOrders) {
         this.numOrders = numOrders;
@@ -73,8 +75,9 @@ public class Order {
 
     /**
      * Increase amount and count of orders for this specific price
+     *
      * @param amount
-     * @param orderCount 
+     * @param orderCount
      */
     public void increase(double amount, int orderCount) {
         this.amount += amount;

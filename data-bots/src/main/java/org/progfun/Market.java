@@ -23,9 +23,9 @@ public class Market {
     private final List<Trade> trades = new ArrayList<>();
 
     /**
-     * Create a new market, convert the currencies to upper-case.
-     * Throws exception if one of currencies is null or empty
-     * 
+     * Create a new market, convert the currencies to upper-case. Throws
+     * exception if one of currencies is null or empty
+     *
      * @param baseCurrency Base currency that is traded: Bitcoin (BTC), Litecoin
      * (LTC), etc
      * @param quoteCurrency Currency in which the trade is happening: USD, EUR,

@@ -36,7 +36,7 @@ public class MarketTest {
     public void testNullQuoteCurrency() throws Exception {
         Market m = new Market("BTC", null);
     }
-    
+
     /**
      * Test if creating a market makes the currencies uppercase
      */
@@ -46,5 +46,5 @@ public class MarketTest {
         assertEquals("BTC", m.getBaseCurrency());
         assertEquals("USD", m.getQuoteCurrency());
     }
-    
+
 }
