@@ -2,7 +2,10 @@ package org.progfun;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.progfun.orderbook.Orderbook;
+
+import org.progfun.orderbook.Book;
+import org.progfun.orderbook.Listener;
+import org.progfun.orderbook.Order;
 
 /**
  * Represents a market trading a pair of assets (Currencies). Example markets:
@@ -20,8 +23,13 @@ public class Market {
 
     private final String baseCurrency;
     private final String quoteCurrency;
-    private final Orderbook orderbook = new Orderbook();
+
+    private final Book bids = new Book();
+    private final Book asks = new Book();
+
     private final List<Trade> trades = new ArrayList<>();
+
+    private final List<Listener> listeners = new ArrayList<>();
 
     /**
      * Create a new market, convert the currencies to upper-case. Throws
@@ -52,7 +60,118 @@ public class Market {
         return quoteCurrency;
     }
 
-    public Orderbook getOrderbook() {
-        return orderbook;
+    public Book getBids() {
+        return bids;
+    }
+
+    public Book getAsks() {
+        return asks;
+    }
+
+    /**
+     * Add a new bid. If a bid with that price is already registered, the amount
+     * and orderCount will be added to it.
+     *
+     * @param price
+     * @param amount how much of the base currency buyer wants to buy
+     * @param orderCount how many orders have been aggregated in this bid. Use
+     * zero if count is not known.
+     */
+    public void addBid(double price, double amount, int orderCount) {
+        Order bid = new Order(price, amount, orderCount);
+        Order updatedBid = bids.add(bid);
+        // Notify listeners about changes
+        for (Listener l : listeners) {
+            if (updatedBid != null) {
+                // Check if the update resulted in a delete
+                if (updatedBid.getAmount() > 0) {
+                    l.bidUpdated(this, updatedBid);
+                } else {
+                    // Order was actually removed
+                    l.bidRemoved(this, price);
+                }
+            } else {
+                l.bidAdded(this, bid);
+            }
+        }
+    }
+
+    /**
+     * Add a new ask. If an ask with that price is already registered, the
+     * amount and orderCount will be added to it.
+     *
+     * @param price
+     * @param amount how much of the base currency seller wants to sell
+     * @param orderCount how many orders have been aggregated in this ask Use
+     * zero if count is not known.
+     */
+    public void addAsk(double price, double amount, int orderCount) {
+        Order ask = new Order(price, amount, orderCount);
+        Order updatedAsk = asks.add(ask);
+        // Notify listeners about changes
+        for (Listener l : listeners) {
+            if (updatedAsk != null) {
+                // Check if the update resulted in a delete
+                if (updatedAsk.getAmount() > 0) {
+                    l.askUpdated(this, updatedAsk);
+                } else {
+                    // Order was actually removed
+                    l.askRemoved(this, price);
+                }
+            } else {
+                l.askAdded(this, ask);
+            }
+        }
+    }
+
+    /**
+     * Remove a bid - all the orders at specific price
+     *
+     * @param price
+     */
+    public void removeBid(double price) {
+        bids.remove(price);
+        // Notify listeners about changes
+        for (Listener l : listeners) {
+            l.bidRemoved(this, price);
+        }
+    }
+
+    /**
+     * Remove an ask - all the orders at specific price
+     *
+     * @param price
+     */
+    public void removeAsk(double price) {
+        asks.remove(price);
+        // Notify listeners about changes
+        for (Listener l : listeners) {
+            l.askRemoved(this, price);
+        }
+    }
+
+    /**
+     * Add a new listener, if it is not already registered
+     *
+     * @param listener
+     * @return true if listener was added
+     */
+    public boolean addListener(Listener listener) {
+        if (listener != null && !listeners.contains(listener)) {
+            listeners.add(listener);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Remove listener. Return true if it was in the list.
+     *
+     * @param listener
+     * @return
+     */
+    public boolean removeListener(Listener listener) {
+        return listeners.remove(listener);
     }
 }
