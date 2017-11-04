@@ -13,4 +13,10 @@ public interface Parser {
      * @param message
      */
     public void onMessage(String message);
+
+    /**
+     * An error has occurred in the connector
+     * @param excptn 
+     */
+    public void onError(Exception excptn);
 }

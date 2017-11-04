@@ -52,9 +52,12 @@ public class WebSocketConnector {
                 }
                 @Override
                 public void onError(Exception excptn) {
-                    // On error we stop the party
+                    // On error we stop the party and notify the listener
                     super.onError(excptn);
                     stop();
+                    if (listener != null) {
+                        listener.onError(excptn);
+                    }
                 }
                 
             };
