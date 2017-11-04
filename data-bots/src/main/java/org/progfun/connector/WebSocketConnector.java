@@ -2,8 +2,6 @@ package org.progfun.connector;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Generic WebSocket client that can send commands to the API and generate event
