@@ -1,5 +1,6 @@
 package org.progfun.gemini;
 
+import java.io.IOException;
 import org.progfun.InvalidFormatException;
 import org.progfun.Market;
 import org.progfun.connector.WebSocketConnector;
@@ -7,7 +8,7 @@ import org.progfun.connector.WebSocketConnector;
 /**
  * Gemini Exchange API reader
  */
-public class GeminiClient {
+public class GeminiHandler {
 
     private final String symbol;
     Market market;
@@ -23,15 +24,15 @@ public class GeminiClient {
      * @param quoteCurrency USD, etc
      * @throws org.progfun.InvalidFormatException if currencies incorrect
      */
-    public GeminiClient(String baseCurrency, String quoteCurrency) throws InvalidFormatException {
+    public GeminiHandler(String baseCurrency, String quoteCurrency) throws InvalidFormatException {
         symbol = getSymbol(baseCurrency, quoteCurrency);
         market = new Market(baseCurrency, quoteCurrency);
     }
 
     public static void main(String[] args) {
-        GeminiClient client;
+        GeminiHandler client;
         try {
-            client = new GeminiClient("BTC", "USD");
+            client = new GeminiHandler("BTC", "USD");
             client.start();
         } catch (InvalidFormatException ex) {
             System.out.println("Invlid currency pair: " + ex.getMessage());
@@ -55,9 +56,9 @@ public class GeminiClient {
         }
 
         try {
-            Thread.sleep(5000);
-        } catch (InterruptedException ex) {
-            System.out.println("Oops, someone interrupted us");
+            System.in.read();
+        } catch (IOException ex) {
+            System.out.println("Something wrong with input");
         }
         if (connector.stop()) {
             System.out.println("Closed connection");
