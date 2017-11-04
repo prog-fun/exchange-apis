@@ -1,23 +1,17 @@
 package org.progfun;
 
-import com.pusher.client.channel.SubscriptionEventListener;
-import com.pusher.client.connection.ConnectionEventListener;
-import com.pusher.client.connection.ConnectionStateChange;
-import com.pusher.client.connection.ConnectionState;
-import com.pusher.client.Pusher;
-import com.pusher.client.PusherOptions;
-import com.pusher.client.channel.Channel;
+import org.progfun.orderbook.Orderbook;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Scanner;
 
 /**
- * https://www.bitstamp.net/websocket/
- * https://www.bitstamp.net/s/examples/live_diff_order_book.html
+ * API Documentation: https://www.bitstamp.net/websocket/
+ * Live Example: https://www.bitstamp.net/s/examples/live_diff_order_book.html
  */
 public class BitstampBot {
 
@@ -46,113 +40,73 @@ public class BitstampBot {
     public static final String EVENT_LIVE_ORDERS_ORDER_CHANGED = "order_changed";
     public static final String EVENT_LIVE_ORDERS_ORDER_DELETED = "order_deleted";
 
-    private Pusher pusher;
+    private PusherClient client;
 
-    public static String makeFullChannelName(String channel, String fromCurrency, String toCurrency) {
-        return channel + "_" + fromCurrency.toLowerCase() + toCurrency.toLowerCase();
+    public BitstampBot() {
+        client = new PusherClient(BITSTAMP_PUSHER_KEY);
     }
 
-    private static void log(String message) {
-        System.out.println("[Thread #" + Thread.currentThread().getId() + "] Bitstamp/Pusher: " + message);
+    public void bindMarket(Orderbook orderbook, String baseCurrency, String quoteCurrency) {
+
+        // Setup parser.
+        BitstampParser parser = new BitstampParser();
+
+        // Get initial state of the order book.
+        parser.parse(getFullOrderBook(), orderbook);
+
+        // Subscribe for updates.
+        String channelName = getChannelNameForMarket(CHANNEL_LIVE_FULL_ORDER_BOOK, baseCurrency, quoteCurrency);
+        client.subscribe(channelName);
+        client.bind(channelName, EVENT_LIVE_FULL_ORDER_BOOK_DATA, new PusherListener(parser, orderbook));
+
     }
 
-    public static void main(String[] args) {
-        BitstampBot bot = new BitstampBot();
-        bot.start();
+    public void disconnect() {
+        client.disconnect();
     }
 
-    private Channel subscribe(String channel, String fromCurrency, String toCurrency) {
-
+    public static String getChannelNameForMarket(String channel, String baseCurrency, String quoteCurrency) {
         // As BTC/USD is default, there is no equivalent channel with a _btcusd suffix.
-        if (fromCurrency.toLowerCase().equals("btc") && toCurrency.toLowerCase().equals("usd")) {
-            return pusher.subscribe(channel);
+        if (baseCurrency.toLowerCase().equals("btc") && quoteCurrency.toLowerCase().equals("usd")) {
+            return channel;
         }
-
-        // Other currencies:
-        return pusher.subscribe(makeFullChannelName(channel, fromCurrency, toCurrency));
-
+        return channel + "_" + baseCurrency.toLowerCase() + baseCurrency.toLowerCase();
     }
 
     public String getFullOrderBook() {
-
         try {
 
+            // Setup connection.
             URL url = new URL(HTTP_API_ORDER_BOOK_URL);
-
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
             int responseCode = connection.getResponseCode();
-
             if (responseCode != HttpURLConnection.HTTP_OK) {
                 return "";
             }
 
+            // Build incoming bytes as string.
             InputStream stream = connection.getInputStream();
-            StringBuilder builder = new StringBuilder(connection.getContentLength());
-
+            ByteArrayOutputStream result = new ByteArrayOutputStream(connection.getContentLength());
             byte[] buffer = new byte [4096];
-
-            // TODO: Use a condition?
-            while (true) {
-
+            while (true) { // TODO: Use a condition?
                 int lastRead = stream.read(buffer);
-
                 if (lastRead == -1) {
                     break;
                 }
-
-                builder.append(new String(buffer));
-
+                result.write(buffer, 0, lastRead);
             }
-
-            return builder.toString();
+            return result.toString();
 
         } catch (MalformedURLException e) {
             log("Malformed URL. " + e.getMessage());
         } catch (IOException e) {
             log(e.getMessage());
         }
-
         return "";
-
     }
 
-    public void start() {
-
-        PusherOptions options = new PusherOptions();
-
-        pusher = new Pusher(BITSTAMP_PUSHER_KEY, options);
-
-        pusher.connect(new ConnectionEventListener() {
-            @Override
-            public void onConnectionStateChange(ConnectionStateChange change) {
-                log("State changed from " + change.getPreviousState() + " to " + change.getCurrentState());
-            }
-
-            @Override
-            public void onError(String message, String code, Exception e) {
-                log("Error: " + message + " (" + code + ")");
-            }
-        }, ConnectionState.ALL);
-
-        String orderBookJSON = getFullOrderBook();
-        log("[START]\n" + orderBookJSON + "\n[END]\n");
-
-        Channel fullOrderBook = subscribe(CHANNEL_LIVE_FULL_ORDER_BOOK, "btc", "usd");
-        fullOrderBook.bind(EVENT_LIVE_FULL_ORDER_BOOK_DATA, new SubscriptionEventListener() {
-            @Override
-            public void onEvent(String channel, String event, String data) {
-                log(data + "\n");
-            }
-        });
-
-        // Wait for close...
-        Scanner scanner = new Scanner(System.in);
-        scanner.nextLine();
-
-        // Note: If connect() is called again, all channels will be resubscribed.
-        pusher.disconnect();
-
+    private static void log(String message) {
+        System.out.println("[Thread #" + Thread.currentThread().getId() + "] BitstampBot: " + message);
     }
 
 }
