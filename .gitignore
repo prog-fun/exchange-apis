@@ -2,3 +2,5 @@
 /data-bots/target/
 /sandbox/websocket-test/target/
 sandbox/gemini-crawler/target
+
+sandbox/bitfinexCrawler/BitFinexCrawler/target/
