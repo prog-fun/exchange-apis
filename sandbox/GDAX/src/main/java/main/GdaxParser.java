@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package main;
 
 import java.util.Iterator;
@@ -12,16 +7,19 @@ import org.progfun.connector.Parser;
 import org.progfun.orderbook.Orderbook;
 
 /**
- *
- * @author randr
+ * Handles the responses from the GDAX API and fills the orderbook with information
+ * from the responses
  */
 public class GdaxParser implements Parser {
 
-    private Orderbook orderbook = new Orderbook();
+    private final Orderbook orderbook = new Orderbook();
 
+    /**
+     * Handles the incoming messages from the API and puts it in the orderbook
+     * @param message The incoming message
+     */
     @Override
     public void onMessage(String message) {
-        System.out.println(message);
         JSONObject JSONMessage = new JSONObject(message);
         Iterator it = JSONMessage.keys();
         JSONArray jsonArray = new JSONArray();
@@ -62,10 +60,11 @@ public class GdaxParser implements Parser {
                 }
             }
         }
-        System.out.println("Number of bids: " + orderbook.getBids().size());
-        System.out.println("Number of asks: " + orderbook.getAsks().size());
     }
-
+    /**
+     * Prints out errors from the API
+     * @param excptn The incoming exception
+     */
     @Override
     public void onError(Exception excptn) {
         System.out.println(excptn.toString());

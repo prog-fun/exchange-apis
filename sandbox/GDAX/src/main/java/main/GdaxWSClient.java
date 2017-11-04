@@ -4,28 +4,26 @@ import java.io.IOException;
 import org.progfun.connector.WebSocketConnector;
 
 /**
- * Example WebSocket client subscribing to BitFinex stream
+ * Main class for the GDAX market, creates a websocket to connect to the API
+ * and a parser to handle the responses
  */
 public class GdaxWSClient {
 
     private static final String API_URL = "wss://ws-feed.gdax.com";
     private final WebSocketConnector webSocket = new WebSocketConnector();
-    GdaxParser parser = new GdaxParser();
-    
+    private final GdaxParser parser = new GdaxParser();
 
     private static void log(String msg) {
         Thread t = Thread.currentThread();
         System.out.println(msg + "[Thread #" + t.getId() + "]");
     }
 
-
     public static void main(String[] args) {
         log("Connecting...");
         GdaxWSClient client;
-        
-            client = new GdaxWSClient();
-            client.start();
 
+        client = new GdaxWSClient();
+        client.start();
     }
 
     public void start() {
