@@ -1,6 +1,8 @@
 package main;
 
 import javafx.application.Application;
+import javafx.beans.binding.ListBinding;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -8,10 +10,12 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import org.progfun.Market;
 import org.progfun.orderbook.Listener;
 import org.progfun.orderbook.Order;
 
@@ -20,12 +24,18 @@ import org.progfun.orderbook.Order;
  */
 public class Gui extends Application implements Listener{
     private final TableView table = new TableView();
+    private TableColumn bidPrice;
+    private TableColumn bidAmount;
+    private TableColumn askPrice;
+    private TableColumn askAmount;
+    private ObservableList<Order> list;
     public static void main(String[] args){
         launch(args);
     }
     
     @Override
     public void start(Stage stage) throws Exception {
+        
         Scene scene = new Scene(new Group());
         stage.setTitle("Table");
         stage.setWidth(300);
@@ -36,10 +46,10 @@ public class Gui extends Application implements Listener{
         
         table.setEditable(true);
         
-        TableColumn bidPrice = new TableColumn("Bid Price");
-        TableColumn bidAmount = new TableColumn("Bid Amount");
-        TableColumn askPrice = new TableColumn("Ask Price");
-        TableColumn askAmount = new TableColumn("Ask Amount");
+        bidPrice = new TableColumn("Bid Price");
+        bidAmount = new TableColumn("Bid Amount");
+        askPrice = new TableColumn("Ask Price");
+        askAmount = new TableColumn("Ask Amount");
         
         table.getColumns().addAll(bidPrice,bidAmount,askPrice,askAmount);
         
@@ -56,35 +66,35 @@ public class Gui extends Application implements Listener{
     }
 
     @Override
-    public void bidAdded(Order bid) {
-        
+    public void bidAdded(Market market, Order bid) {
+        bidPrice.setCellValueFactory(
+            new PropertyValueFactory("price"));
     }
 
     @Override
-    public void askAdded(Order ask) {
+    public void askAdded(Market market, Order ask) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void bidUpdated(Order bid) {
+    public void bidUpdated(Market market, Order bid) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void askUpdated(Order ask) {
+    public void askUpdated(Market market, Order ask) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void bidRemoved(double price) {
+    public void bidRemoved(Market market, double price) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void askRemoved(double price) {
+    public void askRemoved(Market market, double price) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
     
     
 }
