@@ -11,7 +11,7 @@ import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.progfun.Orderbook;
+import org.progfun.orderbook.Orderbook;
 
 /**
  * Example WebSocket client subscribing to BitFinex stream
