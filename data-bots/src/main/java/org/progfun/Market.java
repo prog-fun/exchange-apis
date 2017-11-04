@@ -35,10 +35,10 @@ public class Market {
      */
     public Market(String baseCurrency, String quoteCurrency) throws Exception {
         if (baseCurrency == null || "".equals(baseCurrency)) {
-            throw new Exception("Base currency must be specified");
+            throw new InvalidFormatException("Base currency must be specified");
         }
         if (quoteCurrency == null || "".equals(quoteCurrency)) {
-            throw new Exception("Quote currency must be specified");
+            throw new InvalidFormatException("Quote currency must be specified");
         }
         this.baseCurrency = baseCurrency.toUpperCase();
         this.quoteCurrency = quoteCurrency.toUpperCase();
