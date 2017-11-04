@@ -1,9 +1,12 @@
 package org.progfun;
 
+import java.util.Arrays;
+import java.util.Collections;
 import org.progfun.orderbook.Orderbook;
 import org.progfun.orderbook.Order;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.progfun.orderbook.Book;
 import org.progfun.orderbook.Listener;
 
 public class OrderBookTest {
@@ -49,6 +52,52 @@ public class OrderBookTest {
         assertEquals(ASK_PRICE, a1.getPrice(), 0.001);
     }
 
+    // Test if prices are ordered in correct sequence
+    @Test
+    public void testOrdering() {
+        Orderbook ob = new Orderbook();
+        Book bids = ob.getBids();
+        Book asks = ob.getAsks();
+
+        final double[] BID_PRICES = {7000.25, 7010.0, 6800.0, 6900};
+        final double[] ORDERED_BID_PRICES = {7010.0, 7000.25, 6900, 6800.0};
+
+        for (int i = 0; i < BID_PRICES.length; ++i) {
+            ob.addBid(BID_PRICES[i], 1, 1);
+        }
+
+        // Check if all orders are added
+        assertEquals(BID_PRICES.length, bids.size());
+
+        // Check if the prices are ordered correctly
+        Double[] orderedBids = bids.getOrderedPrices(false);
+        assertEquals(BID_PRICES.length, orderedBids.length);
+
+        // Create etalon ordering
+        for (int i = 0; i < orderedBids.length; ++i) {
+            assertEquals(orderedBids[i], ORDERED_BID_PRICES[i], 0.00000000001);
+        }
+    }
+
+    // Check if two orders with the same price are fused together correctly
+    @Test
+    public void testMerging() {
+        Orderbook ob = new Orderbook();
+        ob.addAsk(7000, 2, 5);
+        ob.addAsk(7100, 2, 5);
+        ob.addAsk(60.00008, 2, 5);
+        ob.addAsk(7000, 2, 5);
+        ob.addAsk(7000, 0.000003, 0);
+        Book asks = ob.getAsks();
+        assertEquals(3, asks.size());
+        Double[] prices = asks.getOrderedPrices(true);
+        final double DELTA = 0.00000000001;
+        
+        assertEquals(60.00008, prices[0], DELTA);
+        assertEquals(7000, prices[1], DELTA);
+        assertEquals(7100, prices[2], DELTA);
+    }
+
     @Test
     public void testNotifications() {
         Orderbook ob = new Orderbook();
@@ -72,14 +121,14 @@ public class OrderBookTest {
         assertEquals(l.numNewBids, 1);
         assertEquals(l.numUpdatedAsks, 1);
         assertEquals(l.numUpdatedBids, 0);
-        
+
         // Add one more bid with the same price
         ob.addBid(5, 17, 0);
         assertEquals(l.numNewAsks, 1);
         assertEquals(l.numNewBids, 1);
         assertEquals(l.numUpdatedAsks, 1);
         assertEquals(l.numUpdatedBids, 1);
-        
+
         // Remove ask
         ob.removeAsk(5);
         assertEquals(l.numNewAsks, 1);
