@@ -7,19 +7,21 @@ package com.mycompany.hitbtccrawler;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.progfun.orderbook.Orderbook;
 /**
  *
  * @author Simon
  */
 public class HitBtcCrawler extends WebSocketClient {
-
+    private Orderbook orderBook = new Orderbook();
     private static final String API_URL = "wss://api.hitbtc.com/api/2/ws";
 
     private static void log(String msg) {
@@ -78,8 +80,30 @@ public class HitBtcCrawler extends WebSocketClient {
     }
 
     @Override
-    public void onMessage(String message) {
-        log("Received: " + message);
+    public void onMessage(String message) { 
+        JSONObject msg = new JSONObject(message);
+      /*  Iterator it = msg.keys();
+        JSONArray arr = new JSONArray(); 
+        while (it.hasNext()) { 
+            String key = (String) it.next(); 
+            arr.put(msg.get(key));
+        } */
+        try {
+           
+       double askSize = msg.getJSONObject("params").getJSONArray("ask").getJSONObject(0).getDouble("size");
+       double askPrice = msg.getJSONObject("params").getJSONArray("ask").getJSONObject(0).getDouble("price");
+       double bidSize = msg.getJSONObject("params").getJSONArray("bid").getJSONObject(0).getDouble("size");
+       double bidPrice = msg.getJSONObject("params").getJSONArray("bid").getJSONObject(0).getDouble("price");
+       orderBook.addBid(bidPrice, bidSize, 0);
+       orderBook.addAsk(askPrice, askSize, 0);
+        }
+        catch (JSONException e) {
+            System.out.println("test" + e);
+        }
+        
+       //log(message); 
+                //log("Received: " + arr.getJSONArray(0).getString()
+         
     }
 
     @Override
