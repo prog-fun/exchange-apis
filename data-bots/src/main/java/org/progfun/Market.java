@@ -31,14 +31,14 @@ public class Market {
      * (LTC), etc
      * @param quoteCurrency Currency in which the trade is happening: USD, EUR,
      * NOK, etc
-     * @throws java.lang.Exception when one of currencies missing
+     * @throws InvalidFormatException when one of currencies missing
      */
-    public Market(String baseCurrency, String quoteCurrency) throws Exception {
+    public Market(String baseCurrency, String quoteCurrency) throws InvalidFormatException {
         if (baseCurrency == null || "".equals(baseCurrency)) {
-            throw new Exception("Base currency must be specified");
+            throw new InvalidFormatException("Base currency must be specified");
         }
         if (quoteCurrency == null || "".equals(quoteCurrency)) {
-            throw new Exception("Quote currency must be specified");
+            throw new InvalidFormatException("Quote currency must be specified");
         }
         this.baseCurrency = baseCurrency.toUpperCase();
         this.quoteCurrency = quoteCurrency.toUpperCase();

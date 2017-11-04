@@ -12,25 +12,25 @@ public class Order {
     // as an int with fixed precision? Or special Price class?
     private double price;
     private double amount;
-    private Integer orderCount;
+    private Integer count;
 
     /**
      * Create a Bid or Ask order
      *
      * @param price
      * @param amount volume of the order, in base currency units
-     * @param orderCount number of real orders that have been aggregated in this
+     * @param count number of real orders that have been aggregated in this
      * record (sometimes there are so many orders that we are interested to only
      * know the aggregated information). Value null, 0 or negative is
      * interpreted as "information not available"
      */
-    public Order(double price, double amount, Integer orderCount) {
+    public Order(double price, double amount, Integer count) {
         this.price = price;
         this.amount = amount;
-        this.orderCount = orderCount;
-        if (orderCount != null && orderCount <= 0) {
+        this.count = count;
+        if (count != null && count <= 0) {
             // Mark as "no order count info available"
-            this.orderCount = null;
+            this.count = null;
         }
     }
 
@@ -56,20 +56,20 @@ public class Order {
      *
      * @return
      */
-    public Integer getOrderCount() {
-        return orderCount;
+    public Integer getCount() {
+        return count;
     }
 
     /**
      * Set the number of real orders that have been aggregated in this order.
      *
-     * @param numOrders
+     * @param count
      */
-    public void setOrderCount(Integer numOrders) {
-        this.orderCount = numOrders;
-        if (numOrders != null && numOrders <= 0) {
+    public void setCount(Integer count) {
+        this.count = count;
+        if (count != null && count <= 0) {
             // Mark as "no order count info available"
-            this.orderCount = null;
+            this.count = null;
         }
     }
 
@@ -77,14 +77,16 @@ public class Order {
      * Increase amount and count of orders for this specific price
      *
      * @param amount
-     * @param orderCount
+     * @param count
      */
-    public void increase(double amount, Integer orderCount) {
+    public void increase(double amount, Integer count) {
         this.amount += amount;
-        if (this.orderCount != null && orderCount != null) {
-            this.orderCount += orderCount;
+        if (this.count != null) {
+            if (count != null) {
+                this.count += count;
+            }
         } else {
-            this.orderCount = orderCount;
+            this.count = count;
         }
     }
 

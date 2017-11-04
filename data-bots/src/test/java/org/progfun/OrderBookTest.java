@@ -1,7 +1,5 @@
 package org.progfun;
 
-import java.util.Arrays;
-import java.util.Collections;
 import org.progfun.orderbook.Orderbook;
 import org.progfun.orderbook.Order;
 import org.junit.Test;
@@ -85,7 +83,9 @@ public class OrderBookTest {
         Orderbook ob = new Orderbook();
         ob.addAsk(7000, 2, 5);
         ob.addAsk(7100, 2, 5);
-        ob.addAsk(60.00008, 2, 5);
+        ob.addAsk(60.00008, 2, 0);
+        ob.addAsk(60.00008, 4, 8);
+        ob.addAsk(60.00008, 6, 0);
         ob.addAsk(7000, 2, 5);
         ob.addAsk(7000, 0.000003, 0);
         Book asks = ob.getAsks();
@@ -96,6 +96,16 @@ public class OrderBookTest {
         assertEquals(60.00008, prices[0], DELTA);
         assertEquals(7000, prices[1], DELTA);
         assertEquals(7100, prices[2], DELTA);
+
+        Order o1 = asks.getOrderForPrice(7000);
+        assertEquals(4.000003, o1.getAmount(), DELTA);
+        assertEquals(10, o1.getCount(), DELTA);
+        Order o2 = asks.getOrderForPrice(7100);
+        assertEquals(2, o2.getAmount(), DELTA);
+        assertEquals(5, o2.getCount(), DELTA);
+        Order o3 = asks.getOrderForPrice(60.00008);
+        assertEquals(12, o3.getAmount(), DELTA);
+        assertEquals(8, o3.getCount(), DELTA);
     }
 
     @Test
