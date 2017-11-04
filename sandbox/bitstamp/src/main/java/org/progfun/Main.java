@@ -9,6 +9,7 @@ public class Main {
     public static void main(String[] args) {
 
         Orderbook orderbook = new Orderbook();
+        orderbook.addListener(new SQLOrderbookListener());
 
         BitstampBot bot = new BitstampBot();
         bot.bindMarket(orderbook,"btc", "usd");
