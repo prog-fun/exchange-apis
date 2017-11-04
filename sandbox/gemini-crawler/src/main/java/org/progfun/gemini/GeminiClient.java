@@ -11,6 +11,7 @@ public class GeminiClient {
 
     private final String symbol;
     Market market;
+    GeminiParser parser;
 
     // The URL is wss://api.gemini.com/v1/marketdata/{symbol}
     private static final String API_URL_TEMPLATE = "wss://api.gemini.com/v1/marketdata/";
@@ -41,7 +42,9 @@ public class GeminiClient {
         System.out.println("Connecting...");
         WebSocketConnector connector = new WebSocketConnector();
         // Here should be BitFinex parser
-        connector.setListener(new GeminiParser());
+        parser = new GeminiParser();
+        parser.setOrderbook(market.getOrderbook());
+        connector.setListener(parser);
 
         String url = API_URL_TEMPLATE + symbol;
         if (!connector.start(url)) {
