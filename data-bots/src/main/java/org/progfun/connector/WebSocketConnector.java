@@ -9,16 +9,18 @@ import java.util.logging.Logger;
  * for listener when a message arrives
  */
 public class WebSocketConnector {
+
     WSClient client;
 
     private static final Logger LOGGER = Logger.getLogger(WebSocketConnector.class.getName());
 
     // Only one listener allowed
     Parser listener;
-    
+
     /**
      * Set listener that will receive all messages from the remote server (API)
-     * @param listener 
+     *
+     * @param listener
      */
     public void setListener(Parser listener) {
         this.listener = listener;
@@ -30,7 +32,7 @@ public class WebSocketConnector {
     public void removeListener() {
         this.listener = null;
     }
-    
+
     /**
      * Start a WebSocket client in non-blocking mode. It will generate events in
      * another thread
@@ -49,24 +51,24 @@ public class WebSocketConnector {
                     }
                 }
             };
-            
-            
+
         } catch (URISyntaxException ex) {
             LOGGER.severe("Invalid WSS URL format: " + ex.getMessage());
             return false;
         }
         return true;
     }
-    
+
     /**
      * Stop the connection
+     *
      * @return true on success, false otherwise
      */
     public boolean stop() {
         if (client == null) {
             return false;
         }
-        
+
         try {
             client.closeBlocking();
         } catch (InterruptedException ex) {
