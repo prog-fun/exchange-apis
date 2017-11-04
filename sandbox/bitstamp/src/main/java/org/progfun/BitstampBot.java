@@ -49,15 +49,15 @@ public class BitstampBot {
     public void bindMarket(Orderbook orderbook, String baseCurrency, String quoteCurrency) {
 
         // Setup parser.
-        BitstampParser parser = new BitstampParser();
+        BitstampParser parser = new BitstampParser(orderbook);
 
         // Get initial state of the order book.
-        parser.parse(getFullOrderBook(), orderbook);
+        parser.onMessage(getFullOrderBook());
 
         // Subscribe for updates.
         String channelName = getChannelNameForMarket(CHANNEL_LIVE_FULL_ORDER_BOOK, baseCurrency, quoteCurrency);
         client.subscribe(channelName);
-        client.bind(channelName, EVENT_LIVE_FULL_ORDER_BOOK_DATA, new PusherListener(parser, orderbook));
+        client.bind(channelName, EVENT_LIVE_FULL_ORDER_BOOK_DATA, new PusherListener(parser));
 
     }
 

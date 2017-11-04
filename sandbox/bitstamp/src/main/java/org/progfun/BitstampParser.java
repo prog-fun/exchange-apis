@@ -1,13 +1,19 @@
 package org.progfun;
 
-import org.progfun.orderbook.Order;
+import org.progfun.connector.Parser;
 import org.progfun.orderbook.Orderbook;
 
 import org.json.*;
 
-public class BitstampParser {
+public class BitstampParser implements Parser {
 
-    public void parse(String jsonString, Orderbook orderbook) {
+    private Orderbook orderbook;
+
+    public BitstampParser(Orderbook orderbook) {
+        this.orderbook = orderbook;
+    }
+
+    public void onMessage(String jsonString) {
         try {
 
             JSONObject json = new JSONObject(jsonString);
@@ -50,6 +56,10 @@ public class BitstampParser {
         } catch (JSONException e) {
             log(e.getMessage());
         }
+    }
+
+    public void onError(Exception e) {
+        log("Error: " + e.getMessage());
     }
 
     private static void log(String message) {
