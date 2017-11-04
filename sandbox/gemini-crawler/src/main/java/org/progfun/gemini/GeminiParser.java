@@ -3,23 +3,23 @@ package org.progfun.gemini;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.progfun.Market;
 import org.progfun.connector.Parser;
-import org.progfun.orderbook.Orderbook;
 
 /**
  * Parses JSON updates from Gemini API
  */
 public class GeminiParser implements Parser {
 
-    private Orderbook orderbook;
+    private Market market;
 
-    public void setOrderbook(Orderbook orderbook) {
-        this.orderbook = orderbook;
+    public void setMarket(Market market) {
+        this.market = market;
     }
 
     @Override
     public void onMessage(String message) {
-        if (orderbook == null) {
+        if (market == null) {
             System.out.println("Message received without orderbook, ignoring");
             return;
         }
@@ -65,16 +65,16 @@ public class GeminiParser implements Parser {
                 if (rs.equals("0")) {
                     // Order removed, zero remaining
                     if (isBid) {
-                        orderbook.removeBid(price);
+                        market.removeBid(price);
                     } else {
-                        orderbook.removeAsk(price);
+                        market.removeAsk(price);
                     }
                 } else {
                     // Order added or updated
                     if (isBid) {
-                        orderbook.addBid(price, amount, 0);
+                        market.addBid(price, amount, 0);
                     } else {
-                        orderbook.addAsk(price, amount, 0);
+                        market.addAsk(price, amount, 0);
                     }
                 }
             }

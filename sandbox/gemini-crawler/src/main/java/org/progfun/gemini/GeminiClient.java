@@ -44,8 +44,8 @@ public class GeminiClient {
 
         // Bind together different components: market, parser and listener
         parser = new GeminiParser();
-        parser.setOrderbook(market.getOrderbook());
-        market.getOrderbook().addListener(new DummyOrderbookListener());
+        parser.setMarket(market);
+        market.addListener(new DummyOrderbookListener());
         connector.setListener(parser);
 
         String url = API_URL_TEMPLATE + symbol;

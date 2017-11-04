@@ -1,5 +1,6 @@
 package org.progfun.gemini;
 
+import org.progfun.Market;
 import org.progfun.orderbook.Listener;
 import org.progfun.orderbook.Order;
 
@@ -9,32 +10,32 @@ import org.progfun.orderbook.Order;
 public class DummyOrderbookListener implements Listener {
 
     @Override
-    public void bidAdded(Order bid) {
+    public void bidAdded(Market market, Order bid) {
         System.out.println("ADD Bid: " + bid.getPrice() + " [" + bid.getAmount() + "]");
     }
 
     @Override
-    public void askAdded(Order ask) {
+    public void askAdded(Market market, Order ask) {
         System.out.println("ADD Ask: " + ask.getPrice() + " [" + ask.getAmount() + "]");
     }
 
     @Override
-    public void bidUpdated(Order bid) {
+    public void bidUpdated(Market market, Order bid) {
         System.out.println("UPD Bid: " + bid.getPrice() + " [" + bid.getAmount() + "]");
     }
 
     @Override
-    public void askUpdated(Order ask) {
+    public void askUpdated(Market market, Order ask) {
         System.out.println("UPD ask: " + ask.getPrice() + " [" + ask.getAmount() + "]");
     }
 
     @Override
-    public void bidRemoved(double price) {
+    public void bidRemoved(Market market, double price) {
         System.out.println("REM bid: " + price);
     }
 
     @Override
-    public void askRemoved(double price) {
+    public void askRemoved(Market market, double price) {
         System.out.println("REM ask: " + price);
     }
 
