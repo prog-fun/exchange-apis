@@ -1,5 +1,7 @@
 package org.progfun;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.progfun.connector.WebSocketConnector;
 
 /**

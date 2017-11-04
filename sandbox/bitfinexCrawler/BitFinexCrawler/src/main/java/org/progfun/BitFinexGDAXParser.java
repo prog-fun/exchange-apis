@@ -8,15 +8,12 @@ package org.progfun;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.progfun.connector.Parser;
-import org.progfun.orderbook.Orderbook;
 
 /**
  *
  * @author olavt
  */
 public class BitFinexGDAXParser implements Parser {
-
-    private Orderbook orderbook = new Orderbook();
     
     private final int GET_VERSION = 0;
     private final int SUBSCRIBE = 1;
@@ -24,6 +21,12 @@ public class BitFinexGDAXParser implements Parser {
     private final int UPDATING = 3;
 
     private int state = 0;
+    
+    private Market market;
+
+    public BitFinexGDAXParser() throws InvalidFormatException {
+        this.market = new Market("BTC", "USD");
+    }
     
     @Override
     public void onMessage(String message) {
@@ -73,23 +76,23 @@ public class BitFinexGDAXParser implements Parser {
             System.out.println("Price: " + price + ", Count: " + count + ", Amount: " + amount);
             if (count > 0) {
                 if (amount > 0) {
-                    orderbook.addBid(price, amount, count);
+                    market.addBid(price, amount, count);
                 } else if (amount < 0) {
-                    orderbook.addAsk(price, amount, count);
+                    market.addAsk(price, amount, count);
                 }
             } else if (count == 0) {
                 if (amount == 1) {
-                    orderbook.removeBid(price);
+                    market.removeBid(price);
                 } else if (amount == -1) {
-                    orderbook.removeAsk(price);
+                    market.removeAsk(price);
                 }
             }
         } catch (Exception e) {
             System.out.println("ops");
         }
 
-        System.out.println("Ask: " + orderbook.getAsks().size());
-        System.out.println("Bid: " + orderbook.getBids().size());
+        System.out.println("Ask: " + market.getAsks().size());
+        System.out.println("Bid: " + market.getBids().size());
     }
 
     private void addSnapshot(String message) {
@@ -102,14 +105,14 @@ public class BitFinexGDAXParser implements Parser {
             double amount = values.getDouble(2);
             if (count > 0) {
                 if (amount > 0) {
-                    orderbook.addBid(price, amount, count);
+                    market.addBid(price, amount, count);
                 } else if (amount < 0) {
-                    orderbook.addAsk(price, amount, count);
+                    market.addAsk(price, amount, count);
                 }
             }
         }
-        System.out.println(orderbook.getAsks().size());
-        System.out.println(orderbook.getBids().size());
+        System.out.println(market.getAsks().size());
+        System.out.println(market.getBids().size());
     }
     
 }
