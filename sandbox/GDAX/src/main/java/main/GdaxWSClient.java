@@ -52,23 +52,12 @@ public class GdaxWSClient {
         log("Connection was interrupted");
 
     }
-
-    /* Some code taken from 
-       https://github.com/TooTallNate/Java-WebSocket/blob/master/src/main/example/ExampleClient.java
-     */
-    public void onOpen(ServerHandshake handshakedata) {
-        log("Opened connection");
-        // if you plan to refuse connection based on ip or httpfields overload: onWebsocketHandshakeReceivedAsClient
-    }
-
     /**
      * Gets called when a message is received, performes all required logic on
      * the message and sends it to the orderbook
-     *
-     * @param message The incoming message
      */
-    public void onMessage(String message) {
-
+    public void onMessage() {
+        String message = WebSocket.
         JSONObject JSONMessage = new JSONObject(message);
         Iterator it = JSONMessage.keys();
         JSONArray jsonArray = new JSONArray();
