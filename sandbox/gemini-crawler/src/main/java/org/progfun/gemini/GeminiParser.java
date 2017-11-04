@@ -61,7 +61,7 @@ public class GeminiParser implements Parser {
                 Double price = event.getDouble("price");
                 boolean isBid = event.getString("side").equals("bid");
                 rs = event.getString("remaining");
-                Double amount = Double.parseDouble(rs);
+                Double delta = event.getDouble("delta");
                 if (rs.equals("0")) {
                     // Order removed, zero remaining
                     if (isBid) {
@@ -72,9 +72,9 @@ public class GeminiParser implements Parser {
                 } else {
                     // Order added or updated
                     if (isBid) {
-                        market.addBid(price, amount, 0);
+                        market.addBid(price, delta, 0);
                     } else {
-                        market.addAsk(price, amount, 0);
+                        market.addAsk(price, delta, 0);
                     }
                 }
             }
