@@ -5,6 +5,14 @@ import org.progfun.orderbook.Order;
 
 import java.sql.*;
 
+/**
+ *
+ * Expected table structure:
+ *  market    ( id, base_currency, quote_currency )
+ *  bid       ( id, price, amount, count, market_id )
+ *  ask       ( id, price, amount, count, market_id )
+ *
+ */
 public class SQLOrderbookListener implements Listener {
 
     private Connection connection;
