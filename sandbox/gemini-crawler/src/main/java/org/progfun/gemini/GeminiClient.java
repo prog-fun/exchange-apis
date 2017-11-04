@@ -1,6 +1,8 @@
 package org.progfun.gemini;
 
+import org.progfun.InvalidFormatException;
 import org.progfun.Market;
+import org.progfun.connector.WebSocketConnector;
 
 /**
  * Gemini Exchange API reader
@@ -18,61 +20,45 @@ public class GeminiClient {
      *
      * @param baseCurrency BTC, etc
      * @param quoteCurrency USD, etc
+     * @throws org.progfun.InvalidFormatException if currencies incorrect
      */
-    public GeminiClient(String baseCurrency, String quoteCurrency) {
+    public GeminiClient(String baseCurrency, String quoteCurrency) throws InvalidFormatException {
         symbol = getSymbol(baseCurrency, quoteCurrency);
         market = new Market(baseCurrency, quoteCurrency);
     }
 
-    public static void main(String[] args) throws Exception {
-        log("Connecting...");
+    public static void main(String[] args) {
         GeminiClient client;
         try {
             client = new GeminiClient("BTC", "USD");
             client.start();
-        } catch (URISyntaxException ex) {
-            log("Something wrong with URL: " + ex.getMessage());
+        } catch (InvalidFormatException ex) {
+            System.out.println("Invlid currency pair: " + ex.getMessage());
         }
     }
 
     public void start() {
-        try {
-            if (!connectBlocking()) {
-                log("Could not connect to WebSocket server");
-            }
-            // The easiest (hacky) way to wait for the response: sleep for some time
-            Thread.sleep(3000);
-            close();
+        System.out.println("Connecting...");
+        WebSocketConnector connector = new WebSocketConnector();
+        // Here should be BitFinex parser
+        connector.setListener(new GeminiParser());
 
-        } catch (InterruptedException ex) {
-            log("Connection was interrupted");
+        String url = API_URL_TEMPLATE + symbol;
+        if (!connector.start(url)) {
+            System.out.println("Could not start WebSocket connector");
+            return;
         }
-    }
 
-    /* Some code taken from 
-       https://github.com/TooTallNate/Java-WebSocket/blob/master/src/main/example/ExampleClient.java
-     */
-    @Override
-    public void onOpen(ServerHandshake handshakedata) {
-        log("Opened connection");
-        // if you plan to refuse connection based on ip or httpfields overload: onWebsocketHandshakeReceivedAsClient
-    }
-
-    @Override
-    public void onMessage(String message) {
-        log("Received: " + message);
-    }
-
-    @Override
-    public void onClose(int code, String reason, boolean remote) {
-        // The codecodes are documented in class org.java_websocket.framing.CloseFrame
-        log("Connection closed by " + (remote ? "remote peer" : "us") + " Code: " + code + " Reason: " + reason);
-    }
-
-    @Override
-    public void onError(Exception ex) {
-        ex.printStackTrace();
-        // if the error is fatal then onClose will be called additionally
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException ex) {
+            System.out.println("Oops, someone interrupted us");
+        }
+        if (connector.stop()) {
+            System.out.println("Closed connection");
+        } else {
+            System.out.println("Failed to close connection");
+        }
     }
 
     /**
