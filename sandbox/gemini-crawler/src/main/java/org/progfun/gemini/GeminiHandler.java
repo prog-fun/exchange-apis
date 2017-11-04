@@ -13,6 +13,7 @@ public class GeminiHandler {
     private final String symbol;
     Market market;
     GeminiParser parser;
+    WebSocketConnector connector;
 
     // The URL is wss://api.gemini.com/v1/marketdata/{symbol}
     private static final String API_URL_TEMPLATE = "wss://api.gemini.com/v1/marketdata/";
@@ -24,7 +25,7 @@ public class GeminiHandler {
      * @param quoteCurrency USD, etc
      * @throws org.progfun.InvalidFormatException if currencies incorrect
      */
-    public GeminiHandler(String baseCurrency, String quoteCurrency) throws InvalidFormatException {
+    public void setMarket(|String baseCurrency, String quoteCurrency) throws InvalidFormatException {
         symbol = getSymbol(baseCurrency, quoteCurrency);
         market = new Market(baseCurrency, quoteCurrency);
     }
@@ -33,15 +34,27 @@ public class GeminiHandler {
         GeminiHandler client;
         try {
             client = new GeminiHandler("BTC", "USD");
-            client.start();
+            client.connect();
+            System.in.read(); // Wait for <Enter>
+            client.disconnect();
+        } catch (IOException ex) {
+            System.out.println("Something wrong with input");
         } catch (InvalidFormatException ex) {
             System.out.println("Invlid currency pair: " + ex.getMessage());
         }
     }
 
-    public void start() {
+    public void setMarket(Market market) {
+        this.market = market;
+    }
+    
+    /**
+     * Connect and start listening for API messages
+     * @return true on successful start, false otherwise
+     */
+    public boolean connect() {
         System.out.println("Connecting...");
-        WebSocketConnector connector = new WebSocketConnector();
+        connector = new WebSocketConnector();
 
         // Bind together different components: market, parser and listener
         parser = new GeminiParser();
@@ -50,16 +63,18 @@ public class GeminiHandler {
         connector.setListener(parser);
 
         String url = API_URL_TEMPLATE + symbol;
-        if (!connector.start(url)) {
+        if (connector.start(url)) {
+            return true;
+        } else {
             System.out.println("Could not start WebSocket connector");
-            return;
+            return false;
         }
+    }
 
-        try {
-            System.in.read();
-        } catch (IOException ex) {
-            System.out.println("Something wrong with input");
-        }
+    /**
+     * Stop listening for data from API
+     */
+    public void disconnect() {
         if (connector.stop()) {
             System.out.println("Closed connection");
         } else {
