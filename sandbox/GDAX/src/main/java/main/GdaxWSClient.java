@@ -13,19 +13,22 @@ public class GdaxWSClient {
     private final WebSocketConnector webSocket = new WebSocketConnector();
     private final GdaxParser parser = new GdaxParser();
 
-    private static void log(String msg) {
-        Thread t = Thread.currentThread();
-        System.out.println(msg + "[Thread #" + t.getId() + "]");
-    }
-
+    /**
+     * Main method for the GDAX crawler
+     * @param args 
+     */
     public static void main(String[] args) {
-        log("Connecting...");
+        System.out.println("Connecting...");
         GdaxWSClient client;
 
         client = new GdaxWSClient();
         client.start();
     }
-
+    /**
+     * Sets the listener for the WebSocketConnector and starts the connection
+     * Sends the required JSON to subscribe to the correct channel
+     * Stops the connection after Enter is pressed
+     */
     public void start() {
         webSocket.setListener(parser);
         webSocket.start(API_URL);
@@ -40,7 +43,7 @@ public class GdaxWSClient {
 
         webSocket.stop();
 
-        log("Connection has closed");
+        System.out.println("Connection has closed");
 
     }
 }
