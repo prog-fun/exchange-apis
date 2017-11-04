@@ -1,11 +1,16 @@
 package org.progfun;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Orderbook with bids and asks
  */
 public class Orderbook {
-    private Book bids = new Book();
-    private Book asks = new Book();
+    private final Book bids = new Book();
+    private final Book asks = new Book();
+    
+    private final List<OrderbookListener> listeners = new ArrayList<>();
 
     public Book getBids() {
         return bids;
@@ -54,6 +59,25 @@ public class Orderbook {
      */
     public void removeAsk(double price) {
         asks.remove(price);
+    }
+    
+    /**
+     * Add a new listener, if it is not already registered
+     * @param listener 
+     */
+    public void addListener(OrderbookListener listener) {
+        if (!listeners.contains(listener)) {
+            listeners.add(listener);
+        }
+    }
+    
+    /**
+     * Remove listener. Return true if it was in the list.
+     * @param listener
+     * @return 
+     */
+    public boolean removeListener(OrderbookListener listener) {
+        return listeners.remove(listener);
     }
 
 }
