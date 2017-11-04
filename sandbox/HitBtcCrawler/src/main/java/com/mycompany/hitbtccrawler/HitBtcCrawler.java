@@ -1,15 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.mycompany.hitbtccrawler;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONArray;
@@ -87,54 +80,46 @@ public class HitBtcCrawler extends WebSocketClient {
     @Override
     public void onMessage(String message) {
         JSONObject msg = new JSONObject(message);
-        System.out.println(msg);
-        /*  Iterator it = msg.keys();
-        JSONArray arr = new JSONArray(); 
-        while (it.hasNext()) { 
-            String key = (String) it.next(); 
-            arr.put(msg.get(key));
-        } */
         try {
-            if (msg.getString("method").equals("snapshotOrderbook")) {
-                /*if (msg.getJSONObject("params").getString("ask")) {
-                
-                }*/
-                JSONObject params = msg.getJSONObject("params");
+
+            JSONObject params = msg.getJSONObject("params");
+            if (params.has("ask")) {
                 JSONArray asks = params.getJSONArray("ask");
                 for (Object obj : asks) {
                     JSONObject ask = (JSONObject) obj;
-                    double price = ask.getDouble("price");
-                    double size = ask.getDouble("size");
-                    orderBook.addAsk(price, size, 0);
-                    
+                    String askSizeString = ask.getString("size");
+                    double askSize = Double.parseDouble(askSizeString);
+                    double askPrice = ask.getDouble("price");
+                    if (askSizeString.equals("0.00")) {
+                        orderBook.removeAsk(askPrice);
+                    } else {
+                        orderBook.addAsk(askPrice, askSize, 0);
+                    }
                 }
-                JSONArray bids = params.getJSONArray("bid");
+
+            }
+            if (params.has("bid")) {
+                JSONArray bids = params.getJSONArray("ask");
                 for (Object obj : bids) {
                     JSONObject bid = (JSONObject) obj;
-                    double price = bid.getDouble("price");
-                    double size = bid.getDouble("size");
-                    orderBook.addAsk(price, size, 0);
-                    
+                    String bidSizeString = bid.getString("size");
+                    double bidSize = Double.parseDouble(bidSizeString);
+                    double bidPrice = bid.getDouble("price");
+                    if (bidSizeString.equals("0.00")) {
+                        orderBook.removeBid(bidPrice);
+                    } else {
+                        orderBook.addBid(bidPrice, bidSize, 0);
+                    }
                 }
-            } else {
-                JSONObject params = msg.getJSONObject("params");
-                if (params.has("ask")) {
-                    JSONObject ask = params.getJSONObject("ask");
-                    // TODO - loop
-                    double askSize = ask.getJSONObject(0).getDouble("size");
-                    double askPrice = ask.getJSONObject(0).getDouble("price");
-                }
-                
-                double bidSize = msg.getJSONObject("params").getJSONArray("bid").getJSONObject(0).getDouble("size");
-                double bidPrice = msg.getJSONObject("params").getJSONArray("bid").getJSONObject(0).getDouble("price");
-                orderBook.addBid(bidPrice, bidSize, 0);
-                orderBook.addAsk(askPrice, askSize, 0);
+
             }
+            System.out.println("bids: " + orderBook.getBids().size());
+            System.out.println("asks: " + orderBook.getAsks().size());
         } catch (JSONException e) {
             System.out.println("test" + e);
         }
 
-        log(message); 
+        log(message);
         //log("Received: " + arr.getJSONArray(0).getString()
     }
 
