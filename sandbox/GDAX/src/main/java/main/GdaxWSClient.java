@@ -1,23 +1,22 @@
 package main;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Iterator;
-import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
+import org.progfun.connector.WebSocketConnector;
 import org.progfun.orderbook.Orderbook;
 
 /**
  * Example WebSocket client subscribing to BitFinex stream
  */
-public class GdaxWSClient extends WebSocketClient {
+public class GdaxWSClient {
 
     private static final String API_URL = "wss://ws-feed.gdax.com";
     private Orderbook orderbook = new Orderbook();
+    private WebSocketConnector WebSocket = new WebSocketConnector();
 
     private static void log(String msg) {
         Thread t = Thread.currentThread();
@@ -25,7 +24,8 @@ public class GdaxWSClient extends WebSocketClient {
     }
 
     GdaxWSClient() throws URISyntaxException {
-        super(new URI(API_URL));
+        WebSocket.start(API_URL);
+
     }
 
     public static void main(String[] args) {
@@ -40,30 +40,22 @@ public class GdaxWSClient extends WebSocketClient {
     }
 
     public void start() {
+
+        WebSocket.send("{\"type\": \"subscribe\",\"product_ids\": [\"BTC-USD\"],\"channels\": [\"level2\"]}");
         try {
-            if (!connectBlocking()) {
-                log("Could not connect to WebSocket server");
-            }
-            //send("{\"type\": \"subscribe\",\"product_ids\": [\"BTC-USD\"],\"channels\": [\"level2\",\"heartbeat\",{\"name\": \"ticker\", \"product_id\": [\"BTC-USD\"]}]}");
-            send("{\"type\": \"subscribe\",\"product_ids\": [\"BTC-USD\"],\"channels\": [\"level2\"]}");
-            // The easiest (hacky) way to wait for the response: sleep for some time
-            //Thread.sleep(10000);
-            try {
-                System.in.read();
-            } catch (IOException e) {
-            }
-
-            close();
-
-        } catch (InterruptedException ex) {
-            log("Connection was interrupted");
+            System.in.read();
+        } catch (IOException e) {
         }
+
+        WebSocket.stop();
+
+        log("Connection was interrupted");
+
     }
 
     /* Some code taken from 
        https://github.com/TooTallNate/Java-WebSocket/blob/master/src/main/example/ExampleClient.java
      */
-    @Override
     public void onOpen(ServerHandshake handshakedata) {
         log("Opened connection");
         // if you plan to refuse connection based on ip or httpfields overload: onWebsocketHandshakeReceivedAsClient
@@ -75,7 +67,6 @@ public class GdaxWSClient extends WebSocketClient {
      *
      * @param message The incoming message
      */
-    @Override
     public void onMessage(String message) {
 
         JSONObject JSONMessage = new JSONObject(message);
@@ -123,17 +114,4 @@ public class GdaxWSClient extends WebSocketClient {
 
         //log("Received: " + jsonArray);
     }
-
-    @Override
-    public void onClose(int code, String reason, boolean remote) {
-        // The codecodes are documented in class org.java_websocket.framing.CloseFrame
-        log("Connection closed by " + (remote ? "remote peer" : "us") + " Code: " + code + " Reason: " + reason);
-    }
-
-    @Override
-    public void onError(Exception ex) {
-        ex.printStackTrace();
-        // if the error is fatal then onClose will be called additionally
-    }
-
 }
