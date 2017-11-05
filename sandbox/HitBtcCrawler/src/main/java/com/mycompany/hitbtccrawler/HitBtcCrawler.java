@@ -2,13 +2,13 @@ package com.mycompany.hitbtccrawler;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Iterator;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.progfun.orderbook.Orderbook;
+import org.progfun.InvalidFormatException;
+import org.progfun.Market;
 
 /**
  *
@@ -16,7 +16,7 @@ import org.progfun.orderbook.Orderbook;
  */
 public class HitBtcCrawler extends WebSocketClient {
 
-    private Orderbook orderBook = new Orderbook();
+    private Market market;
     private static final String API_URL = "wss://api.hitbtc.com/api/2/ws";
 
     private static void log(String msg) {
@@ -26,6 +26,11 @@ public class HitBtcCrawler extends WebSocketClient {
 
     HitBtcCrawler() throws URISyntaxException {
         super(new URI(API_URL));
+        try {
+            this.market = new Market("BTC", "USD");
+        } catch (InvalidFormatException ex) {
+            System.out.println("Invalid currencies for market: " + ex.getMessage());
+        }
     }
 
     public static void main(String[] args) {
@@ -91,9 +96,9 @@ public class HitBtcCrawler extends WebSocketClient {
                     double askSize = Double.parseDouble(askSizeString);
                     double askPrice = ask.getDouble("price");
                     if (askSizeString.equals("0.00")) {
-                        orderBook.removeAsk(askPrice);
+                        market.removeAsk(askPrice);
                     } else {
-                        orderBook.addAsk(askPrice, askSize, 0);
+                        market.addAsk(askPrice, askSize, 0);
                     }
                 }
 
@@ -106,15 +111,15 @@ public class HitBtcCrawler extends WebSocketClient {
                     double bidSize = Double.parseDouble(bidSizeString);
                     double bidPrice = bid.getDouble("price");
                     if (bidSizeString.equals("0.00")) {
-                        orderBook.removeBid(bidPrice);
+                        market.removeBid(bidPrice);
                     } else {
-                        orderBook.addBid(bidPrice, bidSize, 0);
+                        market.addBid(bidPrice, bidSize, 0);
                     }
                 }
 
             }
-            System.out.println("bids: " + orderBook.getBids().size());
-            System.out.println("asks: " + orderBook.getAsks().size());
+            System.out.println("bids: " + market.getBids().size());
+            System.out.println("asks: " + market.getAsks().size());
         } catch (JSONException e) {
             System.out.println("test" + e);
         }
