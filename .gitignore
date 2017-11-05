@@ -1,8 +1,8 @@
 /data-bots/nbproject/
+/data-bots/.idea/
+/data-bots/data-bots.iml
 /data-bots/target/
-/sandbox/websocket-test/target/
-<<<<<<< HEAD
-/sandbox/HitBtcCrawler/target/
-=======
-sandbox/gemini-crawler/target
->>>>>>> develop
+/sandbox/**/target/
+/sandbox/**/.idea
+/sandbox/bitstamp/bitstamp.iml
+/sandbox/**/nbproject/
