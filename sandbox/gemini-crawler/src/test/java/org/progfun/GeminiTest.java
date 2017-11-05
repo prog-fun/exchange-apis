@@ -56,7 +56,7 @@ public class GeminiTest {
         assertEquals(1.5, a2.getAmount(), DELTA);
     }
 
-    private List<String> prepareTestMessages() {
+    public static List<String> prepareTestMessages() {
         // Read the message file
         List<String> messages = new LinkedList<>();
         try {

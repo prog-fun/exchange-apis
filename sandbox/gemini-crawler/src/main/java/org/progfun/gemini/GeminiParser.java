@@ -24,7 +24,6 @@ public class GeminiParser implements Parser {
             return;
         }
         try {
-//            System.out.println("Received: " + message);
             JSONObject mainMsg = new JSONObject(message);
             String type = mainMsg.getString("type");
             if (type.equals("update")) {
