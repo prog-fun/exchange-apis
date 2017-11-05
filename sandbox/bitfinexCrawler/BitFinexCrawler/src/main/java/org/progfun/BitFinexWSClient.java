@@ -7,25 +7,20 @@ import org.progfun.connector.WebSocketConnector;
 /**
  * Example WebSocket client subscribing to BitFinex stream
  */
-public class BitFinexWSClient {
+public class BitFinexWSClient implements Runnable {
 
     private static final String API_URL = "wss://api.bitfinex.com/ws/2";
+    private Market market;
 
     private static void log(String msg) {
         Thread t = Thread.currentThread();
         System.out.println(msg + "[Thread #" + t.getId() + "]");
     }
 
-    public static void main(String[] args) {
-        BitFinexWSClient client;
-        client = new BitFinexWSClient();
-        client.start();
-    }
-
-    public void start() {
+    public void start() throws InvalidFormatException {
         log("Connecting...");
         WebSocketConnector connector = new WebSocketConnector();
-        connector.setListener(new BitFinexGDAXParser());
+        connector.setListener(new BitFinexGDAXParser(market));
 
         if (!connector.start(API_URL)) {
             System.out.println("Could not start WebSocket connector");
@@ -44,5 +39,18 @@ public class BitFinexWSClient {
         } else {
             System.out.println("Failed to close connection");
         }
+    }
+
+    @Override
+    public void run() {
+        try {
+            this.start();
+        } catch (InvalidFormatException ex) {
+            Logger.getLogger(BitFinexWSClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void setMarket(Market market) {
+        this.market = market;
     }
 }
