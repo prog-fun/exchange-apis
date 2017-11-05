@@ -24,8 +24,8 @@ public class BitFinexGDAXParser implements Parser {
     
     private Market market;
 
-    public BitFinexGDAXParser() throws InvalidFormatException {
-        this.market = new Market("BTC", "USD");
+    public BitFinexGDAXParser(Market market) throws InvalidFormatException {
+        this.market = market;
     }
     
     @Override

@@ -2,6 +2,7 @@ package main;
 
 import java.util.ArrayList;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.binding.ListBinding;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -22,6 +23,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import org.progfun.BitFinexGDAXParser;
+import org.progfun.BitFinexWSClient;
+import org.progfun.InvalidFormatException;
 import org.progfun.Market;
 import org.progfun.orderbook.Listener;
 import org.progfun.orderbook.Order;
@@ -51,13 +55,14 @@ public class Gui extends Application implements Listener {
     }
     
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InvalidFormatException {
+        
         launch(args);
     }
 
     @Override
     public void start(Stage stage) throws Exception {
-
+        
         bidList = new ArrayList<>();
         askList = new ArrayList<>();
 
@@ -112,37 +117,43 @@ public class Gui extends Application implements Listener {
 
         bidList.add(new Order(1000, 2, 5));
         askList.add(new Order(1000, 2, 5));
-
+        
+        BitFinexWSClient client = new BitFinexWSClient();
+        Thread thread = new Thread(client);
+        Market market = new Market("BTC", "USD");
+        market.addListener(this);
+        client.setMarket(market);
+        thread.start();
     }
 
     @Override
     public void bidAdded(Market market, Order bid) {
         bidList.add(bid);
+        table1.setItems(FXCollections.observableArrayList(bidList));
+        
     }
 
     @Override
     public void askAdded(Market market, Order ask) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        askList.add(ask);
+        table2.setItems(FXCollections.observableArrayList(askList));
     }
 
     @Override
     public void bidUpdated(Market market, Order bid) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        
     }
 
     @Override
     public void askUpdated(Market market, Order ask) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void bidRemoved(Market market, double price) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void askRemoved(Market market, double price) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }
