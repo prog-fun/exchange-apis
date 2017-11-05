@@ -8,6 +8,7 @@ import org.progfun.orderbook.Order;
 import static org.junit.Assert.*;
 
 public class MarketTest {
+    static final double DELTA = 0.00000000001;
 
     /**
      * Test if creating a market with empty base currency throws an exception
@@ -50,7 +51,6 @@ public class MarketTest {
         assertEquals("BTC", m.getBaseCurrency());
         assertEquals("USD", m.getQuoteCurrency());
     }
-
 
     @Test
     public void testEmpty() {
@@ -164,7 +164,6 @@ public class MarketTest {
         Book asks = m.getAsks();
         assertEquals(3, asks.size());
         Double[] prices = asks.getOrderedPrices(true);
-        final double DELTA = 0.00000000001;
 
         assertEquals(60.00008, prices[0], DELTA);
         assertEquals(7000, prices[1], DELTA);
@@ -230,12 +229,53 @@ public class MarketTest {
 
         // Remove bid
         m.removeBid(5);
-        assertEquals(l.numNewAsks, 1);
-        assertEquals(l.numNewBids, 1);
-        assertEquals(l.numUpdatedAsks, 1);
-        assertEquals(l.numUpdatedBids, 1);
-        assertEquals(l.numDeletedAsks, 1);
-        assertEquals(l.numDeletedBids, 1);
+        assertEquals(1, l.numNewAsks, 1);
+        assertEquals(1, l.numNewBids, 1);
+        assertEquals(1, l.numUpdatedAsks, 1);
+        assertEquals(1, l.numUpdatedBids, 1);
+        assertEquals(1, l.numDeletedAsks, 1);
+        assertEquals(1, l.numDeletedBids, 1);
+        
+        // Add ask, then add ask with same price but negative amount -
+        // the ask should be reported as removed
+        m.addAsk(700, 3, 5);
+        assertEquals(2, l.numNewAsks);
+        m.addAsk(700, -2, 5);
+        assertEquals(2, l.numNewAsks);
+        assertEquals(2, l.numUpdatedAsks);
+        m.addAsk(700, -2, 5);
+        assertEquals(2, l.numNewAsks);
+        assertEquals(2, l.numUpdatedAsks);
+        assertEquals(2, l.numDeletedAsks);
+        assertEquals(0, m.getAsks().size());
+        
+        // Add ask, then add ask with same price but negative count -
+        // the ask should be reported as updated and count should become 0
+        m.addAsk(800, 3, 5);
+        assertEquals(3, l.numNewAsks);
+        m.addAsk(800, -2, -10);
+        assertEquals(3, l.numNewAsks);
+        assertEquals(3, l.numUpdatedAsks);
+        assertEquals(1, m.getAsks().size());
+        Order ask = m.getAsks().getOrderForPrice(800);
+        assertNull(ask.getCount());
+    }
+
+    // Check if merge with negative amount works correctly
+    @Test
+    public void testNegativeMerge() throws InvalidFormatException {
+        Market m = new Market("btc", "usd");
+        Book asks = m.getAsks();
+        m.addAsk(7000, 3, 1);
+        Order a = asks.getOrderForPrice(7000);
+        assertEquals(3, a.getAmount(), DELTA);
+        m.addAsk(7000, -1, 1);
+        assertEquals(2, a.getAmount(), DELTA);
+        m.addAsk(7000, -1, 0);
+        assertEquals(1, a.getAmount(), DELTA);
+        m.addAsk(7000, -3, 1);
+        // Now the ask should be deleted
+        assertEquals(0, asks.size());
     }
 
 }

@@ -13,11 +13,16 @@ public class Book {
     /**
      * Add a new bid/ask order. If an order with that price is already
      * registered, the amount and orderCount will be added to it.
+     * The amount can be negative - meaning that the order has shrunk in size.
      *
      * @param order the new order to add to the book
      * @return if this was a new order for the specific price, return null;
      * if an order with that price was already registered and is
-     * now updated, return the updated order; if order == null return null
+     * now updated, return order with updated amount and count;
+     * If amount becomes negative, the order is removed from the book and
+     * an order with this price and amount=0, count=0 is returned
+     * If count becomes negative, count is reset to null
+     * if order == null return null
      */
     public Order add(Order order) {
         if (order == null) {
@@ -32,6 +37,12 @@ public class Book {
         } else {
             // Existing order, update amount and count
             o.increase(order.getAmount(), order.getCount());
+            // Check if amount became zero, then we remove the order
+            if (o.getAmount() <= 0) {
+                orders.remove(o.getPrice());
+                o.setAmount(0);
+                o.setCount(null);
+            }
             return o;
         }
     }

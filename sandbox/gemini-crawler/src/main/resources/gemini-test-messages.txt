@@ -1,0 +1,41 @@
+{
+  "type":"update",
+  "eventId":2146332899,
+  "socket_sequence":0,
+  "events":[
+    {"type":"change","reason":"initial","price":"701","delta":"61","remaining":"61","side":"bid"},
+    {"type":"change","reason":"initial","price":"702","delta":"32","remaining":"32","side":"bid"},
+    {"type":"change","reason":"initial","price":"741","delta":"0.8","remaining":"0.8","side":"ask"},
+    {"type":"change","reason":"initial","price":"751","delta":"1.2","remaining":"1.2","side":"ask"}
+  ]
+}
+/MESAGE-SEPARATOR/
+{"type":"update","eventId":2146332901,"timestamp":1509815704,"timestampms":1509815704551,"socket_sequence":1,"events":[{"type":"change","side":"bid","price":"702","remaining":"0","delta":"-32","reason":"cancel"}]}
+/MESAGE-SEPARATOR/
+{"type":"update","eventId":2146332924,"timestamp":1509815704,"timestampms":1509815704819,"socket_sequence":2,"events":[{"type":"change","side":"bid","price":"703","remaining":"45","delta":"45","reason":"place"}]}
+/MESAGE-SEPARATOR/
+{"type":"update","eventId":2146332925,"timestamp":1509815704,"timestampms":1509815704820,"socket_sequence":3,"events":[{"type":"change","side":"bid","price":"701","remaining":"70","delta":"9","reason":"place"}]}
+/MESAGE-SEPARATOR/
+{"type":"update","eventId":2146332935,"timestamp":1509815704,"timestampms":1509815704822,"socket_sequence":4,"events":[{"type":"change","side":"bid","price":"701","remaining":"20","delta":"-50","reason":"trade"}]}
+/MESAGE-SEPARATOR/
+{"type":"update","eventId":2146332936,"timestamp":1509815706,"timestampms":1509815706000,"socket_sequence":5,"events":[{"type":"change","side":"ask","price":"761","remaining":"2","delta":"2","reason":"place"}]}
+/MESAGE-SEPARATOR/
+{"type":"update","eventId":2146332937,"timestamp":1509815707,"timestampms":1509815707000,"socket_sequence":6,"events":[{"type":"change","side":"ask","price":"751","remaining":"2.0","delta":"0.8","reason":"place"}]}
+/MESAGE-SEPARATOR/
+{"type":"update","eventId":2146332937,"timestamp":1509815708,"timestampms":1509815708000,"socket_sequence":7,"events":[{"type":"change","side":"ask","price":"751","remaining":"1.5","delta":"-0.5","reason":"place"}]}
+/MESAGE-SEPARATOR/
+{"type":"update","eventId":2146332937,"timestamp":1509815708,"timestampms":1509815708000,"socket_sequence":7,"events":[{"type":"change","side":"ask","price":"761","remaining":"0.00000","delta":"-2.000","reason":"trade"}]}
+/MESAGE-SEPARATOR/
+EOF-MESSAGES
+/MESAGE-SEPARATOR/
+
+This is a test-data file. Messages are separated by specific separators, and end at EOF-MESSAGES marker.
+
+Expected Results in the orderbook:
+Bid @ 701: 20
+Bid @ 703: 45
+
+Ask @ 741: 0.8
+Ask @ 751: 1.5
+
+
