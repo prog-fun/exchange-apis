@@ -1,5 +1,6 @@
-package org.progfun.gemini;
+package org.progfun.bots.gemini;
 
+import org.progfun.orderbook.DummyListener;
 import java.io.IOException;
 import org.progfun.InvalidFormatException;
 import org.progfun.Market;
@@ -36,7 +37,7 @@ public class GeminiHandler {
         try {
             client = new GeminiHandler();
             Market market = new Market("BTC", "USD");
-            market.addListener(new DummyOrderbookListener());
+            market.addListener(new DummyListener());
             client.setMarket(market);
             if (client.connect()) {
                 System.in.read(); // Wait for <Enter>
