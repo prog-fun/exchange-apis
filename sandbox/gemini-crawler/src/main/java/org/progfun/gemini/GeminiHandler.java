@@ -10,7 +10,6 @@ import org.progfun.connector.WebSocketConnector;
  */
 public class GeminiHandler {
 
-    private final String symbol;
     Market market;
     GeminiParser parser;
     WebSocketConnector connector;
@@ -19,24 +18,30 @@ public class GeminiHandler {
     private static final String API_URL_TEMPLATE = "wss://api.gemini.com/v1/marketdata/";
 
     /**
-     * Creates a crawler for a specific market symbol (BTCUSD, etc)
+     * Set market to monitor
      *
-     * @param baseCurrency BTC, etc
-     * @param quoteCurrency USD, etc
-     * @throws org.progfun.InvalidFormatException if currencies incorrect
+     * @param market
      */
-    public void setMarket(|String baseCurrency, String quoteCurrency) throws InvalidFormatException {
-        symbol = getSymbol(baseCurrency, quoteCurrency);
-        market = new Market(baseCurrency, quoteCurrency);
+    public void setMarket(Market market) {
+        this.market = market;
     }
 
+    /**
+     * Launch a proof-of-concept test
+     *
+     * @param args command line arguments
+     */
     public static void main(String[] args) {
         GeminiHandler client;
         try {
-            client = new GeminiHandler("BTC", "USD");
-            client.connect();
-            System.in.read(); // Wait for <Enter>
-            client.disconnect();
+            client = new GeminiHandler();
+            Market market = new Market("BTC", "USD");
+            market.addListener(new DummyOrderbookListener());
+            client.setMarket(market);
+            if (client.connect()) {
+                System.in.read(); // Wait for <Enter>
+                client.disconnect();
+            }
         } catch (IOException ex) {
             System.out.println("Something wrong with input");
         } catch (InvalidFormatException ex) {
@@ -44,25 +49,25 @@ public class GeminiHandler {
         }
     }
 
-    public void setMarket(Market market) {
-        this.market = market;
-    }
-    
     /**
      * Connect and start listening for API messages
+     *
      * @return true on successful start, false otherwise
      */
     public boolean connect() {
+        if (market == null) {
+            System.out.println("Can not start crawler without market, cancelling...");
+            return false;
+        }
         System.out.println("Connecting...");
         connector = new WebSocketConnector();
 
         // Bind together different components: market, parser and listener
         parser = new GeminiParser();
         parser.setMarket(market);
-        market.addListener(new DummyOrderbookListener());
         connector.setListener(parser);
 
-        String url = API_URL_TEMPLATE + symbol;
+        String url = API_URL_TEMPLATE + getSymbol();
         if (connector.start(url)) {
             return true;
         } else {
@@ -90,7 +95,12 @@ public class GeminiHandler {
      * @param quoteCurrency
      * @return
      */
-    private static String getSymbol(String baseCurrency, String quoteCurrency) {
+    private String getSymbol() {
+        if (market == null) {
+            return null;
+        }
+        String baseCurrency = market.getBaseCurrency();
+        String quoteCurrency = market.getQuoteCurrency();
         if (baseCurrency == null || quoteCurrency == null) {
             return null;
         }
