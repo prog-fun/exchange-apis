@@ -1,4 +1,4 @@
-package org.progfun.gemini;
+package org.progfun.bots.gemini;
 
 import org.json.JSONArray;
 import org.json.JSONException;
