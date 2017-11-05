@@ -83,7 +83,13 @@ public class Market {
         // Notify listeners about changes
         for (Listener l : listeners) {
             if (updatedBid != null) {
-                l.bidUpdated(this, updatedBid);
+                // Check if the update resulted in a delete
+                if (updatedBid.getAmount() > 0) {
+                    l.bidUpdated(this, updatedBid);
+                } else {
+                    // Order was actually removed
+                    l.bidRemoved(this, price);
+                }
             } else {
                 l.bidAdded(this, bid);
             }
@@ -105,7 +111,13 @@ public class Market {
         // Notify listeners about changes
         for (Listener l : listeners) {
             if (updatedAsk != null) {
-                l.askUpdated(this, updatedAsk);
+                // Check if the update resulted in a delete
+                if (updatedAsk.getAmount() > 0) {
+                    l.askUpdated(this, updatedAsk);
+                } else {
+                    // Order was actually removed
+                    l.askRemoved(this, price);
+                }
             } else {
                 l.askAdded(this, ask);
             }
