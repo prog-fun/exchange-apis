@@ -1,13 +1,11 @@
-package org.progfun.gemini;
+package org.progfun.orderbook;
 
 import org.progfun.Market;
-import org.progfun.orderbook.Listener;
-import org.progfun.orderbook.Order;
 
 /**
- * Prints out all updates to order book
+ * Prints all order book updates to system console
  */
-public class DummyOrderbookListener implements Listener {
+public class DummyListener implements Listener {
 
     @Override
     public void bidAdded(Market market, Order bid) {

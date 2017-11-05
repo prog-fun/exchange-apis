@@ -1,4 +1,4 @@
-package org.progfun;
+package org.progfun.bots;
 
 import java.io.IOException;
 import java.net.URI;
@@ -9,8 +9,10 @@ import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import org.junit.Test;
+import org.progfun.InvalidFormatException;
+import org.progfun.Market;
 import static org.junit.Assert.*;
-import org.progfun.gemini.GeminiParser;
+import org.progfun.bots.gemini.GeminiParser;
 import org.progfun.orderbook.Book;
 import org.progfun.orderbook.Order;
 
@@ -60,7 +62,7 @@ public class GeminiTest {
         // Read the message file
         List<String> messages = new LinkedList<>();
         try {
-            URL filePath = GeminiTest.class.getResource("/gemini-test-messages.txt");
+            URL filePath = GeminiTest.class.getResource("/gemini/gemini-test-messages.txt");
             URI uri = filePath.toURI();
             System.out.println("Test data file path: " + filePath);
             byte[] encoded = Files.readAllBytes(Paths.get(uri));
