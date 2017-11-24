@@ -6,6 +6,7 @@ import org.progfun.Market;
 import org.progfun.bots.bitfinex.BitFinexHandler;
 import org.progfun.bots.gemini.GeminiHandler;
 import org.progfun.bots.gdax.GdaxHandler;
+import org.progfun.bots.hitbtc.HitBtcHandler;
 import org.progfun.connector.AbstractWebSocketHandler;
 import org.progfun.orderbook.DummyListener;
 
@@ -25,7 +26,8 @@ public class CrawlerExample {
         AbstractWebSocketHandler handler;
         // handler = new GeminiHandler();
         // handler = new GdaxHandler();
-        handler = new BitFinexHandler();
+        // handler = new BitFinexHandler();
+        handler = new HitBtcHandler();
         
         try {
             Market market = new Market("BTC", "USD");
