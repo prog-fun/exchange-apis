@@ -23,10 +23,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
-import org.progfun.BitFinexGDAXParser;
-import org.progfun.BitFinexWSClient;
+import org.progfun.bots.bitfinex.BitFinexParser;
+import org.progfun.bots.bitfinex.BitFinexHandler;
 import org.progfun.InvalidFormatException;
 import org.progfun.Market;
+import org.progfun.bots.BotRunner;
 import org.progfun.orderbook.Listener;
 import org.progfun.orderbook.Order;
 
@@ -118,12 +119,11 @@ public class Gui extends Application implements Listener {
         bidList.add(new Order(1000, 2, 5));
         askList.add(new Order(1000, 2, 5));
         
-        BitFinexWSClient client = new BitFinexWSClient();
-        Thread thread = new Thread(client);
+        BitFinexHandler handler = new BitFinexHandler();
         Market market = new Market("BTC", "USD");
         market.addListener(this);
-        client.setMarket(market);
-        thread.start();
+        BotRunner runner = new BotRunner(handler, market);
+        runner.start();
     }
 
     @Override

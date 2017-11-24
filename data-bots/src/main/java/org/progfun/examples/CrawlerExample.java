@@ -1,8 +1,11 @@
 package org.progfun.examples;
 
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.progfun.InvalidFormatException;
 import org.progfun.Market;
+import org.progfun.bots.BotRunner;
 import org.progfun.bots.bitfinex.BitFinexHandler;
 import org.progfun.bots.gemini.GeminiHandler;
 import org.progfun.bots.gdax.GdaxHandler;
@@ -32,17 +35,16 @@ public class CrawlerExample {
         try {
             Market market = new Market("BTC", "USD");
             market.addListener(new DummyListener());
-            handler.setMarket(market);
-            if (handler.connect()) {
-                handler.sendInitCommands(); // Send the "subscribe" commands
-                System.out.println("Press Enter to quit");
-                System.in.read(); // Wait for <Enter>
-                handler.disconnect();
-            }
-        } catch (IOException ex) {
-            System.out.println("Something wrong with input");
+            
+            BotRunner runner = new BotRunner(handler, market);
+            runner.start();
+            System.out.println("Press Enter to quit");
+            System.in.read(); // Wait for <Enter>
+            runner.terminate();
         } catch (InvalidFormatException ex) {
             System.out.println("Invlid currency pair: " + ex.getMessage());
+        } catch (IOException ex) {
+            System.out.println("Something wrong with input");
         }
     }
 }
