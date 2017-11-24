@@ -1,6 +1,7 @@
 package org.progfun;
 
 import java.util.Scanner;
+import org.progfun.orderbook.DummyListener;
 
 public class Main {
 
@@ -9,7 +10,8 @@ public class Main {
         try {
 
             Market market = new Market("btc", "usd");
-            market.addListener(new SQLOrderbookListener());
+//            market.addListener(new SQLOrderbookListener());
+            market.addListener(new DummyListener());
 
             BitstampBot bot = new BitstampBot();
             bot.bindMarket(market);
