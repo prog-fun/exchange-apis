@@ -1,19 +1,15 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package org.progfun;
+package org.progfun.bots.bitfinex;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
-import org.progfun.connector.Parser;
+import org.progfun.connector.AbstractParser;
 
 /**
  *
  * @author olavt
  */
-public class BitFinexGDAXParser implements Parser {
+public class BitFinexParser extends AbstractParser {
     
     private final int GET_VERSION = 0;
     private final int SUBSCRIBE = 1;
@@ -22,15 +18,9 @@ public class BitFinexGDAXParser implements Parser {
 
     private int state = 0;
     
-    private Market market;
-
-    public BitFinexGDAXParser(Market market) throws InvalidFormatException {
-        this.market = market;
-    }
-    
     @Override
     public void onMessage(String message) {
-        System.out.println("Received: " + message);
+//        System.out.println("Received: " + message);
         bitFinexWSClientStateMachine(message);
     }
 
@@ -73,7 +63,7 @@ public class BitFinexGDAXParser implements Parser {
             double price = values.getDouble(0);
             int count = (int) values.getDouble(1);
             double amount = values.getDouble(2);
-            System.out.println("Price: " + price + ", Count: " + count + ", Amount: " + amount);
+//            System.out.println("Price: " + price + ", Count: " + count + ", Amount: " + amount);
             if (count > 0) {
                 if (amount > 0) {
                     market.addBid(price, amount, count);
@@ -87,12 +77,13 @@ public class BitFinexGDAXParser implements Parser {
                     market.removeAsk(price);
                 }
             }
-        } catch (Exception e) {
-            System.out.println("ops");
+            // TODO - test if parsing works correctly
+        } catch (JSONException e) {
+//            System.out.println("ops");
         }
 
-        System.out.println("Ask: " + market.getAsks().size());
-        System.out.println("Bid: " + market.getBids().size());
+//        System.out.println("Ask: " + market.getAsks().size());
+//        System.out.println("Bid: " + market.getBids().size());
     }
 
     private void addSnapshot(String message) {
@@ -111,8 +102,8 @@ public class BitFinexGDAXParser implements Parser {
                 }
             }
         }
-        System.out.println(market.getAsks().size());
-        System.out.println(market.getBids().size());
+//        System.out.println(market.getAsks().size());
+//        System.out.println(market.getBids().size());
     }
     
 }

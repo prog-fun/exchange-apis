@@ -47,7 +47,8 @@ public class BitstampBot {
     public void bindMarket(Market market) {
 
         // Setup parser.
-        BitstampParser parser = new BitstampParser(market);
+        BitstampParser parser = new BitstampParser();
+        parser.setMarket(market);
 
         // Get initial state of the order book.
         parser.onMessage(getFullOrderBook());

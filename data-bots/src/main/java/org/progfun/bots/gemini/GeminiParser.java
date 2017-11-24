@@ -24,6 +24,7 @@ public class GeminiParser implements Parser {
             return;
         }
         try {
+            // Check events only inside messages with type=update
             JSONObject mainMsg = new JSONObject(message);
             String type = mainMsg.getString("type");
             if (type.equals("update")) {
