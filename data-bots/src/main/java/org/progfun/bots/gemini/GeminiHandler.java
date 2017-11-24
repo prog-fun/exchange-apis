@@ -44,7 +44,7 @@ public class GeminiHandler extends AbstractWebSocketHandler {
      * We don't have to send any init commands
      */
     @Override
-    protected void sendInitCommands() {
+    public void sendInitCommands() {
     }
 
 }

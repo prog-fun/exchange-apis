@@ -92,5 +92,5 @@ public abstract class AbstractWebSocketHandler {
      * Send the initial commands (subscribe to channels, set options, etc).
      * This method must be run by the using part after the connect()
      */
-    protected abstract void sendInitCommands();
+    public abstract void sendInitCommands();
 }
