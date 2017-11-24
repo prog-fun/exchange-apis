@@ -277,6 +277,49 @@ public class MarketTest {
         // Now the ask should be deleted
         assertEquals(0, asks.size());
     }
+    
+    /**
+     * Test if locking works properly
+     * @throws org.progfun.InvalidFormatException never actually throws it
+     * @throws java.lang.InterruptedException
+     */
+    @Test
+    public void testLocking() throws InvalidFormatException, InterruptedException {
+        Market m = new Market("BTC", "USD");
+        m.lockUpdates();
+        final int AMOUNT = 10;
+        final int PRICE = 15;
+        // Try to update the market in another thread
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                m.addBid(PRICE, AMOUNT, 1);
+            }
+        };
+        Thread t;
+        t = new Thread(r);
+        t.start();
+        
+        // Wait a while, let the other thread ty to update the market
+        Thread.sleep(200);
+        
+        assertEquals(0, m.getBids().size());
+        m.allowUpdates();
+
+        // Wait a while, let the other thread to update the market
+        Thread.sleep(200);        
+        assertEquals(1, m.getBids().size());
+        
+        // Now update the bids without locking - it should update the same bid, 
+        // just increase amount
+        t = new Thread(r);
+        t.start();
+        Thread.sleep(200);
+        assertEquals(1, m.getBids().size());
+        Order o = m.getBids().getOrderForPrice(PRICE);
+        assertNotNull(o);
+        assertEquals(2 * AMOUNT, o.getAmount(), 0.001);
+    }
 
 }
 

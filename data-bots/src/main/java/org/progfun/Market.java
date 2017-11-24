@@ -2,6 +2,9 @@ package org.progfun;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.progfun.orderbook.Book;
 import org.progfun.orderbook.Listener;
@@ -30,6 +33,9 @@ public class Market {
     private final List<Trade> trades = new ArrayList<>();
 
     private final List<Listener> listeners = new ArrayList<>();
+    
+    // We use semaphore to lock updates while a snapshot is processed
+    private final Semaphore mutex = new Semaphore(1);
 
     /**
      * Create a new market, convert the currencies to upper-case. Throws
@@ -78,6 +84,8 @@ public class Market {
      * zero if count is not known.
      */
     public void addBid(double price, double amount, int orderCount) {
+        if (!lockUpdates()) return;
+
         Order bid = new Order(price, amount, orderCount);
         Order updatedBid = bids.add(bid);
         // Notify listeners about changes
@@ -94,6 +102,8 @@ public class Market {
                 l.bidAdded(this, bid);
             }
         }
+        
+        allowUpdates();
     }
 
     /**
@@ -106,6 +116,8 @@ public class Market {
      * zero if count is not known.
      */
     public void addAsk(double price, double amount, int orderCount) {
+        if (!lockUpdates()) return;
+
         Order ask = new Order(price, amount, orderCount);
         Order updatedAsk = asks.add(ask);
         // Notify listeners about changes
@@ -122,6 +134,8 @@ public class Market {
                 l.askAdded(this, ask);
             }
         }
+        
+        allowUpdates();
     }
 
     /**
@@ -130,11 +144,15 @@ public class Market {
      * @param price
      */
     public void removeBid(double price) {
+        if (!lockUpdates()) return;
+
         bids.remove(price);
         // Notify listeners about changes
         for (Listener l : listeners) {
             l.bidRemoved(this, price);
         }
+        
+        allowUpdates();
     }
 
     /**
@@ -143,13 +161,38 @@ public class Market {
      * @param price
      */
     public void removeAsk(double price) {
+        if (!lockUpdates()) return;
+        
         asks.remove(price);
         // Notify listeners about changes
         for (Listener l : listeners) {
             l.askRemoved(this, price);
         }
+
+        allowUpdates();
     }
 
+    /**
+     * Lock market for updates. May be useful to avoid updates while 
+     * processing a snapshot
+     * @return true on success, false if interrupted
+     */
+    public boolean lockUpdates() {
+        try {
+            mutex.acquire();
+            return true;
+        } catch (InterruptedException ex) {
+            return false;
+        }
+    }
+    
+    /**
+     * Allow updates again
+     */
+    public void allowUpdates() {
+        mutex.release();
+    }
+    
     /**
      * Add a new listener, if it is not already registered
      *
