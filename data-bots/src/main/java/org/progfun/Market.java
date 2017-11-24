@@ -33,7 +33,7 @@ public class Market {
     private final List<Trade> trades = new ArrayList<>();
 
     private final List<Listener> listeners = new ArrayList<>();
-    
+
     // We use semaphore to lock updates while a snapshot is processed
     private final Semaphore mutex = new Semaphore(1);
 
@@ -84,7 +84,9 @@ public class Market {
      * zero if count is not known.
      */
     public void addBid(double price, double amount, int orderCount) {
-        if (!lockUpdates()) return;
+        if (!lockUpdates()) {
+            return;
+        }
 
         Order bid = new Order(price, amount, orderCount);
         Order updatedBid = bids.add(bid);
@@ -102,7 +104,7 @@ public class Market {
                 l.bidAdded(this, bid);
             }
         }
-        
+
         allowUpdates();
     }
 
@@ -116,7 +118,9 @@ public class Market {
      * zero if count is not known.
      */
     public void addAsk(double price, double amount, int orderCount) {
-        if (!lockUpdates()) return;
+        if (!lockUpdates()) {
+            return;
+        }
 
         Order ask = new Order(price, amount, orderCount);
         Order updatedAsk = asks.add(ask);
@@ -134,7 +138,7 @@ public class Market {
                 l.askAdded(this, ask);
             }
         }
-        
+
         allowUpdates();
     }
 
@@ -144,14 +148,16 @@ public class Market {
      * @param price
      */
     public void removeBid(double price) {
-        if (!lockUpdates()) return;
+        if (!lockUpdates()) {
+            return;
+        }
 
         bids.remove(price);
         // Notify listeners about changes
         for (Listener l : listeners) {
             l.bidRemoved(this, price);
         }
-        
+
         allowUpdates();
     }
 
@@ -161,8 +167,10 @@ public class Market {
      * @param price
      */
     public void removeAsk(double price) {
-        if (!lockUpdates()) return;
-        
+        if (!lockUpdates()) {
+            return;
+        }
+
         asks.remove(price);
         // Notify listeners about changes
         for (Listener l : listeners) {
@@ -173,8 +181,9 @@ public class Market {
     }
 
     /**
-     * Lock market for updates. May be useful to avoid updates while 
-     * processing a snapshot
+     * Lock market for updates. May be useful to avoid updates while processing
+     * a snapshot
+     *
      * @return true on success, false if interrupted
      */
     public boolean lockUpdates() {
@@ -185,14 +194,14 @@ public class Market {
             return false;
         }
     }
-    
+
     /**
      * Allow updates again
      */
     public void allowUpdates() {
         mutex.release();
     }
-    
+
     /**
      * Add a new listener, if it is not already registered
      *
