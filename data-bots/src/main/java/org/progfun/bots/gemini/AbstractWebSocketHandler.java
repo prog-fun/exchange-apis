@@ -88,4 +88,9 @@ public abstract class AbstractWebSocketHandler {
      */
     protected abstract Parser createParser();
 
+    /**
+     * Send the initial commands (subscribe to channels, set options, etc).
+     * This method must be run by the using part after the connect()
+     */
+    protected abstract void sendInitCommands();
 }

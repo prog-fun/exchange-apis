@@ -1,9 +1,5 @@
 package org.progfun.bots.gemini;
 
-import org.progfun.orderbook.DummyListener;
-import java.io.IOException;
-import org.progfun.InvalidFormatException;
-import org.progfun.Market;
 import org.progfun.connector.Parser;
 
 /**
@@ -45,26 +41,10 @@ public class GeminiHandler extends AbstractWebSocketHandler {
     }
 
     /**
-     * Launch a proof-of-concept test
-     *
-     * @param args command line arguments
+     * We don't have to send any init commands
      */
-    public static void main(String[] args) {
-        GeminiHandler client;
-        try {
-            client = new GeminiHandler();
-            Market market = new Market("BTC", "USD");
-            market.addListener(new DummyListener());
-            client.setMarket(market);
-            if (client.connect()) {
-                System.in.read(); // Wait for <Enter>
-                client.disconnect();
-            }
-        } catch (IOException ex) {
-            System.out.println("Something wrong with input");
-        } catch (InvalidFormatException ex) {
-            System.out.println("Invlid currency pair: " + ex.getMessage());
-        }
+    @Override
+    protected void sendInitCommands() {
     }
 
 }

@@ -19,22 +19,22 @@ public class DummyListener implements Listener {
 
     @Override
     public void bidUpdated(Market market, Order bid) {
-        System.out.println("UPD Bid: " + bid.getPrice() + " [" + bid.getAmount() + "]");
+        System.out.println("  UPD Bid: " + bid.getPrice() + " [" + bid.getAmount() + "]");
     }
 
     @Override
     public void askUpdated(Market market, Order ask) {
-        System.out.println("UPD ask: " + ask.getPrice() + " [" + ask.getAmount() + "]");
+        System.out.println("  UPD Ask: " + ask.getPrice() + " [" + ask.getAmount() + "]");
     }
 
     @Override
     public void bidRemoved(Market market, double price) {
-        System.out.println("REM bid: " + price);
+        System.out.println("    REM Bid: " + price);
     }
 
     @Override
     public void askRemoved(Market market, double price) {
-        System.out.println("REM ask: " + price);
+        System.out.println("    REM Ask: " + price);
     }
 
 }
