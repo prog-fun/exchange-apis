@@ -1,16 +1,9 @@
 package org.progfun;
 
-import org.progfun.connector.Parser;
-
 import org.json.*;
+import org.progfun.connector.AbstractParser;
 
-public class BitstampParser implements Parser {
-
-    private Market market;
-
-    public BitstampParser(Market market) {
-        this.market = market;
-    }
+public class BitstampParser extends AbstractParser {
 
     public void onMessage(String jsonString) {
         try {
@@ -57,12 +50,8 @@ public class BitstampParser implements Parser {
         }
     }
 
-    public void onError(Exception e) {
-        log("Error: " + e.getMessage());
-    }
-
     private static void log(String message) {
-        System.out.println("[Thread #" + Thread.currentThread().getId() + "] BitstampParser: " + message);
+//        System.out.println("[Thread #" + Thread.currentThread().getId() + "] BitstampParser: " + message);
     }
 
 }
