@@ -3,18 +3,15 @@ package org.progfun.examples;
 import java.io.IOException;
 import org.progfun.InvalidFormatException;
 import org.progfun.Market;
+import org.progfun.SnapshotGenerator;
 import org.progfun.bots.BotRunner;
 import org.progfun.bots.bitfinex.BitFinexHandler;
-import org.progfun.bots.gemini.GeminiHandler;
-import org.progfun.bots.gdax.GdaxHandler;
-import org.progfun.bots.hitbtc.HitBtcHandler;
 import org.progfun.connector.AbstractWebSocketHandler;
-import org.progfun.orderbook.DummyListener;
 
 /**
- * Example for different Exchange API crawlers
+ * Example for printing Orderbook snapshots for different Exchange API crawlers
  */
-public class CrawlerExample {
+public class SnapshotExample {
 
     /**
      * Launch a proof-of-concept test
@@ -25,17 +22,21 @@ public class CrawlerExample {
         // Create your crawler here - this example should work the same
         // with all the crawlers: Gemini, GDAX, etc
         AbstractWebSocketHandler handler;
-        // handler = new GeminiHandler();
-        // handler = new GdaxHandler();
-        // handler = new BitFinexHandler();
-        handler = new HitBtcHandler();
+        handler = new BitFinexHandler();
         
         try {
-            Market market = new Market("BTC", "USD");
-            market.addListener(new DummyListener());
-            
+            Market market = new Market("BTG", "USD");            
             BotRunner runner = new BotRunner(handler, market);
             runner.start();
+            
+            // Print a snapshot every second
+            SnapshotGenerator sg = new SnapshotGenerator();
+            sg.setMarket(market);
+            MarketLogger ml = new MarketLogger();
+            ml.setBidLimit(3); // Show only top 3 bids and asks
+            sg.setListener(ml);
+            sg.schedule(1000);
+            
             System.out.println("Press Enter to quit");
             System.in.read(); // Wait for <Enter>
             runner.terminate();
