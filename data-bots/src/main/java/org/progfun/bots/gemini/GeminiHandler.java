@@ -1,5 +1,6 @@
 package org.progfun.bots.gemini;
 
+import org.progfun.connector.AbstractWebSocketHandler;
 import org.progfun.connector.Parser;
 
 /**
@@ -11,11 +12,7 @@ public class GeminiHandler extends AbstractWebSocketHandler {
     private static final String API_URL_BASE = "wss://api.gemini.com/v1/marketdata/";
 
     /**
-     * Take a pair of currencies, convert it to a single symbols as understood
-     * by Gemini exchange
-     *
-     * @param baseCurrency
-     * @param quoteCurrency
+     * Return a single symbols as understood by the exchange API 
      * @return
      */
     private String getSymbol() {

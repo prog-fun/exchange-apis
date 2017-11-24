@@ -1,8 +1,6 @@
-package org.progfun.bots.gemini;
+package org.progfun.connector;
 
 import org.progfun.Market;
-import org.progfun.connector.Parser;
-import org.progfun.connector.WebSocketConnector;
 
 /**
  * An abstract base class that can be used for all WebSocket data gathering bots 

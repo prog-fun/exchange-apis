@@ -3,8 +3,10 @@ package org.progfun.examples;
 import java.io.IOException;
 import org.progfun.InvalidFormatException;
 import org.progfun.Market;
+import org.progfun.bots.bitfinex.BitFinexHandler;
+import org.progfun.bots.gemini.GeminiHandler;
 import org.progfun.bots.gdax.GdaxHandler;
-import org.progfun.bots.gemini.AbstractWebSocketHandler;
+import org.progfun.connector.AbstractWebSocketHandler;
 import org.progfun.orderbook.DummyListener;
 
 /**
@@ -22,7 +24,8 @@ public class CrawlerExample {
         // with all the crawlers: Gemini, GDAX, etc
         AbstractWebSocketHandler handler;
         // handler = new GeminiHandler();
-        handler = new GdaxHandler();
+        // handler = new GdaxHandler();
+        handler = new BitFinexHandler();
         
         try {
             Market market = new Market("BTC", "USD");

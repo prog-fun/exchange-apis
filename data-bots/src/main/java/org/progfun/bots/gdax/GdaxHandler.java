@@ -3,7 +3,7 @@ package org.progfun.bots.gdax;
 import java.io.IOException;
 import org.progfun.InvalidFormatException;
 import org.progfun.Market;
-import org.progfun.bots.gemini.AbstractWebSocketHandler;
+import org.progfun.connector.AbstractWebSocketHandler;
 import org.progfun.connector.Parser;
 import org.progfun.orderbook.DummyListener;
 
