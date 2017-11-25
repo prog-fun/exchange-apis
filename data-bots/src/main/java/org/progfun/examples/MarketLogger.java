@@ -35,12 +35,12 @@ public class MarketLogger implements SnapshotListener {
     /**
      * Print prices of a bid/ask book
      * @param book
-     * @param sortAscendingly if true, sort prices ascendingly
+     * @param ascending if true, sort prices ascending
      * @param title Title to print 
      */
-    private void printPrices(Book book, boolean sortAscendingly, String title) {
+    private void printPrices(Book book, boolean ascending, String title) {
         System.out.println(title + ":");
-        Double[] prices = book.getOrderedPrices(sortAscendingly);
+        Double[] prices = book.getOrderedPrices(ascending);
         for (int i = 0; i < bidLimit && i < prices.length; ++ i) {
             Order o = book.getOrderForPrice(prices[i]);
             System.out.println(o.getPrice() + " [" + o.getAmount()+ "]");
