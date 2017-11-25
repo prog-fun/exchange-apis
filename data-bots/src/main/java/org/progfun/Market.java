@@ -75,6 +75,30 @@ public class Market {
     }
 
     /**
+     * Return a copy of bid orders, limited by price
+     *
+     * @param limit threshold for bid price, in percent. All the bids with price
+     * less than bestBid - limit% will be ignored. Limit must be a positive
+     * number, otherwise results are undefined.
+     * @return
+     */
+    public Book getPriceLimitedBids(double limit) {
+        return bids.getPriceLimitedOrders(limit, false);
+    }
+
+    /**
+     * Return a copy of ask orders, limited by price
+     *
+     * @param limit threshold for ask price, in percent. All the asks with price
+     * higher than bestAsk + limit% will be ignored. Limit must be a positive
+     * number, otherwise results are undefined.
+     * @return
+     */
+    public Book getPriceLimitedAsks(double limit) {
+        return asks.getPriceLimitedOrders(limit, true);
+    }
+
+    /**
      * Add a new bid. If a bid with that price is already registered, the amount
      * and orderCount will be added to it.
      *
