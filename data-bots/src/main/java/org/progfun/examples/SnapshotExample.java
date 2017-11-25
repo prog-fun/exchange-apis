@@ -6,6 +6,7 @@ import org.progfun.Market;
 import org.progfun.SnapshotGenerator;
 import org.progfun.bots.BotRunner;
 import org.progfun.bots.bitfinex.BitFinexHandler;
+import org.progfun.bots.gdax.GdaxHandler;
 import org.progfun.connector.AbstractWebSocketHandler;
 
 /**
@@ -22,10 +23,10 @@ public class SnapshotExample {
         // Create your crawler here - this example should work the same
         // with all the crawlers: Gemini, GDAX, etc
         AbstractWebSocketHandler handler;
-        handler = new BitFinexHandler();
+        handler = new GdaxHandler();
         
         try {
-            Market market = new Market("BTG", "USD");            
+            Market market = new Market("BTC", "USD");            
             BotRunner runner = new BotRunner(handler, market);
             runner.start();
             
