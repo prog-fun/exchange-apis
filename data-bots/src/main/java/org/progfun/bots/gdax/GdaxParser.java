@@ -13,47 +13,48 @@ public class GdaxParser extends AbstractParser {
 
     /**
      * Handles the incoming messages from the API and puts it in the orderbook
-     * See message documentation: https://docs.gdax.com/#websocket-feed 
+     * See message documentation: https://docs.gdax.com/#websocket-feed
+     *
      * @param message The incoming message
      */
     @Override
     public void onMessage(String message) {
         JSONObject JSONMessage = new JSONObject(message);
-        Iterator it = JSONMessage.keys();
-        JSONArray jsonArray = new JSONArray();
-        while (it.hasNext()) {
-            String key = (String) it.next();
-            jsonArray.put(JSONMessage.get(key));
-        }
-
-        if (JSONMessage.getString("type").equals("snapshot")) {
-            for (Object keys : jsonArray.getJSONArray(1)) {
-                JSONArray bids = (JSONArray) keys;
-                market.addBid(bids.getDouble(0), bids.getDouble(1), 0);
+        String type = JSONMessage.getString("type");
+        if (type.equals("snapshot")) {
+            JSONArray bids = JSONMessage.getJSONArray("bids");
+            for (int i = 0; i < bids.length(); ++i) {
+                JSONArray bid = bids.getJSONArray(i);
+                market.addBid(bid.getDouble(0), bid.getDouble(1), 0);
             }
-            for (Object keys : jsonArray.getJSONArray(2)) {
-                JSONArray asks = (JSONArray) keys;
-                market.addAsk(asks.getDouble(0), asks.getDouble(1), 0);
+            JSONArray asks = JSONMessage.getJSONArray("asks");
+            for (int i = 0; i < asks.length(); ++i) {
+                JSONArray ask = asks.getJSONArray(i);
+                market.addAsk(ask.getDouble(0), ask.getDouble(1), 0);
             }
+        } else if (type.equals("l2update")) {
+            JSONArray changes = JSONMessage.getJSONArray("changes");
+            for (int i = 0; i < changes.length(); ++i) {
+                JSONArray change = changes.getJSONArray(i);
+                String side = change.getString(0);
+                double price = change.getDouble(1);
+                String amountString = change.getString(2);
 
-        } else if (JSONMessage.getString("type").equals("l2update")) {
-            String type = jsonArray.getJSONArray(1).getJSONArray(0).getString(0);
-            double price = jsonArray.getJSONArray(1).getJSONArray(0).getDouble(1);
-            String countString = jsonArray.getJSONArray(1).getJSONArray(0).getString(2);
-
-            if (countString.equals("0")) {
-                if (type.equals("buy")) {
-                    market.removeAsk(price);
-                } else if (type.equals("sell")) {
+                // The amount is the total, not delta
+                // Therefore we always remove the order first, then add
+                // it back with the new amount, if necessary
+                if (side.equals("buy")) {
                     market.removeBid(price);
-
+                } else if (side.equals("sell")) {
+                    market.removeAsk(price);
                 }
-            } else {
-                Double count = Double.parseDouble(countString);
-                if (type.equals("buy")) {
-                    market.addAsk(price, count, 0);
-                } else if (type.equals("sell")) {
-                    market.addBid(price, count, 0);
+                if (!amountString.equals("0")) {
+                    Double amount = Double.parseDouble(amountString);
+                    if (side.equals("buy")) {
+                        market.addBid(price, amount, 0);
+                    } else if (side.equals("sell")) {
+                        market.addAsk(price, amount, 0);
+                    }
                 }
             }
         }

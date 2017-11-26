@@ -8,6 +8,7 @@ import org.progfun.orderbook.Order;
 import static org.junit.Assert.*;
 
 public class MarketTest {
+
     static final double DELTA = 0.00000000001;
 
     /**
@@ -235,7 +236,7 @@ public class MarketTest {
         assertEquals(1, l.numUpdatedBids, 1);
         assertEquals(1, l.numDeletedAsks, 1);
         assertEquals(1, l.numDeletedBids, 1);
-        
+
         // Add ask, then add ask with same price but negative amount -
         // the ask should be reported as removed
         m.addAsk(700, 3, 5);
@@ -248,7 +249,7 @@ public class MarketTest {
         assertEquals(2, l.numUpdatedAsks);
         assertEquals(2, l.numDeletedAsks);
         assertEquals(0, m.getAsks().size());
-        
+
         // Add ask, then add ask with same price but negative count -
         // the ask should be reported as updated and count should become 0
         m.addAsk(800, 3, 5);
@@ -276,6 +277,108 @@ public class MarketTest {
         m.addAsk(7000, -3, 1);
         // Now the ask should be deleted
         assertEquals(0, asks.size());
+    }
+
+    /**
+     * Test if locking works properly
+     *
+     * @throws org.progfun.InvalidFormatException never actually throws it
+     * @throws java.lang.InterruptedException
+     */
+    @Test
+    public void testLocking() throws InvalidFormatException, InterruptedException {
+        Market m = new Market("BTC", "USD");
+        m.lockUpdates();
+        final int AMOUNT = 10;
+        final int PRICE = 15;
+        // Try to update the market in another thread
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                m.addBid(PRICE, AMOUNT, 1);
+            }
+        };
+        Thread t;
+        t = new Thread(r);
+        t.start();
+
+        // Wait a while, let the other thread ty to update the market
+        Thread.sleep(200);
+
+        assertEquals(0, m.getBids().size());
+        m.allowUpdates();
+
+        // Wait a while, let the other thread to update the market
+        Thread.sleep(200);
+        assertEquals(1, m.getBids().size());
+
+        // Now update the bids without locking - it should update the same bid, 
+        // just increase amount
+        t = new Thread(r);
+        t.start();
+        Thread.sleep(200);
+        assertEquals(1, m.getBids().size());
+        Order o = m.getBids().getOrderForPrice(PRICE);
+        assertNotNull(o);
+        assertEquals(2 * AMOUNT, o.getAmount(), 0.001);
+    }
+
+    /**
+     * Test if order limiting by price works
+     *
+     * @throws org.progfun.InvalidFormatException never throws it
+     */
+    @Test
+    public void testLimitPercent() throws InvalidFormatException {
+        Market m = new Market("BTC", "USD");
+        Book bids;
+        Book asks;
+        final Double LIMIT = 10.0;
+        final Double BEST_PRICE = 1000.0;
+
+        // Test empty books first
+        bids = m.getPriceLimitedBids(-LIMIT);
+        asks = m.getPriceLimitedAsks(LIMIT);
+        assertEquals(0, bids.size());
+        assertEquals(0, asks.size());
+
+        // Now add some values
+        double P1 = BEST_PRICE - 10.0;
+        double P2 = BEST_PRICE * (100.0 - LIMIT) / 100.0;
+        m.addBid(P1, 1, 1);
+        m.addBid(BEST_PRICE, 1, 1);
+        m.addBid(P2, 1, 1);
+        // Add some "out of range" orders
+        m.addBid(BEST_PRICE * (100.0 - LIMIT - 1) / 100.0, 1, 1);
+        m.addBid(BEST_PRICE * (100.0 - 2 * LIMIT) / 100.0, 1, 1);
+        m.addBid(0.0, 1, 1);
+
+        bids = m.getPriceLimitedBids(LIMIT);
+        assertEquals(3, bids.size());
+        Double[] prices;
+        prices = bids.getOrderedPrices(false);
+        assertEquals(BEST_PRICE, prices[0]);
+        assertEquals(P1, (double) prices[1], 0.1);
+        assertEquals(P2, (double) prices[2], 0.1);
+
+        // Now check asks
+        double P3 = BEST_PRICE + 10.0;
+        double P4 = BEST_PRICE * (100.0 + LIMIT) / 100.0;
+        m.addAsk(P3, 1, 1);
+        m.addAsk(BEST_PRICE, 1, 1);
+        m.addAsk(P4, 1, 1);
+        // Add some "out of range" orders
+        m.addAsk(BEST_PRICE * (100.0 + LIMIT + 1) / 100.0, 1, 1);
+        m.addAsk(BEST_PRICE * (100.0 + 2 * LIMIT) / 100.0, 1, 1);
+        m.addAsk(BEST_PRICE * 1000, 1, 1);
+        
+        asks = m.getPriceLimitedAsks(LIMIT);
+        assertEquals(3, asks.size());
+        prices = asks.getOrderedPrices(true);
+        assertEquals(BEST_PRICE, prices[0]);
+        assertEquals(P3, (double) prices[1], 0.1);
+        assertEquals(P4, (double) prices[2], 0.1);
+        
     }
 
 }

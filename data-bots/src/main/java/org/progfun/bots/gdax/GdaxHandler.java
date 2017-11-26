@@ -1,11 +1,7 @@
 package org.progfun.bots.gdax;
 
-import java.io.IOException;
-import org.progfun.InvalidFormatException;
-import org.progfun.Market;
 import org.progfun.connector.AbstractWebSocketHandler;
 import org.progfun.connector.Parser;
-import org.progfun.orderbook.DummyListener;
 
 /**
  * Main class for the GDAX market, creates a websocket to connect to the API and
@@ -14,30 +10,6 @@ import org.progfun.orderbook.DummyListener;
 public class GdaxHandler extends AbstractWebSocketHandler {
 
     private static final String API_URL = "wss://ws-feed.gdax.com";
-
-    /**
-     * Launch a proof-of-concept test
-     *
-     * @param args command line arguments
-     */
-    public static void main(String[] args) {
-        GdaxHandler handler;
-        try {
-            handler = new GdaxHandler();
-            Market market = new Market("BTC", "USD");
-            market.addListener(new DummyListener());
-            handler.setMarket(market);
-            if (handler.connect()) {
-                handler.sendInitCommands();
-                System.in.read(); // Wait for <Enter>
-                handler.disconnect();
-            }
-        } catch (IOException ex) {
-            System.out.println("Something wrong with input");
-        } catch (InvalidFormatException ex) {
-            System.out.println("Invlid currency pair: " + ex.getMessage());
-        }
-    }
 
     @Override
     protected String getUrl() {
