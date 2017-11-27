@@ -22,8 +22,11 @@ public class SnapshotExample {
     public static void main(String[] args) {
         // Create your crawler here - this example should work the same
         // with all the crawlers: Gemini, GDAX, etc
-        AbstractWebSocketHandler handler;
-        handler = new GdaxHandler();
+        AbstractWebSocketHandler handler; 
+//        handler = new GdaxHandler();
+        handler = new BitFinexHandler();
+        // Enable message logging to text file
+        handler.setLogging(true);
         
         try {
             Market market = new Market("BTC", "USD");            
@@ -41,6 +44,8 @@ public class SnapshotExample {
             System.out.println("Press Enter to quit");
             System.in.read(); // Wait for <Enter>
             runner.terminate();
+            // Close log file
+            handler.setLogging(false);
         } catch (InvalidFormatException ex) {
             System.out.println("Invlid currency pair: " + ex.getMessage());
         } catch (IOException ex) {

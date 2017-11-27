@@ -1,5 +1,8 @@
 package org.progfun.connector;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -13,6 +16,9 @@ public class WebSocketConnector {
 
     // Only one listener allowed
     Parser listener;
+
+    // Used for logging messages to a file
+    private PrintWriter logWriter;
 
     /**
      * Set listener that will receive all messages from the remote server (API)
@@ -43,6 +49,7 @@ public class WebSocketConnector {
             client = new WSClient(uri) {
                 @Override
                 public void onMessage(String message) {
+                    logMessage(message);
                     if (listener != null) {
                         listener.onMessage(message);
                     }
@@ -58,7 +65,7 @@ public class WebSocketConnector {
                     }
                 }
             };
-            
+
             client.connectBlocking();
 
         } catch (URISyntaxException ex) {
@@ -104,4 +111,47 @@ public class WebSocketConnector {
         }
     }
 
+    /**
+     * Start logging all the messages to a text file
+     *
+     * @param filename path to the log file
+     * @return true on success, false otherwise
+     */
+    public boolean startLogging(String filename) {
+        try {
+            logWriter = new PrintWriter(new FileOutputStream(filename), true);
+            System.out.println("Log file opened: " + filename);
+            return true;
+        } catch (FileNotFoundException ex) {
+            System.out.println("Can' open log file:" + ex.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * Close the log file and stop logging
+     *
+     * @return true when file was opened and is now closed, false if it was not
+     * opened
+     */
+    public boolean stopLogging() {
+        if (logWriter != null) {
+            logWriter.close();
+            logWriter = null;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Log message to text file, if log file is opened
+     *
+     * @param message
+     */
+    private void logMessage(String message) {
+        if (logWriter != null) {
+            logWriter.println(message);
+        }
+    }
 }
