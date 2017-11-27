@@ -111,4 +111,13 @@ public class Order {
         
         return this.price == o1.price && this.amount == o1.amount;
     }
+    
+    /**
+     * Meaningful representation of order as a string
+     * @return 
+     */
+    @Override
+    public String toString() {
+        return "[" + price + ", " + amount + ", " + count + "]";
+    }
 }

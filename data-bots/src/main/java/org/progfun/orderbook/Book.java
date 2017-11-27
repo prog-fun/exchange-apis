@@ -180,4 +180,21 @@ public class Book implements Iterable<Order> {
         }
         return true;
     }
+    
+    /**
+     * Print meaningful book representation
+     * @return 
+     */
+    @Override
+    public String toString() {
+        String res = "";
+        // Limit to first few orders
+        int i = 0;
+        Iterator<Order> it = iterator();
+        while (it.hasNext() && i++ < 5) {
+            Order o = it.next();
+            res += o.toString() + "; ";
+        }
+        return res;
+    }
 }
