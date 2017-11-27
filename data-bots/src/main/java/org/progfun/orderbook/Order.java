@@ -87,4 +87,37 @@ public class Order {
         }
     }
 
+    /**
+     * Implement content-wise comparison of Orders
+     * @param obj
+     * @return 
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Order)) {
+            // This should cover null as well
+            return false;
+        }
+        
+        Order o1 = (Order) obj;
+        
+        if (this.count != null) {
+            if (!this.count.equals(o1.count)) {
+                return false;
+            }
+        } else if (o1.count != null) {
+            return false;
+        }
+        
+        return this.price == o1.price && this.amount == o1.amount;
+    }
+    
+    /**
+     * Meaningful representation of order as a string
+     * @return 
+     */
+    @Override
+    public String toString() {
+        return "[" + price + ", " + amount + ", " + count + "]";
+    }
 }
