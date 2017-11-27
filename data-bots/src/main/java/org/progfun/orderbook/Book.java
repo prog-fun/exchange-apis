@@ -1,13 +1,13 @@
 package org.progfun.orderbook;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NavigableSet;
 import java.util.TreeMap;
 
 /**
- * One "book" holding either bids or asks.
- * If iterator interface used, the ordering is undefined.
- * Use other methods to get orders sorted by price.
+ * One "book" holding either bids or asks. If iterator interface used, the
+ * ordering is undefined. Use other methods to get orders sorted by price.
  */
 public class Book implements Iterable<Order> {
 
@@ -96,7 +96,7 @@ public class Book implements Iterable<Order> {
      * Return a copy of the orders, limited by price
      *
      * @param limitPercent how many percent away from the best price the
-     * threshold will be. 
+     * threshold will be.
      * @param ascending when true, lowest prices are included (asks). When
      * false, highest prices are included (bids).
      * @return
@@ -106,23 +106,23 @@ public class Book implements Iterable<Order> {
         if (orders.isEmpty()) {
             return b;
         }
-        
+
         // Get the best price and calculate threshold
         NavigableSet<Double> ns = ascending ? orders.navigableKeySet()
                 : orders.descendingKeySet();
-        Double bestPrice = ns.first();   
+        Double bestPrice = ns.first();
         double limit = (ascending ? 1 : -1) * limitPercent;
         double threshold = getPriceThreshold(bestPrice, limit);
-        
+
         for (Double price : ns) {
-            if ((ascending && price > threshold) 
+            if ((ascending && price > threshold)
                     || (!ascending && price < threshold)) {
                 // Threshold reached
                 break;
             }
             b.add(orders.get(price));
         }
-        
+
         return b;
     }
 
@@ -141,5 +141,43 @@ public class Book implements Iterable<Order> {
     @Override
     public Iterator<Order> iterator() {
         return orders.values().iterator();
+    }
+
+    /**
+     * Implement our own equality function: two books are equal as long
+     * as all their orders are equal
+     * @param obj
+     * @return true if books equal, false if some orders differ, or comparing
+     * to a non-Book object
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Book)) {
+            // This should cover null as well
+            return false;
+        }
+        Book b1 = (Book) obj;
+        if (b1.size() != this.size()) {
+            return false;
+        }
+        
+        if (this.size() == 0) {
+            return true;
+        }
+        
+        Double[] p1 = b1.getOrderedPrices(true);
+        Double[] p2 = this.getOrderedPrices(true);
+        if (!Arrays.equals(p1, p2)) {
+            return false;
+        }
+        for (int i = 0; i < p1.length; ++i) {
+            Double price = p1[i];
+            Order o1 = b1.getOrderForPrice(price);
+            Order o2 = this.getOrderForPrice(price);
+            if (!o1.equals(o2)) {
+                return false;
+            }
+        }
+        return true;
     }
 }
