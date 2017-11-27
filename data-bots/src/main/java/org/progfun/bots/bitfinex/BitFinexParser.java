@@ -65,10 +65,15 @@ public class BitFinexParser extends AbstractParser {
             double amount = values.getDouble(2);
 //            System.out.println("Price: " + price + ", Count: " + count + ", Amount: " + amount);
             if (count > 0) {
+                // BitFinex always reports the total updated amount, 
+                // not the difference. Therefore we must first remove the
+                // old order and then add it
                 if (amount > 0) {
+                    market.removeBid(price);
                     market.addBid(price, amount, count);
                 } else if (amount < 0) {
-                    market.addAsk(price, amount, count);
+                    market.removeAsk(price);
+                    market.addAsk(price, -amount, count);
                 }
             } else if (count == 0) {
                 if (amount == 1) {
@@ -98,7 +103,7 @@ public class BitFinexParser extends AbstractParser {
                 if (amount > 0) {
                     market.addBid(price, amount, count);
                 } else if (amount < 0) {
-                    market.addAsk(price, amount, count);
+                    market.addAsk(price, -amount, count);
                 }
             }
         }
