@@ -26,7 +26,7 @@ public class SnapshotExample {
 //        handler = new GdaxHandler();
         handler = new BitFinexHandler();
         // Enable message logging to text file
-        handler.setLogging(true);
+//        handler.setLogging(true);
         
         try {
             Market market = new Market("BTC", "USD");            
