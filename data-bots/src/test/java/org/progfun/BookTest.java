@@ -1,5 +1,6 @@
 package org.progfun;
 
+import java.math.BigDecimal;
 import org.junit.Test;
 import org.progfun.orderbook.Book;
 
@@ -20,8 +21,8 @@ public class BookTest {
         // Empty books should be equal
         assertFalse(b1.equals(null));
         assertTrue(b1.equals(b2));
-        final double P1 = 700;
-        final double A1 = 15.2;
+        final BigDecimal P1 = new BigDecimal(700);
+        final BigDecimal A1 = new BigDecimal(15.2);
         final int C1 = 5;
         b1.add(new Order(P1, A1, C1));
         // Empty book not equal with one-order book 
@@ -33,11 +34,11 @@ public class BookTest {
         assertTrue(b1.equals(b2));
         
         // Books with two different orders
-        final double P2 = 7000;
-        final double A2 = 15.3;
+        final BigDecimal P2 = new BigDecimal(7000);
+        final BigDecimal A2 = new BigDecimal(15.3);
         final int C2 = 50;
-        final double P3 = P2 + 50;
-        final double A3 = A2 + 8;
+        final BigDecimal P3 = P2.add(new BigDecimal(50));
+        final BigDecimal A3 = A2.add(new BigDecimal(8));
         final int C3 = C2 + 10;
         b1.add(new Order(P2, A2, C2));
         b2.add(new Order(P3, A3, C3));

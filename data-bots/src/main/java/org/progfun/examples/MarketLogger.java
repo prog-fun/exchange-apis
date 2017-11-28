@@ -1,5 +1,6 @@
 package org.progfun.examples;
 
+import java.math.BigDecimal;
 import org.progfun.Market;
 import org.progfun.SnapshotListener;
 import org.progfun.orderbook.Book;
@@ -40,7 +41,7 @@ public class MarketLogger implements SnapshotListener {
      */
     private void printPrices(Book book, boolean ascending, String title) {
         System.out.println(title + ":");
-        Double[] prices = book.getOrderedPrices(ascending);
+        BigDecimal[] prices = book.getOrderedPrices(ascending);
         for (int i = 0; i < bidLimit && i < prices.length; ++ i) {
             Order o = book.getOrderForPrice(prices[i]);
             System.out.println(o.getPrice() + " [" + o.getAmount()+ "]");
