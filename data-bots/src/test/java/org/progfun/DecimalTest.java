@@ -70,6 +70,14 @@ public class DecimalTest {
         assertEquals(0.0, d.getDoubleVal(), DELTA);
     }
     
+    public void testDivide() {
+        Decimal d = new Decimal("5");
+        assertEquals(Decimal.ONE, d.divide(d));
+        assertEquals(d, d.divide(Decimal.ONE));
+        assertEquals(d.negate(), d.divide(new Decimal(-5)));
+        assertEquals(new Decimal(0.0005), d.divide(new Decimal(10000)));
+    }
+    
     @Test
     public void testAdd() {
         Decimal d = new Decimal("5");

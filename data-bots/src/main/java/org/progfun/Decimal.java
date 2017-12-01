@@ -47,7 +47,7 @@ public class Decimal implements Comparable<Decimal> {
     }
 
     /**
-     * Return a new decimal whole value is original * d
+     * Return a new decimal whose value is original * d
      *
      * @param d
      * @return
@@ -56,6 +56,15 @@ public class Decimal implements Comparable<Decimal> {
         return new Decimal(number.multiply(d.number));
     }
 
+    /**
+     * Return a new decimal whose value is original / d
+     * @param d
+     * @return 
+     */
+    public Decimal divide(Decimal d) {
+        return new Decimal(number.divide(d.number));
+    }
+    
     /**
      * Return a new decimal whose value is original * -1
      *
