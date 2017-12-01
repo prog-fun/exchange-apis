@@ -3,6 +3,7 @@ package org.progfun.bots.hitbtc;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.progfun.Decimal;
 import org.progfun.connector.AbstractParser;
 
 /**
@@ -22,8 +23,8 @@ public class HitBtcParser extends AbstractParser {
                 for (Object obj : asks) {
                     JSONObject ask = (JSONObject) obj;
                     String askSizeString = ask.getString("size");
-                    double askSize = Double.parseDouble(askSizeString);
-                    double askPrice = ask.getDouble("price");
+                    Decimal askSize = new Decimal(askSizeString);
+                    Decimal askPrice = new Decimal(ask.getString("price"));
                     if (askSizeString.equals("0.00")) {
                         market.removeAsk(askPrice);
                     } else {
@@ -37,8 +38,8 @@ public class HitBtcParser extends AbstractParser {
                 for (Object obj : bids) {
                     JSONObject bid = (JSONObject) obj;
                     String bidSizeString = bid.getString("size");
-                    double bidSize = Double.parseDouble(bidSizeString);
-                    double bidPrice = bid.getDouble("price");
+                    Decimal bidSize = new Decimal(bidSizeString);
+                    Decimal bidPrice = new Decimal(bid.getString("price"));
                     if (bidSizeString.equals("0.00")) {
                         market.removeBid(bidPrice);
                     } else {

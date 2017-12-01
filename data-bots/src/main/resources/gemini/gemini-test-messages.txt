@@ -29,7 +29,7 @@
 EOF-MESSAGES
 /MESAGE-SEPARATOR/
 
-This is a test-data file. Messages are separated by specific separators, and end at EOF-MESSAGES marker.
+This is a test-data file. Messages are separated by specific separators, and end at EOF-MSG marker.
 
 Expected Results in the orderbook:
 Bid @ 701: 20

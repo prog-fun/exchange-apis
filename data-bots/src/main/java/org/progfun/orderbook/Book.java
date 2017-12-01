@@ -1,9 +1,9 @@
 package org.progfun.orderbook;
 
-import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.NavigableSet;
 import java.util.TreeMap;
+import org.progfun.Decimal;
 
 /**
  * One "book" holding either bids or asks. If iterator interface used, the
@@ -11,7 +11,7 @@ import java.util.TreeMap;
  */
 public class Book implements Iterable<Order> {
 
-    private final TreeMap<BigDecimal, Order> orders = new TreeMap<>();
+    private final TreeMap<Decimal, Order> orders = new TreeMap<>();
 
     /**
      * Add a new bid/ask order. If an order with that price is already
@@ -40,9 +40,9 @@ public class Book implements Iterable<Order> {
             // Existing order, update amount and count
             o.increase(order.getAmount(), order.getCount());
             // Check if amount became zero, then we remove the order
-            if (o.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            if (!o.getAmount().isPositive()) {
                 orders.remove(o.getPrice());
-                o.setAmount(BigDecimal.ZERO);
+                o.setAmount(Decimal.ZERO);
                 o.setCount(null);
             }
             return o;
@@ -54,7 +54,7 @@ public class Book implements Iterable<Order> {
      *
      * @param price
      */
-    public void remove(BigDecimal price) {
+    public void remove(Decimal price) {
         orders.remove(price);
     }
 
@@ -74,10 +74,10 @@ public class Book implements Iterable<Order> {
      * descending otherwise
      * @return n-th highest order or null if index out of bounds
      */
-    public BigDecimal[] getOrderedPrices(boolean ascending) {
-        NavigableSet<BigDecimal> ns = ascending ? orders.navigableKeySet()
+    public Decimal[] getOrderedPrices(boolean ascending) {
+        NavigableSet<Decimal> ns = ascending ? orders.navigableKeySet()
                 : orders.descendingKeySet();
-        BigDecimal[] prices = new BigDecimal[ns.size()];
+        Decimal[] prices = new Decimal[ns.size()];
         ns.toArray(prices);
         return prices;
     }
@@ -88,7 +88,7 @@ public class Book implements Iterable<Order> {
      * @param price
      * @return
      */
-    public Order getOrderForPrice(BigDecimal price) {
+    public Order getOrderForPrice(Decimal price) {
         return orders.get(price);
     }
 
@@ -99,7 +99,7 @@ public class Book implements Iterable<Order> {
      * @return
      */
     public Order getOrderForPrice(String price) {
-        return getOrderForPrice(new BigDecimal(price));
+        return getOrderForPrice(new Decimal(price));
     }
     
     /**
@@ -118,15 +118,15 @@ public class Book implements Iterable<Order> {
         }
 
         // Get the best price and calculate threshold
-        NavigableSet<BigDecimal> ns = ascending ? orders.navigableKeySet()
+        NavigableSet<Decimal> ns = ascending ? orders.navigableKeySet()
                 : orders.descendingKeySet();
-        BigDecimal bestPrice = ns.first();
+        Decimal bestPrice = ns.first();
         double limit = (ascending ? 1 : -1) * limitPercent;
-        BigDecimal threshold = getPriceThreshold(bestPrice, limit);
+        Decimal threshold = getPriceThreshold(bestPrice, limit);
 
-        for (BigDecimal price : ns) {
-            if ((ascending && price.compareTo(threshold) > 0)
-                    || (!ascending && price.compareTo(threshold) < 0)) {
+        for (Decimal price : ns) {
+            if ((ascending && price.isGreaterThan(threshold))
+                    || (!ascending && price.isSmallerThan(threshold))) {
                 // Threshold reached
                 break;
             }
@@ -144,8 +144,8 @@ public class Book implements Iterable<Order> {
      * threshold can be. Use negative value for bids, positive for asks
      * @return
      */
-    public static BigDecimal getPriceThreshold(BigDecimal bestPrice, double limitPercent) {
-        return bestPrice.multiply(new BigDecimal((100.0 + limitPercent) / 100.0));
+    public static Decimal getPriceThreshold(Decimal bestPrice, double limitPercent) {
+        return bestPrice.multiply(new Decimal((100.0 + limitPercent) / 100.0));
     }
 
     @Override
@@ -175,8 +175,8 @@ public class Book implements Iterable<Order> {
             return true;
         }
         
-        BigDecimal[] p1 = b1.getOrderedPrices(true);
-        BigDecimal[] p2 = this.getOrderedPrices(true);
+        Decimal[] p1 = b1.getOrderedPrices(true);
+        Decimal[] p2 = this.getOrderedPrices(true);
         // Prices may have "some fluctuation", compare with care
         for (int i = 0; i < p1.length; ++i) {
             if (!p1[i].equals(p2[i])) {
@@ -184,7 +184,7 @@ public class Book implements Iterable<Order> {
             }
         }
         for (int i = 0; i < p1.length; ++i) {
-            BigDecimal price = p1[i];
+            Decimal price = p1[i];
             Order o1 = b1.getOrderForPrice(price);
             Order o2 = this.getOrderForPrice(price);
             if (!o1.equals(o2)) {

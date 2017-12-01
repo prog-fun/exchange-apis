@@ -1,6 +1,6 @@
 package org.progfun.orderbook;
 
-import java.math.BigDecimal;
+import org.progfun.Decimal;
 
 /**
  * Represents one market order: Bid or Ask Bid: someone wants to buy the base
@@ -10,8 +10,8 @@ import java.math.BigDecimal;
  */
 public class Order {
 
-    private BigDecimal price;
-    private BigDecimal amount;
+    private Decimal price;
+    private Decimal amount;
     private Integer count;
 
     /**
@@ -25,25 +25,25 @@ public class Order {
      * "information not available". Negative count is allowed (negative values
      * can be used as a "relative order change")
      */
-    public Order(BigDecimal price, BigDecimal amount, Integer count) {
+    public Order(Decimal price, Decimal amount, Integer count) {
         this.price = price;
         this.amount = amount;
         this.count = count;
     }
 
-    public BigDecimal getPrice() {
+    public Decimal getPrice() {
         return price;
     }
 
-    public void setPrice(BigDecimal price) {
+    public void setPrice(Decimal price) {
         this.price = price;
     }
 
-    public BigDecimal getAmount() {
+    public Decimal getAmount() {
         return amount;
     }
 
-    public void setAmount(BigDecimal amount) {
+    public void setAmount(Decimal amount) {
         this.amount = amount;
     }
 
@@ -72,8 +72,8 @@ public class Order {
      * @param amount
      * @param count
      */
-    public void increase(BigDecimal amount, Integer count) {
-        this.amount.add(amount);
+    public void increase(Decimal amount, Integer count) {
+        this.amount = this.amount.add(amount);
         if (this.count != null) {
             if (count != null) {
                 this.count += count;

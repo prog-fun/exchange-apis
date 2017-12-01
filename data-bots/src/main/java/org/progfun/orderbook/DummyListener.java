@@ -1,5 +1,6 @@
 package org.progfun.orderbook;
 
+import org.progfun.Decimal;
 import org.progfun.Market;
 
 /**
@@ -28,12 +29,12 @@ public class DummyListener implements Listener {
     }
 
     @Override
-    public void bidRemoved(Market market, double price) {
+    public void bidRemoved(Market market, Decimal price) {
         System.out.println("    REM Bid: " + price);
     }
 
     @Override
-    public void askRemoved(Market market, double price) {
+    public void askRemoved(Market market, Decimal price) {
         System.out.println("    REM Ask: " + price);
     }
 

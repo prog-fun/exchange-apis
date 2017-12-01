@@ -12,12 +12,12 @@ import org.junit.Test;
 import org.progfun.InvalidFormatException;
 import org.progfun.Market;
 import static org.junit.Assert.*;
+import org.progfun.Decimal;
 import org.progfun.bots.gemini.GeminiParser;
 import org.progfun.orderbook.Book;
 import org.progfun.orderbook.Order;
 
 public class GeminiTest {
-    static final double DELTA = 0.00000000001;
 
     // Test a realistic scenario with predefined messages stored in a file
     @Test
@@ -29,33 +29,32 @@ public class GeminiTest {
         assertEquals(9, messages.size());
 
         // Create a marker, feed all messages to GeminiParser 
-        
         Market market = new Market("BTC", "USD");
         GeminiParser parser = new GeminiParser();
         parser.setMarket(market);
-        
-        for (String msg: messages) {
+
+        for (String msg : messages) {
             parser.onMessage(msg);
         }
-        
+
         // Now check if the resulting orderboog corresponds to our expectations
         Book bids = market.getBids();
         Book asks = market.getAsks();
-        
+
         assertEquals(2, bids.size());
         assertEquals(2, asks.size());
-        Order b1 = bids.getOrderForPrice(701);
-        Order b2 = bids.getOrderForPrice(703);
+        Order b1 = bids.getOrderForPrice(new Decimal(701));
+        Order b2 = bids.getOrderForPrice(new Decimal(703));
         assertNotNull(b1);
         assertNotNull(b2);
-        assertEquals(20, b1.getAmount(), DELTA);
-        assertEquals(45, b2.getAmount(), DELTA);
-        Order a1 = asks.getOrderForPrice(741);
-        Order a2 = asks.getOrderForPrice(751);
+        assertEquals(new Decimal(20), b1.getAmount());
+        assertEquals(new Decimal(45), b2.getAmount());
+        Order a1 = asks.getOrderForPrice(new Decimal(741));
+        Order a2 = asks.getOrderForPrice(new Decimal(751));
         assertNotNull(a1);
         assertNotNull(a2);
-        assertEquals(0.8, a1.getAmount(), DELTA);
-        assertEquals(1.5, a2.getAmount(), DELTA);
+        assertEquals(new Decimal(0.8), a1.getAmount());
+        assertEquals(new Decimal(1.5), a2.getAmount());
     }
 
     public static List<String> prepareTestMessages() {
@@ -69,9 +68,9 @@ public class GeminiTest {
             String fileContent = new String(encoded, "UTF8");
 
             // Split the content in messages
-            String[] parts = fileContent.split("/MESAGE-SEPARATOR/\n");
+            String[] parts = fileContent.split("/MESAGE-SEPARATOR/");
             for (String p : parts) {
-                if (p.startsWith("EOF-MESSAGES")) {
+                if (p.contains("EOF-MESSAGES")) {
                     break;
                 }
                 messages.add(p);

@@ -1,6 +1,5 @@
 package org.progfun;
 
-import java.math.BigDecimal;
 import org.junit.Test;
 import org.progfun.orderbook.Book;
 import org.progfun.orderbook.Listener;
@@ -81,29 +80,29 @@ public class MarketTest {
             e.printStackTrace();
             fail();
         }
-        final BigDecimal BID_PRICE = new BigDecimal(10.2);
-        final BigDecimal ASK_PRICE = new BigDecimal(12.72);
-        final BigDecimal BID_AMOUNT = new BigDecimal(7.24);
-        final BigDecimal ASK_AMOUNT = new BigDecimal(42);
+        final Decimal BID_PRICE = new Decimal(10.2);
+        final Decimal ASK_PRICE = new Decimal(12.72);
+        final Decimal BID_AMOUNT = new Decimal(7.24);
+        final Decimal ASK_AMOUNT = new Decimal(42);
         m.addBid(BID_PRICE, BID_AMOUNT, 1);
         m.addAsk(ASK_PRICE, ASK_AMOUNT, 1);
         assertEquals(1, m.getBids().size());
         assertEquals(1, m.getAsks().size());
         // Check bid
-        BigDecimal[] bidPrices = m.getBids().getOrderedPrices(false);
+        Decimal[] bidPrices = m.getBids().getOrderedPrices(false);
         assertNotNull(bidPrices);
         assertEquals(1, bidPrices.length);
-        BigDecimal bp = bidPrices[0];
+        Decimal bp = bidPrices[0];
         assertTrue(BID_PRICE.equals(bp));
         Order b1 = m.getBids().getOrderForPrice(bp);
         assertNotNull(b1);
         assertEquals(BID_AMOUNT, b1.getAmount());
         assertTrue(BID_PRICE.equals(b1.getPrice()));
         // Check ask
-        BigDecimal[] askPrices = m.getAsks().getOrderedPrices(true);
+        Decimal[] askPrices = m.getAsks().getOrderedPrices(true);
         assertNotNull(askPrices);
         assertEquals(1, bidPrices.length);
-        BigDecimal ap = askPrices[0];
+        Decimal ap = askPrices[0];
         assertEquals(ASK_PRICE, ap);
         Order a1 = m.getAsks().getOrderForPrice(ap);
         assertNotNull(a1);
@@ -128,19 +127,20 @@ public class MarketTest {
         final double[] ORDERED_BID_PRICES = {7010.0, 7000.25, 6900, 6800.0};
 
         for (int i = 0; i < BID_PRICES.length; ++i) {
-            m.addBid(new BigDecimal(BID_PRICES[i]), BigDecimal.ONE, 1);
+            m.addBid(new Decimal(BID_PRICES[i]), Decimal.ONE, 1);
         }
 
         // Check if all orders are added
         assertEquals(BID_PRICES.length, bids.size());
 
         // Check if the prices are ordered correctly
-        BigDecimal[] orderedBids = bids.getOrderedPrices(false);
+        Decimal[] orderedBids = bids.getOrderedPrices(false);
         assertEquals(BID_PRICES.length, orderedBids.length);
 
         // Create etalon ordering
         for (int i = 0; i < orderedBids.length; ++i) {
-            assertEquals(orderedBids[i], ORDERED_BID_PRICES[i]);
+            Decimal expectedVal = new Decimal(ORDERED_BID_PRICES[i]);
+            assertEquals(expectedVal, orderedBids[i]);
         }
     }
 
@@ -154,13 +154,13 @@ public class MarketTest {
             e.printStackTrace();
             fail();
         }
-        BigDecimal P1 = new BigDecimal(7000);
-        BigDecimal P2 = new BigDecimal(7100);
-        BigDecimal P3 = new BigDecimal(60.00008);
-        BigDecimal A1 = new BigDecimal(2);
-        BigDecimal A2 = new BigDecimal(4);
-        BigDecimal A3 = new BigDecimal(6);
-        BigDecimal A4 = new BigDecimal(0.000003);
+        Decimal P1 = new Decimal(7000);
+        Decimal P2 = new Decimal(7100);
+        Decimal P3 = new Decimal(60.00008);
+        Decimal A1 = new Decimal(2);
+        Decimal A2 = new Decimal(4);
+        Decimal A3 = new Decimal(6);
+        Decimal A4 = new Decimal(0.000003);
         m.addAsk(P1, A1, 5);
         m.addAsk(P2, A1, 5);
         m.addAsk(P3, A1, 0);
@@ -170,21 +170,21 @@ public class MarketTest {
         m.addAsk(P1, A4, 0);
         Book asks = m.getAsks();
         assertEquals(3, asks.size());
-        BigDecimal[] prices = asks.getOrderedPrices(true);
+        Decimal[] prices = asks.getOrderedPrices(true);
 
         assertEquals(P3, prices[0]);
         assertEquals(P1, prices[1]);
         assertEquals(P2, prices[2]);
 
         Order o1 = asks.getOrderForPrice(P1);
-        BigDecimal A1_1_4 = new BigDecimal(4.000003);
+        Decimal A1_1_4 = new Decimal(4.000003);
         assertEquals(A1_1_4, o1.getAmount());
-        assertEquals(BigDecimal.TEN, o1.getCount());
+        assertEquals(10, (int) o1.getCount());
         Order o2 = asks.getOrderForPrice(P2);
         assertEquals(A1, o2.getAmount());
         assertEquals(5, (int) o2.getCount());
         Order o3 = asks.getOrderForPrice(P3);
-        BigDecimal A123 = new BigDecimal(12);
+        Decimal A123 = new Decimal(12);
         assertEquals(A123, o3.getAmount());
         assertEquals(8, (int) o3.getCount());
     }
@@ -202,14 +202,14 @@ public class MarketTest {
         DummyListener l = new DummyListener();
         m.addListener(l);
         // Add one new ask
-        BigDecimal D5 = new BigDecimal(5);
-        BigDecimal D2 = new BigDecimal(2);
-        BigDecimal D3 = new BigDecimal(3);
-        BigDecimal D6 = new BigDecimal(6);
-        BigDecimal D17 = new BigDecimal(17);
-        BigDecimal D700 = new BigDecimal(700);
-        BigDecimal D800 = new BigDecimal(800);
-        BigDecimal DM2 = new BigDecimal(-2);
+        Decimal D5 = new Decimal(5);
+        Decimal D2 = new Decimal(2);
+        Decimal D3 = new Decimal(3);
+        Decimal D6 = new Decimal(6);
+        Decimal D17 = new Decimal(17);
+        Decimal D700 = new Decimal(700);
+        Decimal D800 = new Decimal(800);
+        Decimal DM2 = new Decimal(-2);
 
         m.addAsk(D5, D2, 0);
         assertEquals(l.numNewAsks, 1);
@@ -286,11 +286,11 @@ public class MarketTest {
         Book asks = m.getAsks();
         m.addAsk("7000", "3", 1);
         Order a = asks.getOrderForPrice("7000");
-        assertEquals(3, a.getAmount());
+        assertEquals(new Decimal(3), a.getAmount());
         m.addAsk("7000", "-1", 1);
-        assertEquals(2, a.getAmount());
+        assertEquals(new Decimal(2), a.getAmount());
         m.addAsk("7000", "-1", 0);
-        assertEquals(1, a.getAmount());
+        assertEquals(new Decimal(1), a.getAmount());
         m.addAsk("7000", "-3", 1);
         // Now the ask should be deleted
         assertEquals(0, asks.size());
@@ -306,8 +306,8 @@ public class MarketTest {
     public void testLocking() throws InvalidFormatException, InterruptedException {
         Market m = new Market("BTC", "USD");
         m.lockUpdates();
-        final BigDecimal AMOUNT = BigDecimal.TEN;
-        final BigDecimal PRICE = new BigDecimal(15);
+        final Decimal AMOUNT = Decimal.TEN;
+        final Decimal PRICE = new Decimal(15);
         // Try to update the market in another thread
         Runnable r = new Runnable() {
             @Override
@@ -337,7 +337,7 @@ public class MarketTest {
         assertEquals(1, m.getBids().size());
         Order o = m.getBids().getOrderForPrice(PRICE);
         assertNotNull(o);
-        assertEquals(AMOUNT.multiply(new BigDecimal(2)), o.getAmount());
+        assertEquals(AMOUNT.multiply(new Decimal(2)), o.getAmount());
     }
 
     /**
@@ -352,7 +352,7 @@ public class MarketTest {
         Book asks;
         final double LIMIT = 10.0;
         final Double BEST_PRICE = 1000.0;
-        BigDecimal BPD = new BigDecimal(BEST_PRICE);
+        Decimal BPD = new Decimal(BEST_PRICE);
 
         // Test empty books first
         bids = m.getPriceLimitedBids(-LIMIT);
@@ -362,49 +362,49 @@ public class MarketTest {
 
         // Now add some values
         double P1 = BEST_PRICE - 10.0;
-        BigDecimal P1D = new BigDecimal(P1);
+        Decimal P1D = new Decimal(P1);
         double P2 = BEST_PRICE * (100.0 - LIMIT) / 100.0;
-        BigDecimal P2D = new BigDecimal(P2);
-        m.addBid(P1D, BigDecimal.ONE, 1);
-        m.addBid(BPD, BigDecimal.ONE, 1);
-        m.addBid(P2D, BigDecimal.ONE, 1);
+        Decimal P2D = new Decimal(P2);
+        m.addBid(P1D, Decimal.ONE, 1);
+        m.addBid(BPD, Decimal.ONE, 1);
+        m.addBid(P2D, Decimal.ONE, 1);
         // Add some "out of range" orders
         double OUT_PRICE1 = BEST_PRICE * (100.0 - LIMIT - 1) / 100.0;
         double OUT_PRICE2 = BEST_PRICE * (100.0 - 2 * LIMIT) / 100.0;
-        BigDecimal OP1D = new BigDecimal(OUT_PRICE1);
-        BigDecimal OP2D = new BigDecimal(OUT_PRICE2);
-        m.addBid(OP1D, BigDecimal.ONE, 1);
-        m.addBid(OP2D, BigDecimal.ONE, 1);
-        m.addBid(BigDecimal.ZERO, BigDecimal.ONE, 1);
+        Decimal OP1D = new Decimal(OUT_PRICE1);
+        Decimal OP2D = new Decimal(OUT_PRICE2);
+        m.addBid(OP1D, Decimal.ONE, 1);
+        m.addBid(OP2D, Decimal.ONE, 1);
+        m.addBid(Decimal.ZERO, Decimal.ONE, 1);
 
         bids = m.getPriceLimitedBids(LIMIT);
         assertEquals(3, bids.size());
-        BigDecimal[] prices;
+        Decimal[] prices;
         prices = bids.getOrderedPrices(false);
-        assertEquals(BEST_PRICE, prices[0]);
+        assertEquals(BPD, prices[0]);
         assertEquals(P1D, prices[1]);
         assertEquals(P2D, prices[2]);
 
         // Now check asks
         double P3 = BEST_PRICE + 10.0;
         double P4 = BEST_PRICE * (100.0 + LIMIT) / 100.0;
-        BigDecimal P3D = new BigDecimal(P3);
-        BigDecimal P4D = new BigDecimal(P4);
-        m.addAsk(P3D, BigDecimal.ONE, 1);
-        m.addAsk(BPD, BigDecimal.ONE, 1);
-        m.addAsk(P4D, BigDecimal.ONE, 1);
+        Decimal P3D = new Decimal(P3);
+        Decimal P4D = new Decimal(P4);
+        m.addAsk(P3D, Decimal.ONE, 1);
+        m.addAsk(BPD, Decimal.ONE, 1);
+        m.addAsk(P4D, Decimal.ONE, 1);
         // Add some "out of range" orders
         double OUT_PRICE3 = BEST_PRICE * (100.0 + LIMIT + 1) / 100.0;
         double OUT_PRICE4 = BEST_PRICE * (100.0 + 2 * LIMIT) / 100.0;
         double OUT_PRICE5 = BEST_PRICE * 1000;
-        m.addAsk(new BigDecimal(OUT_PRICE3), BigDecimal.ONE, 1);
-        m.addAsk(new BigDecimal(OUT_PRICE4), BigDecimal.ONE, 1);
-        m.addAsk(new BigDecimal(OUT_PRICE5), BigDecimal.ONE, 1);
+        m.addAsk(new Decimal(OUT_PRICE3), Decimal.ONE, 1);
+        m.addAsk(new Decimal(OUT_PRICE4), Decimal.ONE, 1);
+        m.addAsk(new Decimal(OUT_PRICE5), Decimal.ONE, 1);
 
         asks = m.getPriceLimitedAsks(LIMIT);
         assertEquals(3, asks.size());
         prices = asks.getOrderedPrices(true);
-        assertEquals(BEST_PRICE, prices[0]);
+        assertEquals(BPD, prices[0]);
         assertEquals(P3D, prices[1]);
         assertEquals(P4D, prices[2]);
 
@@ -443,12 +443,12 @@ class DummyListener implements Listener {
     }
 
     @Override
-    public void bidRemoved(Market market, BigDecimal price) {
+    public void bidRemoved(Market market, Decimal price) {
         numDeletedBids++;
     }
 
     @Override
-    public void askRemoved(Market market, BigDecimal price) {
+    public void askRemoved(Market market, Decimal price) {
         numDeletedAsks++;
     }
 

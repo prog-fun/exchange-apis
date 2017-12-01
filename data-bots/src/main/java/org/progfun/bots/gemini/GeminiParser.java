@@ -3,6 +3,7 @@ package org.progfun.bots.gemini;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.progfun.Decimal;
 import org.progfun.Market;
 import org.progfun.connector.Parser;
 
@@ -58,10 +59,10 @@ public class GeminiParser implements Parser {
         try {
             String type = event.getString("type");
             if (type.equals("change")) {
-                Double price = event.getDouble("price");
+                Decimal price = new Decimal(event.getString("price"));
                 boolean isBid = event.getString("side").equals("bid");
                 rs = event.getString("remaining");
-                Double delta = event.getDouble("delta");
+                Decimal delta = new Decimal(event.getString("delta"));
                 if (rs.equals("0")) {
                     // Order removed, zero remaining
                     if (isBid) {

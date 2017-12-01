@@ -14,16 +14,16 @@ public class OrderTest {
      */
     @Test
     public void testEquality() {
-        final double P1 = 700;
-        final double A1 = 15.2;
+        final Decimal P1 = new Decimal(700);
+        final Decimal A1 = new Decimal(15.2);
         final int C1 = 5;
         Order o1 = new Order(P1, A1, C1);
         assertFalse(o1.equals(null));
         Order o2 = new Order(P1, A1, C1);
         assertTrue(o1.equals(o2));
         
-        final double P2 = 0.0000000000007;
-        final double A2 = 15.2;
+        final Decimal P2 = new Decimal(0.0000000007);
+        final Decimal A2 = new Decimal(15.2);
         final int C2 = 4;
         o2 = new Order(P2, A2, C2);
         assertFalse(o1.equals(o2));

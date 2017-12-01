@@ -3,6 +3,7 @@ package org.progfun.bots.bitfinex;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.progfun.Decimal;
 import org.progfun.connector.AbstractParser;
 
 /**
@@ -60,31 +61,32 @@ public class BitFinexParser extends AbstractParser {
         try {
             JSONArray data = new JSONArray(message);
             JSONArray values = data.getJSONArray(1);
-            double price = values.getDouble(0);
-            int count = (int) values.getDouble(1);
-            double amount = values.getDouble(2);
+            Decimal price = new Decimal(values.getDouble(0));
+            int count = values.getInt(1);
+            Decimal amount = new Decimal(values.getDouble(2));
 //            System.out.println("Price: " + price + ", Count: " + count + ", Amount: " + amount);
             if (count > 0) {
                 // BitFinex always reports the total updated amount, 
                 // not the difference. Therefore we must first remove the
                 // old order and then add it
-                if (amount > 0) {
+                if (amount.isPositive()) {
                     market.removeBid(price);
                     market.addBid(price, amount, count);
-                } else if (amount < 0) {
+                } else if (amount.isNegative()) {
                     market.removeAsk(price);
-                    market.addAsk(price, -amount, count);
+                    market.addAsk(price, amount.negate(), count);
                 }
             } else if (count == 0) {
-                if (amount == 1) {
+                if (amount.equals(Decimal.ONE)) {
                     market.removeBid(price);
-                } else if (amount == -1) {
+                } else if (amount.negate().equals(Decimal.ONE)) {
                     market.removeAsk(price);
                 }
             }
             // TODO - test if parsing works correctly
         } catch (JSONException e) {
-//            System.out.println("ops");
+            System.out.println("Error in BitFinex update parsing:" 
+                    + e.getMessage());
         }
 
 //        System.out.println("Ask: " + market.getAsks().size());
@@ -96,14 +98,14 @@ public class BitFinexParser extends AbstractParser {
         JSONArray array = data.getJSONArray(1);
         for (Object json : array) {
             JSONArray values = (JSONArray) json;
-            double price = values.getDouble(0);
-            int count = (int) values.getDouble(1);
-            double amount = values.getDouble(2);
+            Decimal price = new Decimal(values.getDouble(0));
+            int count = values.getInt(1);
+            Decimal amount = new Decimal(values.getDouble(2));
             if (count > 0) {
-                if (amount > 0) {
+                if (amount.isPositive()) {
                     market.addBid(price, amount, count);
-                } else if (amount < 0) {
-                    market.addAsk(price, -amount, count);
+                } else if (amount.isNegative()) {
+                    market.addAsk(price, amount.negate(), count);
                 }
             }
         }
