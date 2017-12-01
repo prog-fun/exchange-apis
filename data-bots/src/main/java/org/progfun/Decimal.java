@@ -17,6 +17,7 @@ public class Decimal implements Comparable<Decimal> {
     public static final Decimal ZERO = new Decimal(0);
     public static final Decimal ONE = new Decimal("1");
     public static final Decimal TEN = new Decimal("10");
+
     private final BigDecimal number;
 
     /**
@@ -89,7 +90,7 @@ public class Decimal implements Comparable<Decimal> {
     }
 
     /**
-     * Return a new decimal whose value is original * d 
+     * Return a new decimal whose value is original * d
      * (Syntactic sugar)
      *
      * @param d
@@ -211,5 +212,21 @@ public class Decimal implements Comparable<Decimal> {
     @Override
     public String toString() {
         return number.toString();
+    }
+
+    /**
+     * Create an array of Decimals from an array of doubles
+     * @param d
+     * @return 
+     */
+    public static Decimal[] createArray(double[] d) {
+        if (d == null) {
+            return null;
+        }
+        Decimal[] res = new Decimal[d.length];
+        for (int i = 0; i < d.length; ++i) {
+            res[i] = new Decimal(d[i]);
+        }
+        return res;
     }
 }

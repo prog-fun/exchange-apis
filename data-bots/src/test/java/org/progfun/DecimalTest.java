@@ -107,4 +107,23 @@ public class DecimalTest {
         assertEquals(Decimal.ZERO, Decimal.ZERO.negate());
         assertEquals(d, d.negate().negate());
     }
+    
+    @Test
+    public void testCreateArray() {
+        assertNull(Decimal.createArray(null));
+        Decimal[] d = Decimal.createArray(new double[0]);
+        assertNotNull(d);
+        assertEquals(0, d.length);
+        d = Decimal.createArray(new double[]{-2, 0, 0.12, 5555});
+        Decimal[] exp = new Decimal[]{
+            new Decimal(-2), 
+            Decimal.ZERO,
+            new Decimal("0.12"),
+            new Decimal(5555)
+        };
+        assertEquals(exp.length, d.length);
+        for (int i = 0; i < d.length; ++i) {
+            assertEquals(exp[i], d[i]);
+        }
+    }
 }
