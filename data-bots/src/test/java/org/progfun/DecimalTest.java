@@ -73,18 +73,33 @@ public class DecimalTest {
     public void testDivide() {
         Decimal d = new Decimal("5");
         assertEquals(Decimal.ONE, d.divide(d));
-        assertEquals(d, d.divide(Decimal.ONE));
-        assertEquals(d.negate(), d.divide(new Decimal(-5)));
-        assertEquals(new Decimal(0.0005), d.divide(new Decimal(10000)));
+        assertEquals(d, d.divide(1));
+        assertEquals(d.negate(), d.divide(-5));
+        assertEquals(new Decimal(0.0005), d.divide(10000));
     }
     
     @Test
     public void testAdd() {
         Decimal d = new Decimal("5");
-        d = d.add(new Decimal("1"));
+        d = d.add(1);
         assertEquals(6.0, d.getDoubleVal(), DELTA);
+        d = d.add(-2);
+        assertEquals(new Decimal(4.0), d);
+        assertEquals(d, d.add(0));
+        assertEquals(Decimal.ZERO, d.add(d.negate()));
     }
     
+    @Test
+    public void testSubtract() {
+        Decimal d = new Decimal("5");
+        d = d.subtract(1);
+        assertEquals(4.0, d.getDoubleVal(), DELTA);
+        d = d.subtract(-2);
+        assertEquals(new Decimal(6.0), d);
+        assertEquals(d, d.subtract(0));
+        assertEquals(Decimal.ZERO, d.subtract(d));
+    }
+
     @Test
     public void testNegate() {
         Decimal d = new Decimal("5");

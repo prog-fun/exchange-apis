@@ -47,6 +47,38 @@ public class Decimal implements Comparable<Decimal> {
     }
 
     /**
+     * Return a new decimal whose value is original + d
+     * (Syntactic sugar)
+     *
+     * @param d
+     * @return
+     */
+    public Decimal add(double d) {
+        return add(new Decimal(d));
+    }
+
+    /**
+     * Return a new decimal whose value is original - d
+     *
+     * @param d
+     * @return
+     */
+    public Decimal subtract(Decimal d) {
+        return new Decimal(this.number.subtract(d.number));
+    }
+
+    /**
+     * Return a new decimal whose value is original - d
+     * (Syntactic sugar)
+     *
+     * @param d
+     * @return
+     */
+    public Decimal subtract(double d) {
+        return subtract(new Decimal(d));
+    }
+
+    /**
      * Return a new decimal whose value is original * d
      *
      * @param d
@@ -57,14 +89,37 @@ public class Decimal implements Comparable<Decimal> {
     }
 
     /**
-     * Return a new decimal whose value is original / d
+     * Return a new decimal whose value is original * d 
+     * (Syntactic sugar)
+     *
      * @param d
-     * @return 
+     * @return
+     */
+    public Decimal multiply(double d) {
+        return multiply(new Decimal(d));
+    }
+
+    /**
+     * Return a new decimal whose value is original / d
+     *
+     * @param d
+     * @return
      */
     public Decimal divide(Decimal d) {
         return new Decimal(number.divide(d.number));
     }
-    
+
+    /**
+     * Return a new decimal whose value is original / d
+     * (Syntactic sugar)
+     *
+     * @param d
+     * @return
+     */
+    public Decimal divide(double d) {
+        return divide(new Decimal(d));
+    }
+
     /**
      * Return a new decimal whose value is original * -1
      *
