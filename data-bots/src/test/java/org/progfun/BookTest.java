@@ -20,8 +20,8 @@ public class BookTest {
         // Empty books should be equal
         assertFalse(b1.equals(null));
         assertTrue(b1.equals(b2));
-        final double P1 = 700;
-        final double A1 = 15.2;
+        final Decimal P1 = new Decimal(700);
+        final Decimal A1 = new Decimal(15.2);
         final int C1 = 5;
         b1.add(new Order(P1, A1, C1));
         // Empty book not equal with one-order book 
@@ -33,11 +33,11 @@ public class BookTest {
         assertTrue(b1.equals(b2));
         
         // Books with two different orders
-        final double P2 = 7000;
-        final double A2 = 15.3;
+        final Decimal P2 = new Decimal(7000);
+        final Decimal A2 = new Decimal(15.3);
         final int C2 = 50;
-        final double P3 = P2 + 50;
-        final double A3 = A2 + 8;
+        final Decimal P3 = P2.add(new Decimal(50));
+        final Decimal A3 = A2.add(new Decimal(8));
         final int C3 = C2 + 10;
         b1.add(new Order(P2, A2, C2));
         b2.add(new Order(P3, A3, C3));

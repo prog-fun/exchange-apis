@@ -8,8 +8,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,6 +15,7 @@ import org.progfun.InvalidFormatException;
 import org.progfun.Market;
 import org.progfun.connector.Parser;
 import static org.junit.Assert.*;
+import org.progfun.Decimal;
 import org.progfun.orderbook.Book;
 
 /**
@@ -44,7 +43,7 @@ public class TestScenario {
             String fileContent = new String(encoded, "UTF8");
 
             // Split the content in messages
-            String[] parts = fileContent.split("/PART-SEPARATOR/\n");
+            String[] parts = fileContent.split("/PART-SEPARATOR/");
             if (parts == null || parts.length != 2) {
                 System.out.println("Error while parsing test scenario file, "
                         + " could not identify file parts correctly");
@@ -137,16 +136,16 @@ public class TestScenario {
             for (int i = 0; i < expectedBids.length(); ++i) {
                 JSONObject bid = expectedBids.getJSONObject(i);
                 scenario.expectedMarket.addBid(
-                        bid.getDouble("price"),
-                        bid.getDouble("amount"),
+                        new Decimal(bid.getDouble("price")),
+                        new Decimal(bid.getDouble("amount")),
                         bid.getInt("count"));
             }
             JSONArray expectedAsks = results.getJSONArray("asks");
             for (int i = 0; i < expectedAsks.length(); ++i) {
                 JSONObject ask = expectedAsks.getJSONObject(i);
                 scenario.expectedMarket.addAsk(
-                        ask.getDouble("price"),
-                        ask.getDouble("amount"),
+                        new Decimal(ask.getDouble("price")),
+                        new Decimal(ask.getDouble("amount")),
                         ask.getInt("count"));
             }
 

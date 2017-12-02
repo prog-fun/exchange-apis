@@ -1,5 +1,7 @@
 package org.progfun.orderbook;
 
+import org.progfun.Decimal;
+
 /**
  * Represents one market order: Bid or Ask Bid: someone wants to buy the base
  * currency Ask: someone wants to sell the base currency
@@ -8,10 +10,8 @@ package org.progfun.orderbook;
  */
 public class Order {
 
-    // TODO - test if double is good enough for prices! Maybe need to store it
-    // as an int with fixed precision? Or special Price class?
-    private double price;
-    private double amount;
+    private Decimal price;
+    private Decimal amount;
     private Integer count;
 
     /**
@@ -25,26 +25,26 @@ public class Order {
      * "information not available". Negative count is allowed (negative values
      * can be used as a "relative order change")
      */
-    public Order(double price, double amount, Integer count) {
+    public Order(Decimal price, Decimal amount, Integer count) {
         this.price = price;
         this.amount = amount;
         this.count = count;
     }
 
-    public double getPrice() {
+    public Decimal getPrice() {
         return price;
     }
 
-    public void setPrice(float price) {
+    public void setPrice(Decimal price) {
         this.price = price;
     }
 
-    public double getAmount() {
+    public Decimal getAmount() {
         return amount;
     }
 
-    public void setAmount(float size) {
-        this.amount = size;
+    public void setAmount(Decimal amount) {
+        this.amount = amount;
     }
 
     /**
@@ -72,8 +72,8 @@ public class Order {
      * @param amount
      * @param count
      */
-    public void increase(double amount, Integer count) {
-        this.amount += amount;
+    public void increase(Decimal amount, Integer count) {
+        this.amount = this.amount.add(amount);
         if (this.count != null) {
             if (count != null) {
                 this.count += count;
@@ -109,7 +109,8 @@ public class Order {
             return false;
         }
         
-        return this.price == o1.price && this.amount == o1.amount;
+        return this.price.equals(o1.price)
+                && this.amount.equals(o1.amount);
     }
     
     /**

@@ -3,6 +3,7 @@ package org.progfun.bots.gdax;
 import java.util.Iterator;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.progfun.Decimal;
 import org.progfun.connector.AbstractParser;
 
 /**
@@ -25,19 +26,19 @@ public class GdaxParser extends AbstractParser {
             JSONArray bids = JSONMessage.getJSONArray("bids");
             for (int i = 0; i < bids.length(); ++i) {
                 JSONArray bid = bids.getJSONArray(i);
-                market.addBid(bid.getDouble(0), bid.getDouble(1), 0);
+                market.addBid(bid.getString(0), bid.getString(1), 0);
             }
             JSONArray asks = JSONMessage.getJSONArray("asks");
             for (int i = 0; i < asks.length(); ++i) {
                 JSONArray ask = asks.getJSONArray(i);
-                market.addAsk(ask.getDouble(0), ask.getDouble(1), 0);
+                market.addAsk(ask.getString(0), ask.getString(1), 0);
             }
         } else if (type.equals("l2update")) {
             JSONArray changes = JSONMessage.getJSONArray("changes");
             for (int i = 0; i < changes.length(); ++i) {
                 JSONArray change = changes.getJSONArray(i);
                 String side = change.getString(0);
-                double price = change.getDouble(1);
+                Decimal price = new Decimal(change.getDouble(1));
                 String amountString = change.getString(2);
 
                 // The amount is the total, not delta
@@ -49,7 +50,7 @@ public class GdaxParser extends AbstractParser {
                     market.removeAsk(price);
                 }
                 if (!amountString.equals("0")) {
-                    Double amount = Double.parseDouble(amountString);
+                    Decimal amount = new Decimal(amountString);
                     if (side.equals("buy")) {
                         market.addBid(price, amount, 0);
                     } else if (side.equals("sell")) {

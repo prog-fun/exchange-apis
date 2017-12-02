@@ -1,5 +1,6 @@
 package org.progfun.orderbook;
 
+import org.progfun.Decimal;
 import org.progfun.Market;
 
 /**
@@ -40,14 +41,14 @@ public interface Listener {
      * @param market
      * @param price 
      */
-    public void bidRemoved(Market market, double price);
+    public void bidRemoved(Market market, Decimal price);
 
     /**
      * Ask for specific price removed
      * @param market
      * @param price 
      */
-    public void askRemoved(Market market, double price);
+    public void askRemoved(Market market, Decimal price);
 
 
 }

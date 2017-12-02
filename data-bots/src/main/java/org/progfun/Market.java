@@ -3,8 +3,6 @@ package org.progfun;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.progfun.orderbook.Book;
 import org.progfun.orderbook.Listener;
@@ -107,7 +105,7 @@ public class Market {
      * @param orderCount how many orders have been aggregated in this bid. Use
      * zero if count is not known.
      */
-    public void addBid(double price, double amount, int orderCount) {
+    public void addBid(Decimal price, Decimal amount, int orderCount) {
         if (!lockUpdates()) {
             return;
         }
@@ -118,7 +116,8 @@ public class Market {
         for (Listener l : listeners) {
             if (updatedBid != null) {
                 // Check if the update resulted in a delete
-                if (updatedBid.getAmount() > 0) {
+                Decimal a = updatedBid.getAmount();
+                if (a.isPositive()) {
                     l.bidUpdated(this, updatedBid);
                 } else {
                     // Order was actually removed
@@ -133,6 +132,16 @@ public class Market {
     }
 
     /**
+     * Wrapper for addBid with Decimal parameters
+     * @param price
+     * @param amount
+     * @param orderCount 
+     */
+    public void addBid(String price, String amount, int orderCount) {
+        addBid(new Decimal(price), new Decimal(amount), orderCount);
+    }
+       
+    /**
      * Add a new ask. If an ask with that price is already registered, the
      * amount and orderCount will be added to it.
      *
@@ -141,7 +150,7 @@ public class Market {
      * @param orderCount how many orders have been aggregated in this ask Use
      * zero if count is not known.
      */
-    public void addAsk(double price, double amount, int orderCount) {
+    public void addAsk(Decimal price, Decimal amount, int orderCount) {
         if (!lockUpdates()) {
             return;
         }
@@ -152,7 +161,7 @@ public class Market {
         for (Listener l : listeners) {
             if (updatedAsk != null) {
                 // Check if the update resulted in a delete
-                if (updatedAsk.getAmount() > 0) {
+                if (updatedAsk.getAmount().isPositive()) {
                     l.askUpdated(this, updatedAsk);
                 } else {
                     // Order was actually removed
@@ -167,11 +176,21 @@ public class Market {
     }
 
     /**
+     * Wrapper for addAsk with Decimal parameters
+     * @param price
+     * @param amount
+     * @param orderCount 
+     */
+    public void addAsk(String price, String amount, int orderCount) {
+        addAsk(new Decimal(price), new Decimal(amount), orderCount);
+    }
+    
+    /**
      * Remove a bid - all the orders at specific price
      *
      * @param price
      */
-    public void removeBid(double price) {
+    public void removeBid(Decimal price) {
         if (!lockUpdates()) {
             return;
         }
@@ -190,7 +209,7 @@ public class Market {
      *
      * @param price
      */
-    public void removeAsk(double price) {
+    public void removeAsk(Decimal price) {
         if (!lockUpdates()) {
             return;
         }

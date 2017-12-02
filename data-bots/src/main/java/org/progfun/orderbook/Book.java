@@ -1,9 +1,9 @@
 package org.progfun.orderbook;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NavigableSet;
 import java.util.TreeMap;
+import org.progfun.Decimal;
 
 /**
  * One "book" holding either bids or asks. If iterator interface used, the
@@ -11,7 +11,7 @@ import java.util.TreeMap;
  */
 public class Book implements Iterable<Order> {
 
-    private final TreeMap<Double, Order> orders = new TreeMap<>();
+    private final TreeMap<Decimal, Order> orders = new TreeMap<>();
 
     /**
      * Add a new bid/ask order. If an order with that price is already
@@ -40,9 +40,9 @@ public class Book implements Iterable<Order> {
             // Existing order, update amount and count
             o.increase(order.getAmount(), order.getCount());
             // Check if amount became zero, then we remove the order
-            if (o.getAmount() <= 0) {
+            if (!o.getAmount().isPositive()) {
                 orders.remove(o.getPrice());
-                o.setAmount(0);
+                o.setAmount(Decimal.ZERO);
                 o.setCount(null);
             }
             return o;
@@ -54,7 +54,7 @@ public class Book implements Iterable<Order> {
      *
      * @param price
      */
-    public void remove(double price) {
+    public void remove(Decimal price) {
         orders.remove(price);
     }
 
@@ -74,10 +74,10 @@ public class Book implements Iterable<Order> {
      * descending otherwise
      * @return n-th highest order or null if index out of bounds
      */
-    public Double[] getOrderedPrices(boolean ascending) {
-        NavigableSet<Double> ns = ascending ? orders.navigableKeySet()
+    public Decimal[] getOrderedPrices(boolean ascending) {
+        NavigableSet<Decimal> ns = ascending ? orders.navigableKeySet()
                 : orders.descendingKeySet();
-        Double[] prices = new Double[ns.size()];
+        Decimal[] prices = new Decimal[ns.size()];
         ns.toArray(prices);
         return prices;
     }
@@ -88,10 +88,20 @@ public class Book implements Iterable<Order> {
      * @param price
      * @return
      */
-    public Order getOrderForPrice(double price) {
+    public Order getOrderForPrice(Decimal price) {
         return orders.get(price);
     }
 
+    /**
+     * Get order for specific price or null if it does not exist
+     *
+     * @param price
+     * @return
+     */
+    public Order getOrderForPrice(String price) {
+        return getOrderForPrice(new Decimal(price));
+    }
+    
     /**
      * Return a copy of the orders, limited by price
      *
@@ -108,15 +118,15 @@ public class Book implements Iterable<Order> {
         }
 
         // Get the best price and calculate threshold
-        NavigableSet<Double> ns = ascending ? orders.navigableKeySet()
+        NavigableSet<Decimal> ns = ascending ? orders.navigableKeySet()
                 : orders.descendingKeySet();
-        Double bestPrice = ns.first();
+        Decimal bestPrice = ns.first();
         double limit = (ascending ? 1 : -1) * limitPercent;
-        double threshold = getPriceThreshold(bestPrice, limit);
+        Decimal threshold = getPriceThreshold(bestPrice, limit);
 
-        for (Double price : ns) {
-            if ((ascending && price > threshold)
-                    || (!ascending && price < threshold)) {
+        for (Decimal price : ns) {
+            if ((ascending && price.isGreaterThan(threshold))
+                    || (!ascending && price.isSmallerThan(threshold))) {
                 // Threshold reached
                 break;
             }
@@ -134,8 +144,8 @@ public class Book implements Iterable<Order> {
      * threshold can be. Use negative value for bids, positive for asks
      * @return
      */
-    public static double getPriceThreshold(double bestPrice, double limitPercent) {
-        return bestPrice + (bestPrice * limitPercent) / 100.0;
+    public static Decimal getPriceThreshold(Decimal bestPrice, double limitPercent) {
+        return bestPrice.multiply(new Decimal((100.0 + limitPercent) / 100.0));
     }
 
     @Override
@@ -165,13 +175,16 @@ public class Book implements Iterable<Order> {
             return true;
         }
         
-        Double[] p1 = b1.getOrderedPrices(true);
-        Double[] p2 = this.getOrderedPrices(true);
-        if (!Arrays.equals(p1, p2)) {
-            return false;
+        Decimal[] p1 = b1.getOrderedPrices(true);
+        Decimal[] p2 = this.getOrderedPrices(true);
+        // Prices may have "some fluctuation", compare with care
+        for (int i = 0; i < p1.length; ++i) {
+            if (!p1[i].equals(p2[i])) {
+                return false;
+            }
         }
         for (int i = 0; i < p1.length; ++i) {
-            Double price = p1[i];
+            Decimal price = p1[i];
             Order o1 = b1.getOrderForPrice(price);
             Order o2 = this.getOrderForPrice(price);
             if (!o1.equals(o2)) {
