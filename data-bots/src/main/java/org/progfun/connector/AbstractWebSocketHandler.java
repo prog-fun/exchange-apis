@@ -1,8 +1,5 @@
 package org.progfun.connector;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.net.URI;
 import org.progfun.Market;
 
 /**
@@ -130,6 +127,14 @@ public abstract class AbstractWebSocketHandler {
      * method must be run by the using part after the connect()
      */
     public abstract void sendInitCommands();
+
+    /**
+     * Each API handler should be able to return symbol of the corresponding
+     * exchange: BITF, GDAX, etc.
+     *
+     * @return
+     */
+    public abstract String getExchangeSymbol();
 
     /**
      * Start logging. This method must be called only after the connector is

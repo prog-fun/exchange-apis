@@ -12,7 +12,8 @@ public class GeminiHandler extends AbstractWebSocketHandler {
     private static final String API_URL_BASE = "wss://api.gemini.com/v1/marketdata/";
 
     /**
-     * Return a single symbols as understood by the exchange API 
+     * Return a single symbols as understood by the exchange API
+     *
      * @return
      */
     private String getSymbol() {
@@ -42,6 +43,11 @@ public class GeminiHandler extends AbstractWebSocketHandler {
      */
     @Override
     public void sendInitCommands() {
+    }
+
+    @Override
+    public String getExchangeSymbol() {
+        return "GMNI";
     }
 
 }

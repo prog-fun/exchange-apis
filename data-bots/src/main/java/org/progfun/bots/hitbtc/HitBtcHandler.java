@@ -48,7 +48,7 @@ public class HitBtcHandler extends AbstractWebSocketHandler {
         if (symbol == null) {
             return;
         }
-        
+
         JSONObject obj = new JSONObject();
         obj.put("method", "subscribeOrderbook");
         JSONObject obj2 = new JSONObject();
@@ -57,6 +57,11 @@ public class HitBtcHandler extends AbstractWebSocketHandler {
         obj.put("id", "123");
         String object = obj.toString();
         connector.send(object);
+    }
+
+    @Override
+    public String getExchangeSymbol() {
+        return "HITB";
     }
 
 }

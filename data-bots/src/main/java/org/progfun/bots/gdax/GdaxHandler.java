@@ -47,4 +47,9 @@ public class GdaxHandler extends AbstractWebSocketHandler {
         }
         return baseCurrency.toUpperCase() + "-" + quoteCurrency.toUpperCase();
     }
+
+    @Override
+    public String getExchangeSymbol() {
+        return "GDAX";
+    }
 }
