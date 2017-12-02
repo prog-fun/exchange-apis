@@ -210,4 +210,20 @@ public class Book implements Iterable<Order> {
         }
         return res;
     }
+
+    /**
+     * Get the first order
+     * @param ascending when true - return order with the lowest price,
+     * otherwise return order with the highest price
+     * @return 
+     */
+    public Order getFirstOrder(boolean ascending) {
+        if (orders.isEmpty()) {
+            return null;
+        }
+        NavigableSet<Decimal> ns = ascending ? orders.navigableKeySet()
+                : orders.descendingKeySet();
+        Decimal bestPrice = ns.first();
+        return getOrderForPrice(bestPrice);
+    }
 }

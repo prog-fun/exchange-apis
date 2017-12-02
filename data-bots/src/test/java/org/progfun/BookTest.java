@@ -62,4 +62,21 @@ public class BookTest {
         b2.add(new Order(P2, A2, C2));
         assertTrue(b1.equals(b2));
     }
+    
+    @Test
+    public void testBest() {
+        Book b = new Book();
+        assertNull(b.getFirstOrder(true));
+        assertNull(b.getFirstOrder(false));
+
+        Decimal[] PRICES = Decimal.createArray(new double[]{ 220, 200, 205});
+        Order o1 = new Order(PRICES[0], Decimal.ONE, 1);
+        Order o2 = new Order(PRICES[1], Decimal.ONE, 1);
+        Order o3 = new Order(PRICES[2], Decimal.ONE, 1);
+        b.add(o1);
+        b.add(o2);
+        b.add(o3);
+        assertEquals(o2, b.getFirstOrder(true));
+        assertEquals(o1, b.getFirstOrder(false));
+    }
 }

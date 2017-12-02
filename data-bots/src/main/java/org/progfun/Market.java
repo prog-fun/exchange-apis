@@ -269,4 +269,20 @@ public class Market {
     public boolean removeListener(Listener listener) {
         return listeners.remove(listener);
     }
+
+    /**
+     * Get bid with the best price, or null if bid orderbook is empty
+     * @return 
+     */
+    public Order getBestBid() {
+        return bids.getFirstOrder(false);
+    }
+
+    /**
+     * Get ask with the best price, or null if ask orderbook is empty
+     * @return 
+     */
+    public Order getBestAsk() {
+        return asks.getFirstOrder(true);
+    }
 }
