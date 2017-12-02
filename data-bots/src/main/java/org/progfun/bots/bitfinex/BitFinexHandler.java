@@ -32,7 +32,7 @@ public class BitFinexHandler extends AbstractWebSocketHandler {
     public void subscribeToOrderbook(String symbol) {
         connector.send("{\"event\":\"subscribe\", \"channel\":\"book\", "
                 + "\"symbol\":\"t" + symbol 
-                + "\", \"prec\":\"P0\", \"freq\":\"F0\", \"len\":\"100\"}");
+                + "\", \"prec\":\"P1\", \"freq\":\"F0\", \"len\":\"100\"}");
     }
     
     /**
