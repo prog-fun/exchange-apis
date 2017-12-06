@@ -2,6 +2,7 @@ package org.progfun;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.math.RoundingMode;
 
 /**
  * Use this class for storing prices and other decimal numbers without losing
@@ -10,9 +11,10 @@ import java.math.MathContext;
 public class Decimal implements Comparable<Decimal> {
 
     // Default rounding options
-    private static final int DEFAULT_SCALE = 10;
+    private static final int DEFAULT_SCALE = 12;
+    private static final RoundingMode DEFAULT_ROUNDING = RoundingMode.HALF_UP;
     private static final MathContext DEFAULT_PRECISION
-            = new MathContext(DEFAULT_SCALE);
+            = new MathContext(DEFAULT_SCALE, DEFAULT_ROUNDING);
 
     public static final Decimal ZERO = new Decimal(0);
     public static final Decimal ONE = new Decimal("1");
@@ -34,7 +36,7 @@ public class Decimal implements Comparable<Decimal> {
     }
 
     public Decimal(BigDecimal bd) {
-        this.number = bd.setScale(DEFAULT_SCALE);
+        this.number = bd.setScale(DEFAULT_SCALE, DEFAULT_ROUNDING);
     }
 
     /**

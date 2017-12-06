@@ -126,4 +126,12 @@ public class DecimalTest {
             assertEquals(exp[i], d[i]);
         }
     }
+    
+    @Test
+    public void roundTiny() {
+        Decimal d1 = new Decimal("0.0000000012");
+        Decimal d2 = new Decimal("0.001");
+        Decimal d3 = d1.multiply(d2);
+        assertEquals(new Decimal("0.000000000001"), d3);
+    }
 }
