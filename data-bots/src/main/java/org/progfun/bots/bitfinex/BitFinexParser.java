@@ -18,10 +18,11 @@ public class BitFinexParser extends AbstractParser {
     private final int UPDATING = 3;
 
     private int state = 0;
+    private static final int EXPECTED_VERSION = 2;
 
     @Override
     public void onMessage(String message) {
-//        System.out.println("Received: " + message);
+        System.out.println("Received: " + message);
         bitFinexWSClientStateMachine(message);
     }
 
@@ -31,16 +32,28 @@ public class BitFinexParser extends AbstractParser {
     }
 
     private void bitFinexWSClientStateMachine(String message) {
-
+        JSONObject msg;
         switch (state) {
             case GET_VERSION:
-                if (new JSONObject(message).getString("event").equals("info")) {
-                    state++;
+                msg = new JSONObject(message);
+                if (msg.getString("event").equals("info")) {
+                    int v = msg.getInt("version");
+                    System.out.println("Received version info: " + v);
+                    if (v == EXPECTED_VERSION) {
+                        state++;
+                    } else {
+                        System.out.println("Wrong version, not supported!");
+                        // TODO - raise critical error
+                    }
                 }
                 break;
 
             case SUBSCRIBE:
-                if (new JSONObject(message).getString("event").equals("subscribed")) {
+                msg = new JSONObject(message);
+                if (msg.getString("event").equals("subscribed")) {
+                    System.out.println("Successfully subscribed to " 
+                            + market.getBaseCurrency() 
+                            + "/" + market.getQuoteCurrency());
                     state++;
                 }
                 break;
