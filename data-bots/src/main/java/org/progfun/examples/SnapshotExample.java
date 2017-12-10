@@ -43,7 +43,7 @@ public class SnapshotExample {
             MarketLogger ml = new MarketLogger();
             ml.setBidLimit(3); // Show only top 3 bids and asks
             sg.setListener(ml);
-            sg.schedule(30000);
+            sg.schedule(2000);
 
             Logger.log("Press Enter to quit");
             System.in.read(); // Wait for <Enter>

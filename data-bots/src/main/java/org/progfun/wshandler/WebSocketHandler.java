@@ -51,7 +51,6 @@ public abstract class WebSocketHandler implements Runnable {
         }
 
         if (timeout > 0) {
-            Logger.log("Waiting before reconnect");
             try {
                 Thread.sleep(timeout);
             } catch (InterruptedException ex) {
@@ -59,7 +58,6 @@ public abstract class WebSocketHandler implements Runnable {
             }
         }
 
-        Logger.log("Scheduling CONNECT");
         setState(State.CONNECT_SCHEDULED);
         scheduleAction(Action.CONNECT);
     }
@@ -97,7 +95,6 @@ public abstract class WebSocketHandler implements Runnable {
         while (mustRun) {
 
             synchronized (this) {
-                Logger.log("Handler waiting for scheduled action...");
                 try {
                     wait();
                 } catch (InterruptedException ex) {
@@ -113,7 +110,7 @@ public abstract class WebSocketHandler implements Runnable {
 
             // State changes must be checked within the methods, not here
             // Process the action
-            Logger.log("Executing " + a);
+            Logger.log("Executing action " + a);
             switch (a) {
                 case CONNECT:
                     connectNow();
@@ -140,6 +137,8 @@ public abstract class WebSocketHandler implements Runnable {
             }
 
         }
+        
+        Logger.log("Handler thread finished work, exiting...");
     }
 
     /**
@@ -201,7 +200,6 @@ public abstract class WebSocketHandler implements Runnable {
      * @param action
      */
     private synchronized void scheduleAction(Action action) {
-        Logger.log("Scheduling action " + action);
         scheduledAction = action;
         notifyAll();
     }
@@ -223,11 +221,6 @@ public abstract class WebSocketHandler implements Runnable {
             return true;
         }
 
-        if (market == null) {
-            Logger.log("Can not start bot without market, cancelling...");
-            setState(State.DISCONNECTED);
-            return false;
-        }
         Logger.log("Handler starts connection...");
 
         String url = getUrl();
@@ -291,6 +284,12 @@ public abstract class WebSocketHandler implements Runnable {
         }
 
         // Bind together different components: market, parser and listener
+        if (market == null) {
+            Logger.log("Can not start bot without market, cancelling...");
+            setState(State.CONNECTED);
+            return false;
+        }
+
         parser = createParser();
         if (parser == null) {
             Logger.log("Can not start bot without parser, cancelling...");
@@ -299,6 +298,9 @@ public abstract class WebSocketHandler implements Runnable {
         }
         parser.setMarket(market);
 
+        // Get rid of some old bids and asks. Start fresh
+        market.clearOrderBook();
+        
         Logger.log("Starting Handler process...");
 
         if (logEnabled) {
@@ -320,16 +322,13 @@ public abstract class WebSocketHandler implements Runnable {
      * @return true on success, false otherwise
      */
     private boolean disconnectNow() {
-        Logger.log("disconnectNow()");
-
         if (connector == null) {
-            Logger.log("Connection not started, can not close it");
+            Logger.log("Connection not started, can not disconnect");
             return false;
         }
 
         switch (currentState) {
             case SHUTDOWN_SCHEDULED:
-                Logger.log("Shutting down...");
                 setState(State.SHUTTING_DOWN);
                 break;
             case DISCONNECT_SCHEDULED:
