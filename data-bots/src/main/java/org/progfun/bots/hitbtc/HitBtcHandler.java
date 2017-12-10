@@ -1,7 +1,7 @@
 package org.progfun.bots.hitbtc;
 
 import org.json.JSONObject;
-import org.progfun.connector.WebSocketHandler;
+import org.progfun.wshandler.WebSocketHandler;
 import org.progfun.connector.Parser;
 
 /**

@@ -8,7 +8,7 @@ import org.progfun.bots.bitfinex.BitFinexHandler;
 import org.progfun.bots.gemini.GeminiHandler;
 import org.progfun.bots.gdax.GdaxHandler;
 import org.progfun.bots.hitbtc.HitBtcHandler;
-import org.progfun.connector.WebSocketHandler;
+import org.progfun.wshandler.WebSocketHandler;
 import org.progfun.orderbook.DummyListener;
 
 /**
@@ -38,7 +38,7 @@ public class CrawlerExample {
             Thread handlerThread = new Thread(handler);
             handlerThread.start();
             // Notify handler that it has to connect to the WebSocket
-            handler.scheduleConnection(0);
+            handler.scheduleConnect(0);
             
             System.out.println("Press Enter to quit");
             System.in.read(); // Wait for <Enter>

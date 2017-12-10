@@ -1,6 +1,6 @@
 package org.progfun.bots.gemini;
 
-import org.progfun.connector.WebSocketHandler;
+import org.progfun.wshandler.WebSocketHandler;
 import org.progfun.connector.Parser;
 
 /**

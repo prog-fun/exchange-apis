@@ -8,7 +8,7 @@ import org.progfun.SnapshotGenerator;
 import org.progfun.bots.bitfinex.BitFinexHandler;
 import org.progfun.bots.gdax.GdaxHandler;
 import org.progfun.bots.gemini.GeminiHandler;
-import org.progfun.connector.WebSocketHandler;
+import org.progfun.wshandler.WebSocketHandler;
 
 /**
  * Example for printing Orderbook snapshots for different Exchange API crawlers
@@ -35,7 +35,7 @@ public class SnapshotExample {
             Thread handlerThread = new Thread(handler);
             handlerThread.start();
             // Notify handler that it has to connect to the WebSocket
-            handler.scheduleConnection(0);
+            handler.scheduleConnect(0);
 
             // Print a snapshot every second
             SnapshotGenerator sg = new SnapshotGenerator();

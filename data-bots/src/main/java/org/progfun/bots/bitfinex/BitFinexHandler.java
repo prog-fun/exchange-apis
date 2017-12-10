@@ -1,7 +1,7 @@
 package org.progfun.bots.bitfinex;
 
 import org.progfun.connector.Parser;
-import org.progfun.connector.WebSocketHandler;
+import org.progfun.wshandler.WebSocketHandler;
 
 /**
  * Example WebSocket client subscribing to BitFinex stream
