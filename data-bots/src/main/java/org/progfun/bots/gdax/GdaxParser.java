@@ -1,16 +1,15 @@
 package org.progfun.bots.gdax;
 
-import java.util.Iterator;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.progfun.Decimal;
-import org.progfun.connector.AbstractParser;
+import org.progfun.connector.Parser;
 
 /**
  * Handles the responses from the GDAX API and fills the orderbook with
  * information from the responses
  */
-public class GdaxParser extends AbstractParser {
+public class GdaxParser extends Parser {
 
     /**
      * Handles the incoming messages from the API and puts it in the orderbook
@@ -19,7 +18,8 @@ public class GdaxParser extends AbstractParser {
      * @param message The incoming message
      */
     @Override
-    public void onMessage(String message) {
+    public void parseMessage(String message) {
+        System.out.println("Received: " + message);
         JSONObject JSONMessage = new JSONObject(message);
         String type = JSONMessage.getString("type");
         if (type.equals("snapshot")) {

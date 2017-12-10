@@ -34,7 +34,7 @@ public class GeminiTest {
         parser.setMarket(market);
 
         for (String msg : messages) {
-            parser.onMessage(msg);
+            parser.parseMessage(msg);
         }
 
         // Now check if the resulting orderboog corresponds to our expectations

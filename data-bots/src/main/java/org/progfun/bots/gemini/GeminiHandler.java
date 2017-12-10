@@ -1,12 +1,12 @@
 package org.progfun.bots.gemini;
 
-import org.progfun.connector.AbstractWebSocketHandler;
+import org.progfun.connector.WebSocketHandler;
 import org.progfun.connector.Parser;
 
 /**
  * Gemini Exchange API reader
  */
-public class GeminiHandler extends AbstractWebSocketHandler {
+public class GeminiHandler extends WebSocketHandler {
 
     // The URL is wss://api.gemini.com/v1/marketdata/{symbol}
     private static final String API_URL_BASE = "wss://api.gemini.com/v1/marketdata/";
@@ -42,7 +42,7 @@ public class GeminiHandler extends AbstractWebSocketHandler {
      * We don't have to send any init commands
      */
     @Override
-    public void sendInitCommands() {
+    public void init() {
     }
 
     @Override

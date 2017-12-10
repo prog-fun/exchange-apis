@@ -1,13 +1,13 @@
 package org.progfun.bots.hitbtc;
 
 import org.json.JSONObject;
-import org.progfun.connector.AbstractWebSocketHandler;
+import org.progfun.connector.WebSocketHandler;
 import org.progfun.connector.Parser;
 
 /**
  * Gemini Exchange API reader
  */
-public class HitBtcHandler extends AbstractWebSocketHandler {
+public class HitBtcHandler extends WebSocketHandler {
 
     private static final String API_URL = "wss://api.hitbtc.com/api/2/ws";
 
@@ -42,7 +42,7 @@ public class HitBtcHandler extends AbstractWebSocketHandler {
      * We don't have to send any init commands
      */
     @Override
-    public void sendInitCommands() {
+    public void init() {
         //Creating orderbook data request
         String symbol = getSymbol();
         if (symbol == null) {

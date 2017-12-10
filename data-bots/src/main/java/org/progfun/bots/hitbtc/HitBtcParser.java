@@ -4,16 +4,16 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.progfun.Decimal;
-import org.progfun.connector.AbstractParser;
+import org.progfun.connector.Parser;
 
 /**
  *
  * @author Simon
  */
-public class HitBtcParser extends AbstractParser {
+public class HitBtcParser extends Parser {
 
     @Override
-    public void onMessage(String message) {
+    public void parseMessage(String message) {
         JSONObject msg = new JSONObject(message);
         try {
 

@@ -4,22 +4,16 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.progfun.Decimal;
-import org.progfun.Market;
 import org.progfun.connector.Parser;
 
 /**
  * Parses JSON updates from Gemini API
  */
-public class GeminiParser implements Parser {
-
-    private Market market;
-
-    public void setMarket(Market market) {
-        this.market = market;
-    }
+public class GeminiParser extends Parser {
 
     @Override
-    public void onMessage(String message) {
+    public void parseMessage(String message) {
+//        System.out.println("Received: " + message);
         if (market == null) {
             System.out.println("Message received without orderbook, ignoring");
             return;
@@ -42,11 +36,6 @@ public class GeminiParser implements Parser {
         } catch (JSONException ex) {
             System.out.println("Error parsing JSON: " + ex.getMessage());
         }
-    }
-
-    @Override
-    public void onError(Exception excptn) {
-        System.out.println("Error: " + excptn);
     }
 
     /**
