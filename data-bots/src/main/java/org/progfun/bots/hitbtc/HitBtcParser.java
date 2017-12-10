@@ -4,16 +4,17 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.progfun.Decimal;
+import org.progfun.websocket.Action;
 import org.progfun.websocket.Parser;
 
 /**
- *
- * @author Simon
+ * Parser for HitBTC exchange API messages
+ * TODO - this class needs polishing and tests
  */
 public class HitBtcParser extends Parser {
 
     @Override
-    public void parseMessage(String message) {
+    public Action parseMessage(String message) {
         JSONObject msg = new JSONObject(message);
         try {
 
@@ -53,5 +54,6 @@ public class HitBtcParser extends Parser {
         } catch (JSONException e) {
             System.out.println("test" + e);
         }
+        return null;
     }
 }

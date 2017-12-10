@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.progfun.Decimal;
+import org.progfun.websocket.Action;
 import org.progfun.websocket.Parser;
 
 /**
@@ -12,11 +13,10 @@ import org.progfun.websocket.Parser;
 public class GeminiParser extends Parser {
 
     @Override
-    public void parseMessage(String message) {
-//        System.out.println("Received: " + message);
+    public Action parseMessage(String message) {
         if (market == null) {
             System.out.println("Message received without orderbook, ignoring");
-            return;
+            return null;
         }
         try {
             // Check events only inside messages with type=update
@@ -36,6 +36,7 @@ public class GeminiParser extends Parser {
         } catch (JSONException ex) {
             System.out.println("Error parsing JSON: " + ex.getMessage());
         }
+        return null;
     }
 
     /**

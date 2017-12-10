@@ -5,6 +5,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.progfun.Decimal;
 import org.progfun.Logger;
+import org.progfun.websocket.Action;
 import org.progfun.websocket.Parser;
 
 /**
@@ -22,9 +23,10 @@ public class BitFinexParser extends Parser {
     private static final int EXPECTED_VERSION = 2;
 
     @Override
-    public void parseMessage(String message) {
+    public Action parseMessage(String message) {
         //Logger.log("Received: " + message);
         bitFinexWSClientStateMachine(message);
+        return null;
     }
 
     private void bitFinexWSClientStateMachine(String message) {

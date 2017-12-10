@@ -3,6 +3,7 @@ package org.progfun.bots.gdax;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.progfun.Decimal;
+import org.progfun.websocket.Action;
 import org.progfun.websocket.Parser;
 
 /**
@@ -18,7 +19,7 @@ public class GdaxParser extends Parser {
      * @param message The incoming message
      */
     @Override
-    public void parseMessage(String message) {
+    public Action parseMessage(String message) {
         System.out.println("Received: " + message);
         JSONObject JSONMessage = new JSONObject(message);
         String type = JSONMessage.getString("type");
@@ -59,6 +60,7 @@ public class GdaxParser extends Parser {
                 }
             }
         }
+        return null;
     }
 
 }
