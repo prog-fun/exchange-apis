@@ -6,3 +6,4 @@
 /sandbox/**/.idea
 /sandbox/bitstamp/bitstamp.iml
 /sandbox/**/nbproject/
+data-bots/nbactions.xml

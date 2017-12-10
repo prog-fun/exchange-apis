@@ -5,6 +5,8 @@ import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import org.java_websocket.handshake.ServerHandshake;
+import org.progfun.Logger;
 
 /**
  * Generic WebSocket client that can send commands to the API and generate event
@@ -15,7 +17,7 @@ public class WebSocketConnector {
     WSClient client;
 
     // Only one listener allowed
-    Parser listener;
+    ApiListener listener;
 
     // Used for logging messages to a file
     private PrintWriter logWriter;
@@ -25,7 +27,7 @@ public class WebSocketConnector {
      *
      * @param listener
      */
-    public void setListener(Parser listener) {
+    public void setListener(ApiListener listener) {
         this.listener = listener;
     }
 
@@ -43,7 +45,7 @@ public class WebSocketConnector {
      * @param wssUrl The wss:// URL to the WebSocket server
      * @return true if client was successfully started, false otherwise
      */
-    public boolean start(String wssUrl) {
+    public boolean connect(String wssUrl) {
         try {
             URI uri = new URI(wssUrl);
             client = new WSClient(uri) {
@@ -59,39 +61,55 @@ public class WebSocketConnector {
                 public void onError(Exception excptn) {
                     // On error we stop the party and notify the listener
                     super.onError(excptn);
-                    stop();
                     if (listener != null) {
                         listener.onError(excptn);
                     }
                 }
+
+                @Override
+                public void onOpen(ServerHandshake sh) {
+                    if (listener != null) {
+                        listener.onOpen(sh);
+                    }
+                }
+
+                @Override
+                public void onClose(int code, String reason, boolean remote) {
+                    if (listener != null) {
+                        listener.onClose(code, reason, remote);
+                    }
+                }
+
             };
 
-            client.connectBlocking();
+            // Start connection. Block in this line until connection is 
+            // established
+            Logger.log("Connecting to Websocket...");
+            client.connect();
 
         } catch (URISyntaxException ex) {
-            System.out.println("Invalid WSS URL format: " + ex.getMessage());
-            return false;
-        } catch (InterruptedException ex) {
-            System.out.println("Could not connect: " + ex.getMessage());
+            Logger.log("Invalid WSS URL format: " + ex.getMessage());
             return false;
         }
         return true;
     }
 
     /**
-     * Stop the connection
+     * Start to close the connection. This is an asynchronous process: method
+     * returns immediately (non-blocking). When connection is closed, connector
+     * will receive onClose() callback
      *
-     * @return true on success, false otherwise
+     * @return true on success (closing started), false otherwise.
      */
-    public boolean stop() {
+    public boolean close() {
         if (client == null) {
             return false;
         }
 
-        try {
-            client.closeBlocking();
-        } catch (InterruptedException ex) {
-            System.out.println("Interrupted while closing connection");
+        if (client.isOpen()) {
+            client.close();
+        } else {
+            client.closeConnection(0, "Closing invalid connection");
         }
         return true;
     }
@@ -104,6 +122,7 @@ public class WebSocketConnector {
      */
     public boolean send(String msg) {
         if (client != null) {
+            Logger.log("Sending msg to WebSocket API: " + msg);
             client.send(msg);
             return true;
         } else {
@@ -120,10 +139,10 @@ public class WebSocketConnector {
     public boolean startLogging(String filename) {
         try {
             logWriter = new PrintWriter(new FileOutputStream(filename), true);
-            System.out.println("Log file opened: " + filename);
+            Logger.log("Log file opened: " + filename);
             return true;
         } catch (FileNotFoundException ex) {
-            System.out.println("Can' open log file:" + ex.getMessage());
+            Logger.log("Can' open log file:" + ex.getMessage());
         }
         return false;
     }

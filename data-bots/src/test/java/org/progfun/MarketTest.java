@@ -1,5 +1,7 @@
 package org.progfun;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.Test;
 import org.progfun.orderbook.Book;
 import org.progfun.orderbook.Listener;
@@ -408,6 +410,26 @@ public class MarketTest {
         assertEquals(P3D, prices[1]);
         assertEquals(P4D, prices[2]);
 
+    }
+    
+    @Test
+    public void testClear() {
+        Market m;
+        try {
+            m = new Market("BTC", "USD");
+        } catch (InvalidFormatException ex) {            
+            return;
+        }
+        
+        m.addAsk(Decimal.TEN, Decimal.ONE, 1);
+        m.addBid(Decimal.ONE, Decimal.ONE, 1);
+        
+        assertNotNull(m.getBestAsk());
+        assertNotNull(m.getBestBid());
+        
+        m.clearOrderBook();
+        assertNull(m.getBestAsk());
+        assertNull(m.getBestBid());
     }
 
 }

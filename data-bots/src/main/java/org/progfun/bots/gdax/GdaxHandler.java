@@ -1,13 +1,13 @@
 package org.progfun.bots.gdax;
 
-import org.progfun.connector.AbstractWebSocketHandler;
+import org.progfun.wshandler.WebSocketHandler;
 import org.progfun.connector.Parser;
 
 /**
  * Main class for the GDAX market, creates a websocket to connect to the API and
  * a parser to handle the responses
  */
-public class GdaxHandler extends AbstractWebSocketHandler {
+public class GdaxHandler extends WebSocketHandler {
 
     private static final String API_URL = "wss://ws-feed.gdax.com";
 
@@ -25,7 +25,7 @@ public class GdaxHandler extends AbstractWebSocketHandler {
      * Send commend to subscribe for specific market orderbook updates
      */
     @Override
-    public void sendInitCommands() {
+    public void init() {
         String symbol = getSymbol();
         connector.send("{\"type\": \"subscribe\",\"product_ids\": [\""
                 + symbol + "\"],\"channels\": [\"level2\"]}");

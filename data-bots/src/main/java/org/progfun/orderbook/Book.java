@@ -59,6 +59,13 @@ public class Book implements Iterable<Order> {
     }
 
     /**
+     * Clear all orders from the book
+     */
+    public void clear() {
+        orders.clear();
+    }
+    
+    /**
      * Return number of orders - the different price levels in the book.
      *
      * @return

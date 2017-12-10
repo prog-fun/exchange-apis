@@ -1,12 +1,12 @@
 package org.progfun.bots.bitfinex;
 
-import org.progfun.connector.AbstractWebSocketHandler;
 import org.progfun.connector.Parser;
+import org.progfun.wshandler.WebSocketHandler;
 
 /**
  * Example WebSocket client subscribing to BitFinex stream
  */
-public class BitFinexHandler extends AbstractWebSocketHandler {
+public class BitFinexHandler extends WebSocketHandler {
 
     private static final String API_URL = "wss://api.bitfinex.com/ws/2";
 
@@ -21,7 +21,7 @@ public class BitFinexHandler extends AbstractWebSocketHandler {
     }
 
     @Override
-    public void sendInitCommands() {
+    public void init() {
         subscribeToOrderbook(getSymbol());
     }
     
@@ -55,5 +55,4 @@ public class BitFinexHandler extends AbstractWebSocketHandler {
     public String getExchangeSymbol() {
         return "BITF";
     }
-    
 }

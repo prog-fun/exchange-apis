@@ -285,4 +285,12 @@ public class Market {
     public Order getBestAsk() {
         return asks.getFirstOrder(true);
     }
+
+    /**
+     * Clear all bids and asks
+     */
+    public void clearOrderBook() {
+        bids.clear();
+        asks.clear();
+    }
 }

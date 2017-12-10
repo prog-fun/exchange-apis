@@ -4,13 +4,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.progfun.Decimal;
-import org.progfun.connector.AbstractParser;
+import org.progfun.Logger;
+import org.progfun.connector.Parser;
 
 /**
  *
  * @author olavt
  */
-public class BitFinexParser extends AbstractParser {
+public class BitFinexParser extends Parser {
 
     private final int GET_VERSION = 0;
     private final int SUBSCRIBE = 1;
@@ -21,14 +22,9 @@ public class BitFinexParser extends AbstractParser {
     private static final int EXPECTED_VERSION = 2;
 
     @Override
-    public void onMessage(String message) {
-        System.out.println("Received: " + message);
+    public void parseMessage(String message) {
+        //Logger.log("Received: " + message);
         bitFinexWSClientStateMachine(message);
-    }
-
-    @Override
-    public void onError(Exception excptn) {
-        System.out.println("Error: " + excptn.getMessage());
     }
 
     private void bitFinexWSClientStateMachine(String message) {
@@ -38,11 +34,11 @@ public class BitFinexParser extends AbstractParser {
                 msg = new JSONObject(message);
                 if (msg.getString("event").equals("info")) {
                     int v = msg.getInt("version");
-                    System.out.println("Received version info: " + v);
+                    Logger.log("Received version info: " + v);
                     if (v == EXPECTED_VERSION) {
                         state++;
                     } else {
-                        System.out.println("Wrong version, not supported!");
+                        Logger.log("Wrong version, not supported!");
                         // TODO - raise critical error
                     }
                 }
@@ -51,7 +47,7 @@ public class BitFinexParser extends AbstractParser {
             case SUBSCRIBE:
                 msg = new JSONObject(message);
                 if (msg.getString("event").equals("subscribed")) {
-                    System.out.println("Successfully subscribed to " 
+                    Logger.log("Successfully subscribed to " 
                             + market.getBaseCurrency() 
                             + "/" + market.getQuoteCurrency());
                     state++;
@@ -86,7 +82,7 @@ public class BitFinexParser extends AbstractParser {
                 Decimal price = new Decimal(values.getDouble(0));
                 int count = values.getInt(1);
                 Decimal amount = new Decimal(values.getDouble(2));
-//            System.out.println("Price: " + price + ", Count: " + count + ", Amount: " + amount);
+//            Logger.log("Price: " + price + ", Count: " + count + ", Amount: " + amount);
                 if (count > 0) {
                     // BitFinex always reports the total updated amount, 
                     // not the difference. Therefore we must first remove the
@@ -108,13 +104,13 @@ public class BitFinexParser extends AbstractParser {
             }
             // TODO - test if parsing works correctly
         } catch (JSONException e) {
-            System.out.println("Error in BitFinex update parsing:"
+            Logger.log("Error in BitFinex update parsing:"
                     + e.getMessage());
-            System.out.println("Received msg: " + message);
+            Logger.log("Received msg: " + message);
         }
 
-//        System.out.println("Ask: " + market.getAsks().size());
-//        System.out.println("Bid: " + market.getBids().size());
+//        Logger.log("Ask: " + market.getAsks().size());
+//        Logger.log("Bid: " + market.getBids().size());
     }
 
     private void addSnapshot(String message) {
@@ -133,8 +129,8 @@ public class BitFinexParser extends AbstractParser {
                 }
             }
         }
-//        System.out.println(market.getAsks().size());
-//        System.out.println(market.getBids().size());
+//        Logger.log(market.getAsks().size());
+//        Logger.log(market.getBids().size());
     }
 
     /**
@@ -142,7 +138,7 @@ public class BitFinexParser extends AbstractParser {
      */
     private void heartbeatReceived() {
         // TODO - Reset alarm timer
-        System.out.println("Heartbeat received");
+        Logger.log("Heartbeat received");
     }
 
 }
