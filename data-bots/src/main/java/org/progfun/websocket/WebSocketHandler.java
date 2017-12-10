@@ -10,7 +10,7 @@ import org.progfun.Market;
 public abstract class WebSocketHandler implements Runnable {
 
     // How long to wait (milliseconds) before reconnection attempt
-    private static final long RECONNECT_TIMEOUT = 10000;
+    private static final long RECONNECT_TIMEOUT = 3000;
 
     protected Market market;
     protected Parser parser;
@@ -413,9 +413,26 @@ public abstract class WebSocketHandler implements Runnable {
      * @param message
      */
     private void onSocketMsg(String message) {
-//        Logger.log("Received WS msg: " + message);
         if (parser != null) {
-            parser.parseMessage(message);
+            Action a = parser.parseMessage(message);
+            if (a != null) {
+                Logger.log("Parser asks Handler to perform an action: " + a);
+                switch (a) {
+                    case RECONNECT:
+                        scheduleReconnect();
+                        break;
+                    case DISCONNECT:
+                        scheduleDisconnect();
+                        break;
+                    case SHUTDOWN:
+                        Logger.log("Critical error from remote API");
+                        scheduleShutdown();
+                        break;
+                    default:
+                        throw new UnsupportedOperationException(
+                                "TODO: implement support for action " + a);
+                }
+            }
         }
     }
 
