@@ -1,4 +1,4 @@
-package org.progfun.connector;
+package org.progfun.websocket;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;

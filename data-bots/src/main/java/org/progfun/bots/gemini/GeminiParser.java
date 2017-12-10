@@ -4,7 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.progfun.Decimal;
-import org.progfun.connector.Parser;
+import org.progfun.websocket.Parser;
 
 /**
  * Parses JSON updates from Gemini API

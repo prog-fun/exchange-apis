@@ -1,4 +1,4 @@
-package org.progfun.connector;
+package org.progfun.websocket;
 
 public enum Action {
     NONE,

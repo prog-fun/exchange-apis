@@ -5,7 +5,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.progfun.Decimal;
 import org.progfun.Logger;
-import org.progfun.connector.Parser;
+import org.progfun.websocket.Parser;
 
 /**
  *

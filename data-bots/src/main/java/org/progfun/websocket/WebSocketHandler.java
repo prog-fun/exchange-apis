@@ -1,12 +1,8 @@
-package org.progfun.wshandler;
+package org.progfun.websocket;
 
 import org.java_websocket.handshake.ServerHandshake;
 import org.progfun.Logger;
 import org.progfun.Market;
-import org.progfun.connector.Action;
-import org.progfun.connector.ApiListener;
-import org.progfun.connector.Parser;
-import org.progfun.connector.WebSocketConnector;
 
 /**
  * An abstract base class that can be used for all WebSocket data gathering bots

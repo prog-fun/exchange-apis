@@ -3,7 +3,7 @@ package org.progfun.bots.gdax;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.progfun.Decimal;
-import org.progfun.connector.Parser;
+import org.progfun.websocket.Parser;
 
 /**
  * Handles the responses from the GDAX API and fills the orderbook with

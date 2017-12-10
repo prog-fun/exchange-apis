@@ -8,7 +8,7 @@ import org.progfun.SnapshotGenerator;
 import org.progfun.bots.bitfinex.BitFinexHandler;
 import org.progfun.bots.gdax.GdaxHandler;
 import org.progfun.bots.gemini.GeminiHandler;
-import org.progfun.wshandler.WebSocketHandler;
+import org.progfun.websocket.WebSocketHandler;
 
 /**
  * Example for printing Orderbook snapshots for different Exchange API crawlers

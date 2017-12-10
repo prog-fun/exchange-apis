@@ -8,7 +8,7 @@ import org.progfun.bots.bitfinex.BitFinexHandler;
 import org.progfun.bots.gemini.GeminiHandler;
 import org.progfun.bots.gdax.GdaxHandler;
 import org.progfun.bots.hitbtc.HitBtcHandler;
-import org.progfun.wshandler.WebSocketHandler;
+import org.progfun.websocket.WebSocketHandler;
 import org.progfun.orderbook.DummyListener;
 
 /**
