@@ -1,12 +1,8 @@
-package org.progfun.wshandler;
+package org.progfun.websocket;
 
 import org.java_websocket.handshake.ServerHandshake;
 import org.progfun.Logger;
 import org.progfun.Market;
-import org.progfun.connector.Action;
-import org.progfun.connector.ApiListener;
-import org.progfun.connector.Parser;
-import org.progfun.connector.WebSocketConnector;
 
 /**
  * An abstract base class that can be used for all WebSocket data gathering bots
@@ -14,7 +10,7 @@ import org.progfun.connector.WebSocketConnector;
 public abstract class WebSocketHandler implements Runnable {
 
     // How long to wait (milliseconds) before reconnection attempt
-    private static final long RECONNECT_TIMEOUT = 10000;
+    private static final long RECONNECT_TIMEOUT = 3000;
 
     protected Market market;
     protected Parser parser;
@@ -27,6 +23,8 @@ public abstract class WebSocketHandler implements Runnable {
     // An action that is scheduled to be executed in the main Handler thread
     private Action scheduledAction = null;
 
+    private boolean verbose = false; // When true, print more output
+    
     /**
      * Set market to monitor
      *
@@ -36,6 +34,14 @@ public abstract class WebSocketHandler implements Runnable {
         this.market = market;
     }
 
+    /**
+     * When set to true, print more output
+     * @param verbose 
+     */
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
+    }
+    
     /**
      * Wait a bit and try to connect. Connection must happen in the main
      * thread. This method schedules the connection command and wakes up the
@@ -417,9 +423,29 @@ public abstract class WebSocketHandler implements Runnable {
      * @param message
      */
     private void onSocketMsg(String message) {
-//        Logger.log("Received WS msg: " + message);
+        if (verbose) {
+            Logger.log("API: " + message);
+        }
         if (parser != null) {
-            parser.parseMessage(message);
+            Action a = parser.parseMessage(message);
+            if (a != null) {
+                Logger.log("Parser asks Handler to perform an action: " + a);
+                switch (a) {
+                    case RECONNECT:
+                        scheduleReconnect();
+                        break;
+                    case DISCONNECT:
+                        scheduleDisconnect();
+                        break;
+                    case SHUTDOWN:
+                        Logger.log("Critical error from remote API");
+                        scheduleShutdown();
+                        break;
+                    default:
+                        throw new UnsupportedOperationException(
+                                "TODO: implement support for action " + a);
+                }
+            }
         }
     }
 

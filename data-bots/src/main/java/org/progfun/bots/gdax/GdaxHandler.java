@@ -1,7 +1,7 @@
 package org.progfun.bots.gdax;
 
-import org.progfun.wshandler.WebSocketHandler;
-import org.progfun.connector.Parser;
+import org.progfun.websocket.WebSocketHandler;
+import org.progfun.websocket.Parser;
 
 /**
  * Main class for the GDAX market, creates a websocket to connect to the API and

@@ -1,4 +1,4 @@
-package org.progfun.connector;
+package org.progfun.websocket;
 
 import java.net.URI;
 import java.net.UnknownHostException;

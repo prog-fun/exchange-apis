@@ -1,4 +1,4 @@
-package org.progfun.connector;
+package org.progfun.websocket;
 
 import org.java_websocket.handshake.ServerHandshake;
 

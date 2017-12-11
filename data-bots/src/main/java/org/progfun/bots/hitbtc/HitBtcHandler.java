@@ -1,8 +1,8 @@
 package org.progfun.bots.hitbtc;
 
 import org.json.JSONObject;
-import org.progfun.wshandler.WebSocketHandler;
-import org.progfun.connector.Parser;
+import org.progfun.websocket.WebSocketHandler;
+import org.progfun.websocket.Parser;
 
 /**
  * Gemini Exchange API reader
