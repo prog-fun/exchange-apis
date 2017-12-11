@@ -23,6 +23,8 @@ public abstract class WebSocketHandler implements Runnable {
     // An action that is scheduled to be executed in the main Handler thread
     private Action scheduledAction = null;
 
+    private boolean verbose = false; // When true, print more output
+    
     /**
      * Set market to monitor
      *
@@ -32,6 +34,14 @@ public abstract class WebSocketHandler implements Runnable {
         this.market = market;
     }
 
+    /**
+     * When set to true, print more output
+     * @param verbose 
+     */
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
+    }
+    
     /**
      * Wait a bit and try to connect. Connection must happen in the main
      * thread. This method schedules the connection command and wakes up the
@@ -413,6 +423,9 @@ public abstract class WebSocketHandler implements Runnable {
      * @param message
      */
     private void onSocketMsg(String message) {
+        if (verbose) {
+            Logger.log("API: " + message);
+        }
         if (parser != null) {
             Action a = parser.parseMessage(message);
             if (a != null) {
