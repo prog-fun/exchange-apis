@@ -13,7 +13,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.progfun.InvalidFormatException;
 import org.progfun.Market;
-import org.progfun.connector.Parser;
+import org.progfun.websocket.Parser;
 import static org.junit.Assert.*;
 import org.progfun.Decimal;
 import org.progfun.orderbook.Book;

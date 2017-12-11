@@ -1,4 +1,4 @@
-package org.progfun.connector;
+package org.progfun.websocket;
 
 import org.progfun.Market;
 
@@ -18,6 +18,9 @@ public abstract class Parser {
      * called on another thread.
      *
      * @param message
+     * @return Action that the Handler should perform as a response to the
+     * received message. This interface allows parser to notify that a reconnect
+     * is needed, etc. When no action is needed, return null.
      */
-    public abstract void parseMessage(String message);
+    public abstract Action parseMessage(String message);
 }

@@ -1,4 +1,4 @@
-package org.progfun.wshandler;
+package org.progfun.websocket;
 
 /**
  * Represents state of WebSocket handler
