@@ -1,7 +1,5 @@
 package org.progfun;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.junit.Test;
 import org.progfun.orderbook.Book;
 import org.progfun.orderbook.Listener;
@@ -60,7 +58,6 @@ public class MarketTest {
             m = new Market("", "");
             fail();
         } catch (InvalidFormatException e) {
-
         }
         try {
             m = new Market("btc", "usd");
@@ -76,12 +73,7 @@ public class MarketTest {
     @Test
     public void testAdd() {
         Market m = null;
-        try {
-            m = new Market("btc", "usd");
-        } catch (InvalidFormatException e) {
-            e.printStackTrace();
-            fail();
-        }
+        m = new Market("btc", "usd");
         final Decimal BID_PRICE = new Decimal(10.2);
         final Decimal ASK_PRICE = new Decimal(12.72);
         final Decimal BID_AMOUNT = new Decimal(7.24);
@@ -116,12 +108,7 @@ public class MarketTest {
     @Test
     public void testOrdering() {
         Market m = null;
-        try {
-            m = new Market("btc", "usd");
-        } catch (InvalidFormatException e) {
-            fail();
-            e.printStackTrace();
-        }
+        m = new Market("btc", "usd");
         Book bids = m.getBids();
         Book asks = m.getAsks();
 
@@ -150,12 +137,7 @@ public class MarketTest {
     @Test
     public void testMerging() {
         Market m = null;
-        try {
-            m = new Market("btc", "usd");
-        } catch (InvalidFormatException e) {
-            e.printStackTrace();
-            fail();
-        }
+        m = new Market("btc", "usd");
         Decimal P1 = new Decimal(7000);
         Decimal P2 = new Decimal(7100);
         Decimal P3 = new Decimal(60.00008);
@@ -194,12 +176,7 @@ public class MarketTest {
     @Test
     public void testNotifications() {
         Market m = null;
-        try {
-            m = new Market("btc", "usd");
-        } catch (InvalidFormatException e) {
-            e.printStackTrace();
-            fail();
-        }
+        m = new Market("btc", "usd");
         assertNotNull(m);
         DummyListener l = new DummyListener();
         m.addListener(l);
@@ -283,7 +260,7 @@ public class MarketTest {
 
     // Check if merge with negative amount works correctly
     @Test
-    public void testNegativeMerge() throws InvalidFormatException {
+    public void testNegativeMerge() {
         Market m = new Market("btc", "usd");
         Book asks = m.getAsks();
         m.addAsk("7000", "3", 1);
@@ -305,7 +282,7 @@ public class MarketTest {
      * @throws java.lang.InterruptedException
      */
     @Test
-    public void testLocking() throws InvalidFormatException, InterruptedException {
+    public void testLocking() throws InterruptedException {
         Market m = new Market("BTC", "USD");
         m.lockUpdates();
         final Decimal AMOUNT = Decimal.TEN;
@@ -348,7 +325,7 @@ public class MarketTest {
      * @throws org.progfun.InvalidFormatException never throws it
      */
     @Test
-    public void testLimitPercent() throws InvalidFormatException {
+    public void testLimitPercent() {
         Market m = new Market("BTC", "USD");
         Book bids;
         Book asks;
@@ -415,11 +392,7 @@ public class MarketTest {
     @Test
     public void testClear() {
         Market m;
-        try {
-            m = new Market("BTC", "USD");
-        } catch (InvalidFormatException ex) {            
-            return;
-        }
+        m = new Market("BTC", "USD");
         
         m.addAsk(Decimal.TEN, Decimal.ONE, 1);
         m.addBid(Decimal.ONE, Decimal.ONE, 1);

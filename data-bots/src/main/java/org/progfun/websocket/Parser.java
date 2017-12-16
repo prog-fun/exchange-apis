@@ -1,16 +1,16 @@
 package org.progfun.websocket;
 
-import org.progfun.Market;
+import org.progfun.Exchange;
 
 /**
  * Abstract API command parser
  */
 public abstract class Parser {
 
-    protected Market market;
+    protected Exchange exchange;
 
-    public void setMarket(Market market) {
-        this.market = market;
+    public void setExchange(Exchange exchange) {
+        this.exchange = exchange;
     }
 
     /**

@@ -5,6 +5,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.progfun.Decimal;
 import org.progfun.Logger;
+import org.progfun.Market;
 import org.progfun.websocket.Action;
 import org.progfun.websocket.Parser;
 
@@ -32,7 +33,7 @@ public class BitFinexParser extends Parser {
         Logger.log("new BitFinex handler created, hash = " + this.hashCode()
                 + ", state = " + state);
     }
-    
+
     @Override
     public Action parseMessage(String message) {
         //Logger.log("Received: " + message);
@@ -79,10 +80,12 @@ public class BitFinexParser extends Parser {
         String event = msg.getString("event");
         if (event != null) {
             switch (event) {
+                // TODO - check returned currencies
+                // TODO - store session ID in a map
                 case "subscribed":
-                    Logger.log("Successfully subscribed to "
-                            + market.getBaseCurrency()
-                            + "/" + market.getQuoteCurrency());
+//                    Logger.log("Successfully subscribed to "
+//                            + market.getBaseCurrency()
+//                            + "/" + market.getQuoteCurrency());
                     state++;
                     return null;
                 case "error":
@@ -125,6 +128,8 @@ public class BitFinexParser extends Parser {
                 int count = values.getInt(1);
                 Decimal amount = new Decimal(values.getDouble(2));
 //            Logger.log("Price: " + price + ", Count: " + count + ", Amount: " + amount);
+                // TODO - find the right market, based in session ID
+                Market market = new Market("ZZZ", "ZZZ"); // !!!
                 if (count > 0) {
                     // BitFinex always reports the total updated amount, 
                     // not the difference. Therefore we must first remove the
@@ -168,6 +173,8 @@ public class BitFinexParser extends Parser {
                 Decimal price = new Decimal(values.getDouble(0));
                 int count = values.getInt(1);
                 Decimal amount = new Decimal(values.getDouble(2));
+                // TODO - find the right market, based in session ID
+                Market market = new Market("ZZZ", "ZZZ"); // !!!
                 if (count > 0) {
                     if (amount.isPositive()) {
                         market.addBid(price, amount, count);

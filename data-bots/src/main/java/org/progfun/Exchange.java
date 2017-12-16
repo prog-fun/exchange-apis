@@ -1,6 +1,7 @@
 package org.progfun;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -8,15 +9,35 @@ import java.util.List;
  */
 public class Exchange {
 
-    private final List<Market> markets = new ArrayList<>();
+    private final HashMap<CurrencyPair, Market> markets = new HashMap<>();
+    private String symbol;
+    
+    /**
+     * Set symbol identifying the exchange
+     * @param symbol the symbol of the exchange: GDAX, BITF, etc.
+     */
+    public void setSymbol(String symbol) {
+        this.symbol = symbol;
+    }
 
+    /**
+     * Get symbol identifying the exchange: BITF, GDAX, etc.
+     * @return 
+     */
+    public String getSymbol() {
+        return symbol;
+    }
+
+    
     /**
      * Return all the markets available in the exchange
      *
      * @return
      */
-    public List<Market> getMarkets() {
-        return markets;
+    public Market[] getMarkets() {
+        Market[] m = new Market[markets.size()];
+        markets.values().toArray(m);
+        return m;
     }
 
     /**
@@ -34,15 +55,24 @@ public class Exchange {
         }
         // Check all markets having either base or quote currency matching
         // the desired one
-        for (Market m : markets) {
-            if (currency.equalsIgnoreCase(m.getBaseCurrency())
-                    || currency.equalsIgnoreCase(m.getQuoteCurrency())) {
-                matchingMarkets.add(m);
+        for (CurrencyPair cp : markets.keySet()) {
+            if (currency.equalsIgnoreCase(cp.getBaseCurrency())
+                    || currency.equalsIgnoreCase(cp.getQuoteCurrency())) {
+                matchingMarkets.add(markets.get(cp));
             }
         }
         return matchingMarkets;
     }
 
+    /**
+     * Get market for specific currency pair
+     * @param cp base and quote currency pair
+     * @return the market or null if none found
+     */
+    public Market getMarket(CurrencyPair cp) {
+        return markets.get(cp);
+    }
+    
     /**
      * Get market for specific currency pair
      *
@@ -51,16 +81,12 @@ public class Exchange {
      * @return the market or null if none found
      */
     public Market getMarket(String baseCurrency, String quoteCurrency) {
-        if (baseCurrency == null || quoteCurrency == null) {
+        try {
+            CurrencyPair cp = new CurrencyPair(baseCurrency, quoteCurrency);
+            return getMarket(cp);
+        } catch (InvalidFormatException ex) {
             return null;
         }
-        for (Market m : markets) {
-            if (baseCurrency.equalsIgnoreCase(m.getBaseCurrency())
-                    && quoteCurrency.equalsIgnoreCase(m.getQuoteCurrency())) {
-                return m;
-            }
-        }
-        return null;
     }
 
     /**
@@ -77,10 +103,15 @@ public class Exchange {
         }
 
         // Check if such market already exists
-        if (getMarket(market.getBaseCurrency(), market.getQuoteCurrency()) != null) {
+        CurrencyPair cp = market.getCurrencyPair();
+        if (markets.containsKey(cp)) {
             return false;
         }
-        markets.add(market);
+        markets.put(cp, market);
         return true;
+    }
+
+    public void clearData() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

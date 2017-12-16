@@ -1,7 +1,6 @@
 package org.progfun.examples;
 
 import java.io.IOException;
-import org.progfun.InvalidFormatException;
 import org.progfun.Logger;
 import org.progfun.Market;
 import org.progfun.SnapshotGenerator;
@@ -50,8 +49,6 @@ public class SnapshotExample {
             
             Logger.log("Shutting down Handler and connection...");
             handler.scheduleShutdown();
-        } catch (InvalidFormatException ex) {
-            Logger.log("Invalid currency pair: " + ex.getMessage());
         } catch (IOException ex) {
             Logger.log("Error while waiting for Enter key: " + ex.getMessage());
         }

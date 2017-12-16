@@ -13,10 +13,10 @@ public class ExchangeTest {
     @Test
     public void testAddMarkets() throws Exception {
         Exchange e = new Exchange();
-        List<Market> markets;
+        Market[] markets;
         markets = e.getMarkets();
         assertNotNull(markets);
-        assertEquals(0, markets.size());
+        assertEquals(0, markets.length);
         
         Market m1 = new Market("BTC", "USD");
         Market m2 = new Market("LTC", "EUR");
@@ -24,19 +24,19 @@ public class ExchangeTest {
         assertTrue(e.addMarket(m1));
         markets = e.getMarkets();
         assertNotNull(markets);
-        assertEquals(1, markets.size());
+        assertEquals(1, markets.length);
         
         assertTrue(e.addMarket(m2));
         markets = e.getMarkets();
         assertNotNull(markets);
-        assertEquals(2, markets.size());
+        assertEquals(2, markets.length);
 
         // Adding the same markets should not change anything
         assertFalse(e.addMarket(m1));
         assertFalse(e.addMarket(m2));
         markets = e.getMarkets();
         assertNotNull(markets);
-        assertEquals(2, markets.size());
+        assertEquals(2, markets.length);
         
     }
     
@@ -44,7 +44,7 @@ public class ExchangeTest {
      * Test if getMarket() works correctly
      */
     @Test
-    public void testGetMarket() throws Exception {
+    public void testGetMarket() {
         Exchange e = new Exchange();
         e.addMarket(new Market("BTC", "USD"));
         e.addMarket(new Market("eth", "USD"));

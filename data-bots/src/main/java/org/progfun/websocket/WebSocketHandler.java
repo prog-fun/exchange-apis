@@ -1,8 +1,8 @@
 package org.progfun.websocket;
 
 import org.java_websocket.handshake.ServerHandshake;
+import org.progfun.Exchange;
 import org.progfun.Logger;
-import org.progfun.Market;
 
 /**
  * An abstract base class that can be used for all WebSocket data gathering bots
@@ -12,7 +12,7 @@ public abstract class WebSocketHandler implements Runnable {
     // How long to wait (milliseconds) before reconnection attempt
     private static final long RECONNECT_TIMEOUT = 3000;
 
-    protected Market market;
+    protected Exchange exchange;
     protected Parser parser;
     protected WebSocketConnector connector;
     private boolean logEnabled = false;
@@ -24,24 +24,16 @@ public abstract class WebSocketHandler implements Runnable {
     private Action scheduledAction = null;
 
     private boolean verbose = false; // When true, print more output
-    
-    /**
-     * Set market to monitor
-     *
-     * @param market
-     */
-    public void setMarket(Market market) {
-        this.market = market;
-    }
 
     /**
      * When set to true, print more output
-     * @param verbose 
+     *
+     * @param verbose
      */
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
     }
-    
+
     /**
      * Wait a bit and try to connect. Connection must happen in the main
      * thread. This method schedules the connection command and wakes up the
@@ -69,7 +61,7 @@ public abstract class WebSocketHandler implements Runnable {
     }
 
     /**
-     * Disconnect first, wait a bit and then connect again. 
+     * Disconnect first, wait a bit and then connect again.
      * Connection must happen in the main
      * thread. This method schedules the disconnect command and wakes up the
      * main thread.
@@ -83,7 +75,7 @@ public abstract class WebSocketHandler implements Runnable {
         setState(State.RECONNECT_SCHEDULED);
         scheduleAction(Action.RECONNECT);
     }
-    
+
     /**
      * Run the handler. By default, it does not do anything, it waits for
      * next command to be scheduled. We run it in a separate thread to make
@@ -143,7 +135,7 @@ public abstract class WebSocketHandler implements Runnable {
             }
 
         }
-        
+
         Logger.log("Handler thread finished work, exiting...");
     }
 
@@ -290,29 +282,26 @@ public abstract class WebSocketHandler implements Runnable {
         }
 
         // Bind together different components: market, parser and listener
-        if (market == null) {
-            Logger.log("Can not start bot without market, cancelling...");
-            setState(State.CONNECTED);
-            return false;
-        }
-
+//        if (market == null) {
+//            Logger.log("Can not start bot without market, cancelling...");
+//            setState(State.CONNECTED);
+//            return false;
+//        }
+        exchange = createExchange();
         parser = createParser();
         if (parser == null) {
             Logger.log("Can not start bot without parser, cancelling...");
             setState(State.CONNECTED);
             return false;
         }
-        parser.setMarket(market);
+        parser.setExchange(exchange);
 
-        // Get rid of some old bids and asks. Start fresh
-        market.clearOrderBook();
-        
         Logger.log("Starting Handler process...");
 
         if (logEnabled) {
             startLogging();
         }
-        
+
         // Call Handler-specific initialization
         init();
 
@@ -405,7 +394,7 @@ public abstract class WebSocketHandler implements Runnable {
         // after reconnect - old parser may be in wrong state
         Logger.log("Disposing parser " + parser.hashCode());
         parser = null;
-        
+
         if (mustReconnectOnClose()) {
             setState(State.WAIT_CONNECT);
             scheduleConnect(RECONNECT_TIMEOUT);
@@ -521,7 +510,17 @@ public abstract class WebSocketHandler implements Runnable {
      *
      * @return
      */
-    public abstract String getExchangeSymbol();
+    public final String getExchangeSymbol() {
+        return exchange != null ? exchange.getSymbol() : null;
+    }
+
+    /**
+     * Create empty exchange object. Each handler should know which exchange it
+     * is targetting.
+     *
+     * @return
+     */
+    protected abstract Exchange createExchange();
 
     /**
      * Start writing log to file.
@@ -562,7 +561,7 @@ public abstract class WebSocketHandler implements Runnable {
             case CONNECTED:
                 valid = currentState == State.CONNECTING;
                 break;
-                // TODO - add all the other states
+            // TODO - add all the other states
             default:
                 valid = false;
         }
@@ -591,4 +590,5 @@ public abstract class WebSocketHandler implements Runnable {
                 return false;
         }
     }
+
 }

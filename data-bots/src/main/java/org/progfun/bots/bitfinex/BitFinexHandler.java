@@ -1,5 +1,7 @@
 package org.progfun.bots.bitfinex;
 
+import org.progfun.CurrencyPair;
+import org.progfun.Exchange;
 import org.progfun.websocket.Parser;
 import org.progfun.websocket.WebSocketHandler;
 
@@ -22,37 +24,34 @@ public class BitFinexHandler extends WebSocketHandler {
 
     @Override
     public void init() {
-        subscribeToOrderbook(getSymbol());
+//        subscribeToOrderbook(getSymbol());
     }
-    
+
     /**
-     * Subscribe to orderbook update channel
-     * @param symbol 
+     * Subscribe to orderbook update channel for a specific currency pair
+     * @param cp currency pair, such as (BTC,USD)
      */
-    public void subscribeToOrderbook(String symbol) {
+    public void subscribeToOrderbook(CurrencyPair cp) {
         connector.send("{\"event\":\"subscribe\", \"channel\":\"book\", "
-                + "\"symbol\":\"t" + symbol 
+                + "\"symbol\":\"t" + getSymbol(cp)
                 + "\", \"prec\":\"P1\", \"freq\":\"F0\", \"len\":\"100\"}");
     }
-    
+
     /**
-     * Return a single symbols as understood by the exchange API 
+     * Return a single symbols as understood by the exchange API
+     *
+     * @param cp currency pair
      * @return
      */
-    private String getSymbol() {
-        if (market == null) {
-            return null;
-        }
-        String baseCurrency = market.getBaseCurrency();
-        String quoteCurrency = market.getQuoteCurrency();
-        if (baseCurrency == null || quoteCurrency == null) {
-            return null;
-        }
-        return baseCurrency.toUpperCase() + quoteCurrency.toUpperCase();
+    private String getSymbol(CurrencyPair cp) {
+        return cp.getBaseCurrency().toUpperCase()
+                + cp.getBaseCurrency().toUpperCase();
     }
 
     @Override
-    public String getExchangeSymbol() {
-        return "BITF";
+    protected Exchange createExchange() {
+        Exchange e = new Exchange();
+        e.setSymbol("BITF");
+        return e;
     }
 }
