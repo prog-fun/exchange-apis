@@ -16,6 +16,8 @@ public class BitFinexParser extends Parser {
 
     // Info code meaning "please reconnect"
     private static final int RECONNECT_CODE = 20051;
+    // Info code meaning "Maintenance mode"
+    private static final int MAINTENANCE_CODE = 20060;
 
     // TODO - refactor this to enum
     private final int GET_VERSION = 0;
@@ -221,7 +223,8 @@ public class BitFinexParser extends Parser {
             if (!"info".equals(event)) {
                 return false;
             }
-            return o.getInt("code") == RECONNECT_CODE;
+            int code = o.getInt("code");
+            return code == RECONNECT_CODE || code == MAINTENANCE_CODE;
         } catch (JSONException ex) {
             // Nope, not a valid info message
             return false;
