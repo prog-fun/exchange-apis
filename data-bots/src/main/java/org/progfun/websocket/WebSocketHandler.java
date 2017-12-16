@@ -401,6 +401,11 @@ public abstract class WebSocketHandler implements Runnable {
             Logger.log("Code 1006 received. Probably, Internet connection error");
         }
 
+        // Dispose parser to avoid it getting the initial messages 
+        // after reconnect - old parser may be in wrong state
+        Logger.log("Disposing parser " + parser.hashCode());
+        parser = null;
+        
         if (mustReconnectOnClose()) {
             setState(State.WAIT_CONNECT);
             scheduleConnect(RECONNECT_TIMEOUT);

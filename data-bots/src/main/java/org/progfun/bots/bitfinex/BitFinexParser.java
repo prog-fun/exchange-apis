@@ -23,9 +23,14 @@ public class BitFinexParser extends Parser {
     private final int SNAPSHOT = 2;
     private final int UPDATING = 3;
 
-    private int state = 0;
+    private int state = GET_VERSION;
     private static final int EXPECTED_VERSION = 2;
 
+    public BitFinexParser() {
+        Logger.log("new BitFinex handler created, hash = " + this.hashCode()
+                + ", state = " + state);
+    }
+    
     @Override
     public Action parseMessage(String message) {
         //Logger.log("Received: " + message);
