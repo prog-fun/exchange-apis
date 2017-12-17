@@ -1,6 +1,5 @@
 package org.progfun.bots.hitbtc;
 
-import org.json.JSONObject;
 import org.progfun.CurrencyPair;
 import org.progfun.Exchange;
 import org.progfun.websocket.WebSocketHandler;
@@ -12,6 +11,8 @@ import org.progfun.websocket.Parser;
 public class HitBtcHandler extends WebSocketHandler {
 
     private static final String API_URL = "wss://api.hitbtc.com/api/2/ws";
+    // Used to separate different subscription channels
+    private int channelId = 1;
 
     /**
      * Return a single symbols as understood by the exchange API
@@ -68,6 +69,33 @@ public class HitBtcHandler extends WebSocketHandler {
         Exchange e = new Exchange();
         e.setSymbol("HITB");
         return e;
+    }
+
+    @Override
+    protected boolean subscribeToTicker(CurrencyPair currencyPair) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected boolean subscribeToTrades(CurrencyPair currencyPair) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected boolean subscribeToOrderbook(CurrencyPair currencyPair) {
+        String symbol = getSymbol(currencyPair);
+        if (connector == null || symbol == null) {
+            return false;
+        }
+        connector.send("{\n"
+                + "  \"method\": \"subscribeOrderbook\",\n"
+                + "  \"params\": {\n"
+                + "    \"symbol\": \"" + symbol + "\"\n"
+                + "  },\n"
+                + "  \"id\": " + (channelId++) + "\n"
+                + "}");
+        // TODO - save the channelId somewhere, map to the currency pair
+        return true;
     }
 
 }

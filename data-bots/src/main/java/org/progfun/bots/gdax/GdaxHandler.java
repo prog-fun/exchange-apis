@@ -28,9 +28,6 @@ public class GdaxHandler extends WebSocketHandler {
      */
     @Override
     public void init() {
-//        String symbol = getSymbol();
-//        connector.send("{\"type\": \"subscribe\",\"product_ids\": [\""
-//                + symbol + "\"],\"channels\": [\"level2\"]}");
     }
 
 
@@ -66,6 +63,27 @@ public class GdaxHandler extends WebSocketHandler {
 
     @Override
     protected boolean supportsMultipleMarkets() {
+        return true;
+    }
+
+    @Override
+    protected boolean subscribeToTicker(CurrencyPair currencyPair) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected boolean subscribeToTrades(CurrencyPair currencyPair) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected boolean subscribeToOrderbook(CurrencyPair currencyPair) {
+        String symbol = getSymbol(currencyPair);
+        if (connector == null || symbol == null) {
+            return false;
+        }
+        connector.send("{\"type\": \"subscribe\",\"product_ids\": [\""
+                + symbol + "\"],\"channels\": [\"level2\"]}");
         return true;
     }
 }

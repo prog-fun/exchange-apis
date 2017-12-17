@@ -1,7 +1,9 @@
 package org.progfun.bots.bitfinex;
 
+import org.progfun.Channel;
 import org.progfun.CurrencyPair;
 import org.progfun.Exchange;
+import org.progfun.Subscription;
 import org.progfun.websocket.Parser;
 import org.progfun.websocket.WebSocketHandler;
 
@@ -29,12 +31,20 @@ public class BitFinexHandler extends WebSocketHandler {
 
     /**
      * Subscribe to orderbook update channel for a specific currency pair
-     * @param cp currency pair, such as (BTC,USD)
+     *
+     * @param currencyPair currency pair, such as (BTC,USD)
+     * @return true when request sent, false otherwise.
      */
-    public void subscribeToOrderbook(CurrencyPair cp) {
+    @Override
+    protected boolean subscribeToOrderbook(CurrencyPair currencyPair) {
+        String symbol = getSymbol(currencyPair);
+        if (connector == null || symbol == null) {
+            return false;
+        }
         connector.send("{\"event\":\"subscribe\", \"channel\":\"book\", "
-                + "\"symbol\":\"t" + getSymbol(cp)
+                + "\"symbol\":\"t" + symbol
                 + "\", \"prec\":\"P1\", \"freq\":\"F0\", \"len\":\"100\"}");
+        return true;
     }
 
     /**
@@ -60,10 +70,22 @@ public class BitFinexHandler extends WebSocketHandler {
 
     /**
      * Supports multiple markets on a single websocket
-     * @return 
+     *
+     * @return
      */
     @Override
     protected boolean supportsMultipleMarkets() {
         return true;
     }
+
+    @Override
+    protected boolean subscribeToTicker(CurrencyPair currencyPair) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected boolean subscribeToTrades(CurrencyPair currencyPair) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
 }

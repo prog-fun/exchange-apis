@@ -1,8 +1,13 @@
 package org.progfun.websocket;
 
 import org.java_websocket.handshake.ServerHandshake;
+import org.progfun.CurrencyPair;
 import org.progfun.Exchange;
 import org.progfun.Logger;
+import org.progfun.Market;
+import org.progfun.SubsState;
+import org.progfun.Subscription;
+import org.progfun.Subscriptions;
 
 /**
  * An abstract base class that can be used for all WebSocket data gathering bots
@@ -12,7 +17,7 @@ public abstract class WebSocketHandler implements Runnable {
     // How long to wait (milliseconds) before reconnection attempt
     private static final long RECONNECT_TIMEOUT = 3000;
 
-    protected Exchange exchange;
+    private Exchange exchange;
     protected Parser parser;
     protected WebSocketConnector connector;
     private boolean logEnabled = false;
@@ -24,6 +29,8 @@ public abstract class WebSocketHandler implements Runnable {
     private Action scheduledAction = null;
 
     private boolean verbose = false; // When true, print more output
+
+    private Subscriptions subscriptions;
 
     /**
      * When set to true, print more output
@@ -115,6 +122,9 @@ public abstract class WebSocketHandler implements Runnable {
                     break;
                 case START:
                     startNow();
+                    break;
+                case SUBSCRIBE:
+                    subscribeNext();
                     break;
                 case DISCONNECT:
                     // Disconnect but wait for other commands
@@ -281,13 +291,7 @@ public abstract class WebSocketHandler implements Runnable {
             return false;
         }
 
-        // Bind together different components: market, parser and listener
-//        if (market == null) {
-//            Logger.log("Can not start bot without market, cancelling...");
-//            setState(State.CONNECTED);
-//            return false;
-//        }
-        exchange = createExchange();
+        Exchange e = getExchange();
         parser = createParser();
         if (parser == null) {
             Logger.log("Can not start bot without parser, cancelling...");
@@ -307,7 +311,32 @@ public abstract class WebSocketHandler implements Runnable {
 
         setState(State.RUNNING);
 
+        // Subscribe to necessary channels
+        subscribeNext();
         return true;
+    }
+
+    /**
+     * Subscribe to next inactive channel that was requested
+     *
+     * @return true when subscription was initiated, false otherwise
+     */
+    private boolean subscribeNext() {
+        // Take the next inactive subscription, subscribe to it
+        if (subscriptions == null) {
+            return false;
+        }
+
+        Subscription s = subscriptions.getNextInactive();
+        if (s != null) {
+            if (startSubscription(s)) {
+                // Mark this channel as initiated
+                s.setState(SubsState.INITIATED);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -484,36 +513,6 @@ public abstract class WebSocketHandler implements Runnable {
     }
 
     /**
-     * Return URL to WebSocket server
-     *
-     * @return
-     */
-    protected abstract String getUrl();
-
-    /**
-     * Return true if multiple markets (exchange pairs) can be handled on a
-     * single websocket. Return false if a new connection must be made for
-     * every currency pair.
-     *
-     * @return
-     */
-    protected abstract boolean supportsMultipleMarkets();
-    
-    /**
-     * Create a parser for API messages
-     *
-     * @return
-     */
-    protected abstract Parser createParser();
-
-    /**
-     * Initialize the handler: send the initial commands (subscribe to channels,
-     * set options, etc). This method will be executed in the main Handler
-     * thread when connection is established
-     */
-    protected abstract void init();
-
-    /**
      * Each API handler should be able to return symbol of the corresponding
      * exchange: BITF, GDAX, etc.
      *
@@ -599,5 +598,130 @@ public abstract class WebSocketHandler implements Runnable {
                 return false;
         }
     }
+
+    /**
+     * Set subscriptions for the API. These subscriptions will be activated once
+     * the Handler is started. When error occurs, Handler will reconnect and
+     * reactivate the subscriptions again.
+     *
+     * @param subscriptions
+     */
+    public void subscribe(Subscriptions subscriptions) {
+        this.subscriptions = subscriptions;
+        if (currentState == State.RUNNING) {
+            // If subscriptions set when connection already established,
+            // schedule subscriptions
+            scheduleAction(Action.SUBSCRIBE);
+        }
+    }
+
+    /**
+     * Get the first market registered for this exchange
+     * @return first market or null if no markets registered
+     */
+    public Market getFirstMarket() {
+        Exchange e = getExchange();
+        if (e != null) {
+            return e.getFirstMarket();
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Send request to Exchange API: subscribe to particular channel
+     *
+     * @param s desired subscription (contains channel and currency pair)
+     * @return true if request was initiated (response not received yet), false
+     * otherwise
+     */
+    private boolean startSubscription(Subscription s) {
+        if (s == null) {
+            return false;
+        }
+        switch (s.getChannel()) {
+            case ORDERBOOK:
+                return subscribeToOrderbook(s.getCurrencyPair());
+            case TRADES:
+                return subscribeToTrades(s.getCurrencyPair());
+            case TICKER:
+                return subscribeToTicker(s.getCurrencyPair());
+            default:
+                Logger.log("Channel "
+                        + s.getChannel() + " not supported!");
+                return false;
+        }
+    }
+
+    /**
+     * Get exchange. It is created on first request
+     * @return 
+     */
+    public Exchange getExchange() {
+        if (exchange == null) {
+            exchange = createExchange();
+        }
+        return exchange;
+    }
+    
+    /**
+     * Return URL to WebSocket server
+     *
+     * @return
+     */
+    protected abstract String getUrl();
+
+    /**
+     * Return true if multiple markets (exchange pairs) can be handled on a
+     * single websocket. Return false if a new connection must be made for
+     * every currency pair.
+     *
+     * @return
+     */
+    protected abstract boolean supportsMultipleMarkets();
+
+    /**
+     * Create a parser for API messages
+     *
+     * @return
+     */
+    protected abstract Parser createParser();
+
+    /**
+     * Initialize the handler: send the initial commands (subscribe to channels,
+     * set options, etc). This method will be executed in the main Handler
+     * thread when connection is established
+     */
+    protected abstract void init();
+
+    /**
+     * Send request to Exchange: subscribe to ticker for particular currency
+     * pair
+     *
+     * @param currencyPair
+     * @return true if request was initiated (response not received yet), false
+     * otherwise
+     */
+    protected abstract boolean subscribeToTicker(CurrencyPair currencyPair);
+
+    /**
+     * Send request to Exchange: subscribe to trades for particular currency
+     * pair
+     *
+     * @param currencyPair
+     * @return true if request was initiated (response not received yet), false
+     * otherwise
+     */
+    protected abstract boolean subscribeToTrades(CurrencyPair currencyPair);
+
+    /**
+     * Send request to Exchange: subscribe to order book (bids and asks) for
+     * particular currency pair
+     *
+     * @param currencyPair
+     * @return true if request was initiated (response not received yet), false
+     * otherwise
+     */
+    protected abstract boolean subscribeToOrderbook(CurrencyPair currencyPair);
 
 }

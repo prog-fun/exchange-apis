@@ -65,11 +65,12 @@ public class GeminiHandler extends WebSocketHandler {
     @Override
     public void init() {
         // Check if we have necessary market. If not, create it
-        if (exchange != null) {
-            Market m = exchange.getMarket(mainMarket);
+        Exchange e = getExchange();
+        if (e != null) {
+            Market m = e.getMarket(mainMarket);
             if (m == null) {
                 Logger.log("Gemini handler creating market for the exchange");
-                exchange.addMarket(new Market(mainMarket));
+                e.addMarket(new Market(mainMarket));
             }
         }
                 
