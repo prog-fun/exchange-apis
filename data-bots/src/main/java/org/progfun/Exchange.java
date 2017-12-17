@@ -122,7 +122,30 @@ public class Exchange {
         return true;
     }
 
+    /**
+     * Clear all data from the exchange
+     */
     public void clearData() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        for (Market m : markets.values()) {
+            m.clearData();
+        }
+    }
+
+    /**
+     * Lock updates for all markets
+     */
+    public void lockUpdates() {
+        for (Market m : markets.values()) {
+            m.lockUpdates();
+        }
+    }
+
+    /**
+     * Allow updates for all markets
+     */
+    public void allowUpdates() {
+        for (Market m : markets.values()) {
+            m.allowUpdates();
+        }
     }
 }

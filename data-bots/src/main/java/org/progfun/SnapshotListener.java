@@ -1,14 +1,14 @@
 package org.progfun;
 
 /**
- * Interface for listening on Market snapshots
+ * Interface for listening on Exchange snapshots
  */
 public interface SnapshotListener {
 
     /**
-     * This method is called whenever a new snapshot of the market is created
-     * @param market 
+     * This method is called whenever a new snapshot of the exchange is created
+     * @param exchange
      */
-    public void onSnapshot(Market market);
+    public void onSnapshot(Exchange exchange);
 
 }

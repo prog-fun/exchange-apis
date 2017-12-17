@@ -1,15 +1,16 @@
 package org.progfun.examples;
 
 import org.progfun.Decimal;
+import org.progfun.Exchange;
 import org.progfun.Market;
 import org.progfun.SnapshotListener;
 import org.progfun.orderbook.Book;
 import org.progfun.orderbook.Order;
 
 /**
- * Prints out market information
+ * Prints out exchange information
  */
-public class MarketLogger implements SnapshotListener {
+public class ExchangeLogger implements SnapshotListener {
     private int bidLimit = Integer.MAX_VALUE;
     
     /**
@@ -28,9 +29,12 @@ public class MarketLogger implements SnapshotListener {
      * New market snapshot received, print it
      */
     @Override
-    public void onSnapshot(Market market) {
-        printPrices(market.getBids(), false, "Bids");
-        printPrices(market.getAsks(), true, "Asks");
+    public void onSnapshot(Exchange exchange) {
+        for (Market market : exchange.getMarkets()) {
+            System.out.println("Market " + market.getCurrencyPair() + ":");
+            printPrices(market.getBids(), false, "Bids");
+            printPrices(market.getAsks(), true, "Asks");
+        }
     }
 
     /**

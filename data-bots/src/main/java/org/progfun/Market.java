@@ -47,10 +47,11 @@ public class Market {
     public Market(String baseCurrency, String quoteCurrency) throws InvalidFormatException {
         this(new CurrencyPair(baseCurrency, quoteCurrency));
     }
-    
+
     /**
      * Creates a new market for given currency pair
-     * @param currencyPair 
+     *
+     * @param currencyPair
      * @throws InvalidFormatException when currency pair missing
      */
     public Market(CurrencyPair currencyPair) {
@@ -72,7 +73,7 @@ public class Market {
     public CurrencyPair getCurrencyPair() {
         return currencyPair;
     }
-    
+
     public Book getBids() {
         return bids;
     }
@@ -303,8 +304,14 @@ public class Market {
      * Clear all bids and asks
      */
     public void clearOrderBook() {
+        if (!lockUpdates()) {
+            return;
+        }
+
         bids.clear();
         asks.clear();
+
+        allowUpdates();
     }
 
     /**
@@ -313,7 +320,13 @@ public class Market {
      * @param t
      */
     public void addTrade(Trade t) {
+        if (!lockUpdates()) {
+            return;
+        }
+
         trades.add(t);
+
+        allowUpdates();
     }
 
     /**
@@ -329,6 +342,21 @@ public class Market {
      * Delete all trade information
      */
     public void clearTrades() {
+        if (!lockUpdates()) {
+            return;
+        }
+
         trades.clear();
+
+        allowUpdates();
+    }
+
+    /**
+     * Delete all data
+     */
+    public void clearData() {
+        // Update locking should happen inside the method calls
+        clearTrades();
+        clearOrderBook();
     }
 }

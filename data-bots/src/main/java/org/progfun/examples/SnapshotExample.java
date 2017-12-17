@@ -1,9 +1,13 @@
 package org.progfun.examples;
 
 import java.io.IOException;
+import org.progfun.CurrencyPair;
 import org.progfun.Logger;
-import org.progfun.Market;
 import org.progfun.SnapshotGenerator;
+import org.progfun.Channel;
+import org.progfun.Exchange;
+import org.progfun.Market;
+import org.progfun.Subscriptions;
 import org.progfun.bots.bitfinex.BitFinexHandler;
 import org.progfun.bots.gdax.GdaxHandler;
 import org.progfun.bots.gemini.GeminiHandler;
@@ -28,9 +32,10 @@ public class SnapshotExample {
 //        handler = new GeminiHandler();
 
         try {
-            // TODO - subscribe to updates
-            Market market = new Market("BTC", "USD");
-//            handler.setMarket(market);
+            Subscriptions subs = new Subscriptions();
+            CurrencyPair btcusd = new CurrencyPair("BTC", "USD");
+            subs.add(btcusd, Channel.ORDERBOOK);
+            handler.subscribe(subs);
             // Start handler in a separate thread
             Thread handlerThread = new Thread(handler);
             handlerThread.start();
@@ -39,8 +44,13 @@ public class SnapshotExample {
 
             // Print a snapshot every second
             SnapshotGenerator sg = new SnapshotGenerator();
-            sg.setMarket(market);
-            MarketLogger ml = new MarketLogger();
+            Exchange e = handler.getExchange();
+            if (e == null) {
+                Logger.log("Can't start Snapshot Generator without an exchange!");
+                return;
+            }
+            sg.setExchange(e);
+            ExchangeLogger ml = new ExchangeLogger();
             ml.setBidLimit(3); // Show only top 3 bids and asks
             sg.setListener(ml);
             sg.schedule(2000);
