@@ -45,7 +45,20 @@ public class Market {
      * @throws InvalidFormatException when one of currencies missing
      */
     public Market(String baseCurrency, String quoteCurrency) throws InvalidFormatException {
-        this.currencyPair = new CurrencyPair(baseCurrency, quoteCurrency);
+        this(new CurrencyPair(baseCurrency, quoteCurrency));
+    }
+    
+    /**
+     * Creates a new market for given currency pair
+     * @param currencyPair 
+     * @throws InvalidFormatException when currency pair missing
+     */
+    public Market(CurrencyPair currencyPair) {
+        if (currencyPair == null) {
+            throw new InvalidFormatException(
+                    "Currency pair can not be empty for a market!");
+        }
+        this.currencyPair = currencyPair;
     }
 
     public String getBaseCurrency() {

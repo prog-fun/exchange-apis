@@ -2,6 +2,8 @@ package org.progfun.bots.gemini;
 
 import org.progfun.CurrencyPair;
 import org.progfun.Exchange;
+import org.progfun.Logger;
+import org.progfun.Market;
 import org.progfun.websocket.WebSocketHandler;
 import org.progfun.websocket.Parser;
 
@@ -14,7 +16,7 @@ public class GeminiHandler extends WebSocketHandler {
     private static final String API_URL_BASE = "wss://api.gemini.com/v1/marketdata/";
 
     private CurrencyPair mainMarket;
-    
+
     /**
      * Return a single symbol as understood by the exchange API
      *
@@ -58,10 +60,19 @@ public class GeminiHandler extends WebSocketHandler {
     }
 
     /**
-     * We don't have to send any init commands
+     * Initialize the handler
      */
     @Override
     public void init() {
+        // Check if we have necessary market. If not, create it
+        if (exchange != null) {
+            Market m = exchange.getMarket(mainMarket);
+            if (m == null) {
+                Logger.log("Gemini handler creating market for the exchange");
+                exchange.addMarket(new Market(mainMarket));
+            }
+        }
+                
     }
 
     @Override
@@ -73,11 +84,54 @@ public class GeminiHandler extends WebSocketHandler {
 
     /**
      * This exchange supports only a single market for each WebSocket
-     * @return 
+     *
+     * @return
      */
     @Override
     protected boolean supportsMultipleMarkets() {
         return false;
+    }
+
+    /**
+     * This API supports only channels for one specific currency pair.
+     * Check if this market (currency pair) is the one that we are connected to
+     *
+     * @param currencyPair
+     * @return
+     */
+    private boolean isMarketOk(CurrencyPair currencyPair) {
+        if (mainMarket == null) {
+            Logger.log("Can not subscribe to channel when main market not set!");
+            return false;
+        }
+        if (!mainMarket.equals(currencyPair)) {
+            Logger.log("Socket already connected to " + getUrl()
+                    + ", can not subscribe to orderbook for a currency pair: "
+                    + currencyPair);
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    protected boolean subscribeToTicker(CurrencyPair currencyPair) {
+        // No additional messages must be sent, WebSocket is subscribed by default
+        // TODO - somehow notify that subscription is active
+        return isMarketOk(currencyPair);
+    }
+
+    @Override
+    protected boolean subscribeToTrades(CurrencyPair currencyPair) {
+        // No additional messages must be sent, WebSocket is subscribed by default
+        // TODO - somehow notify that subscription is active
+        return isMarketOk(currencyPair);
+    }
+
+    @Override
+    protected boolean subscribeToOrderbook(CurrencyPair currencyPair) {
+        // No additional messages must be sent, WebSocket is subscribed by default
+        // TODO - somehow notify that subscription is active
+        return isMarketOk(currencyPair);
     }
 
 }

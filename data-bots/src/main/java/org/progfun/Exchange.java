@@ -39,6 +39,17 @@ public class Exchange {
         markets.values().toArray(m);
         return m;
     }
+    
+    /**
+     * Get first market in the list. Handy if we use only one market.
+     * @return first market or null if there are no markets
+     */
+    public Market getFirstMarket() {
+        if (markets.isEmpty()) {
+            return null;
+        }
+        return markets.values().iterator().next();
+    }
 
     /**
      * Return all markets available in this exchange related to a specific
@@ -97,7 +108,7 @@ public class Exchange {
      * @return true if the market was added, false otherwise (if it already
      * existed)
      */
-    boolean addMarket(Market market) {
+    public boolean addMarket(Market market) {
         if (market == null) {
             return false;
         }
