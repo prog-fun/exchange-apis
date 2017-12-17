@@ -6,7 +6,6 @@ import org.progfun.Logger;
 import org.progfun.SnapshotGenerator;
 import org.progfun.Channel;
 import org.progfun.Exchange;
-import org.progfun.Market;
 import org.progfun.Subscriptions;
 import org.progfun.bots.bitfinex.BitFinexHandler;
 import org.progfun.bots.gdax.GdaxHandler;

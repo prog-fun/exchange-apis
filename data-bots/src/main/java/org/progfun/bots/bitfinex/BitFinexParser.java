@@ -15,18 +15,16 @@ import org.progfun.websocket.Parser;
  */
 public class BitFinexParser extends Parser {
 
+    private enum State {
+        GET_VERSION, SUBSCRIBE, SNAPSHOT, UPDATING
+    }
+
     // Info code meaning "please reconnect"
     private static final int RECONNECT_CODE = 20051;
     // Info code meaning "Maintenance mode"
     private static final int MAINTENANCE_CODE = 20060;
 
-    // TODO - refactor this to enum
-    private final int GET_VERSION = 0;
-    private final int SUBSCRIBE = 1;
-    private final int SNAPSHOT = 2;
-    private final int UPDATING = 3;
-
-    private int state = GET_VERSION;
+    private State state = State.GET_VERSION;
     private static final int EXPECTED_VERSION = 2;
 
     public BitFinexParser() {
@@ -63,7 +61,7 @@ public class BitFinexParser extends Parser {
             int v = msg.getInt("version");
             Logger.log("Received version info: " + v);
             if (v == EXPECTED_VERSION) {
-                state++;
+                state = State.SUBSCRIBE;
             } else {
                 return shutDownAction("Wrong version, not supported!");
             }
@@ -86,7 +84,7 @@ public class BitFinexParser extends Parser {
 //                    Logger.log("Successfully subscribed to "
 //                            + market.getBaseCurrency()
 //                            + "/" + market.getQuoteCurrency());
-                    state++;
+                    state = State.SNAPSHOT;
                     return null;
                 case "error":
                     Logger.log("Error occurred: " + msg.getString("msg")
@@ -123,13 +121,21 @@ public class BitFinexParser extends Parser {
                     heartbeatReceived();
                 }
             } else if (val instanceof JSONArray) {
+                // TODO - find the right market, based in session ID
+                if (exchange == null) {
+                    Logger.log("Trying to parse update without exchange!");
+                    return Action.SHUTDOWN;
+                }
+                Market market = exchange.getFirstMarket();
+                if (market == null) {
+                    Logger.log("Trying to parse update without market!");
+                    return Action.SHUTDOWN;
+                }
                 JSONArray values = (JSONArray) val;
                 Decimal price = new Decimal(values.getDouble(0));
                 int count = values.getInt(1);
                 Decimal amount = new Decimal(values.getDouble(2));
 //            Logger.log("Price: " + price + ", Count: " + count + ", Amount: " + amount);
-                // TODO - find the right market, based in session ID
-                Market market = new Market("ZZZ", "ZZZ"); // !!!
                 if (count > 0) {
                     // BitFinex always reports the total updated amount, 
                     // not the difference. Therefore we must first remove the
@@ -168,13 +174,21 @@ public class BitFinexParser extends Parser {
         try {
             JSONArray data = new JSONArray(message);
             JSONArray array = data.getJSONArray(1);
+            // TODO - find the right market, based in session ID
+            if (exchange == null) {
+                Logger.log("Trying to parse snapshot without exchange!");
+                return Action.SHUTDOWN;
+            }
+            Market market = exchange.getFirstMarket();
+            if (market == null) {
+                Logger.log("Trying to parse snapshot without market!");
+                return Action.SHUTDOWN;
+            }
             for (Object json : array) {
                 JSONArray values = (JSONArray) json;
                 Decimal price = new Decimal(values.getDouble(0));
                 int count = values.getInt(1);
                 Decimal amount = new Decimal(values.getDouble(2));
-                // TODO - find the right market, based in session ID
-                Market market = new Market("ZZZ", "ZZZ"); // !!!
                 if (count > 0) {
                     if (amount.isPositive()) {
                         market.addBid(price, amount, count);
@@ -189,7 +203,7 @@ public class BitFinexParser extends Parser {
             return shutDownAction("Error in BitFinex snapshot parsing:"
                     + ex.getMessage());
         }
-        state++; // Snapshot parsed, move to Update parsing state
+        state = State.UPDATING; // Snapshot parsed, move to Update parsing state
         return null;
 //        Logger.log(market.getAsks().size());
 //        Logger.log(market.getBids().size());
