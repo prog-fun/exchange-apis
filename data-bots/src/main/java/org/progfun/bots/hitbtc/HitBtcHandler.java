@@ -25,7 +25,7 @@ public class HitBtcHandler extends WebSocketHandler {
             return null;
         }
         return cp.getBaseCurrency().toUpperCase()
-                + cp.getBaseCurrency().toUpperCase();
+                + cp.getQuoteCurrency().toUpperCase();
     }
 
     @Override
