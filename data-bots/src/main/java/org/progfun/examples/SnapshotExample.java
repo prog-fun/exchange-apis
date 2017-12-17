@@ -28,8 +28,9 @@ public class SnapshotExample {
 //        handler = new GeminiHandler();
 
         try {
+            // TODO - subscribe to updates
             Market market = new Market("BTC", "USD");
-            handler.setMarket(market);
+//            handler.setMarket(market);
             // Start handler in a separate thread
             Thread handlerThread = new Thread(handler);
             handlerThread.start();

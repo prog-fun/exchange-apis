@@ -44,6 +44,9 @@ public class BitFinexHandler extends WebSocketHandler {
      * @return
      */
     private String getSymbol(CurrencyPair cp) {
+        if (cp == null) {
+            return null;
+        }
         return cp.getBaseCurrency().toUpperCase()
                 + cp.getBaseCurrency().toUpperCase();
     }
@@ -53,5 +56,14 @@ public class BitFinexHandler extends WebSocketHandler {
         Exchange e = new Exchange();
         e.setSymbol("BITF");
         return e;
+    }
+
+    /**
+     * Supports multiple markets on a single websocket
+     * @return 
+     */
+    @Override
+    protected boolean supportsMultipleMarkets() {
+        return true;
     }
 }

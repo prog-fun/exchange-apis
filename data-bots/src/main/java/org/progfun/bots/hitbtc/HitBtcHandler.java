@@ -1,6 +1,8 @@
 package org.progfun.bots.hitbtc;
 
 import org.json.JSONObject;
+import org.progfun.CurrencyPair;
+import org.progfun.Exchange;
 import org.progfun.websocket.WebSocketHandler;
 import org.progfun.websocket.Parser;
 
@@ -14,18 +16,15 @@ public class HitBtcHandler extends WebSocketHandler {
     /**
      * Return a single symbols as understood by the exchange API
      *
+     * @param cp currency pair
      * @return
      */
-    private String getSymbol() {
-        if (market == null) {
+    private String getSymbol(CurrencyPair cp) {
+        if (cp == null) {
             return null;
         }
-        String baseCurrency = market.getBaseCurrency();
-        String quoteCurrency = market.getQuoteCurrency();
-        if (baseCurrency == null || quoteCurrency == null) {
-            return null;
-        }
-        return baseCurrency.toUpperCase() + quoteCurrency.toUpperCase();
+        return cp.getBaseCurrency().toUpperCase()
+                + cp.getBaseCurrency().toUpperCase();
     }
 
     @Override
@@ -44,24 +43,31 @@ public class HitBtcHandler extends WebSocketHandler {
     @Override
     public void init() {
         //Creating orderbook data request
-        String symbol = getSymbol();
-        if (symbol == null) {
-            return;
-        }
-
-        JSONObject obj = new JSONObject();
-        obj.put("method", "subscribeOrderbook");
-        JSONObject obj2 = new JSONObject();
-        obj2.put("symbol", symbol);
-        obj.put("params", obj2);
-        obj.put("id", "123");
-        String object = obj.toString();
-        connector.send(object);
+//        String symbol = getSymbol();
+//        if (symbol == null) {
+//            return;
+//        }
+//
+//        JSONObject obj = new JSONObject();
+//        obj.put("method", "subscribeOrderbook");
+//        JSONObject obj2 = new JSONObject();
+//        obj2.put("symbol", symbol);
+//        obj.put("params", obj2);
+//        obj.put("id", "123");
+//        String object = obj.toString();
+//        connector.send(object);
     }
 
     @Override
-    public String getExchangeSymbol() {
-        return "HITB";
+    protected boolean supportsMultipleMarkets() {
+        return true;
+    }
+
+    @Override
+    protected Exchange createExchange() {
+        Exchange e = new Exchange();
+        e.setSymbol("HITB");
+        return e;
     }
 
 }

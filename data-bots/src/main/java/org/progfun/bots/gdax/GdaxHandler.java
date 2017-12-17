@@ -1,5 +1,7 @@
 package org.progfun.bots.gdax;
 
+import org.progfun.CurrencyPair;
+import org.progfun.Exchange;
 import org.progfun.websocket.WebSocketHandler;
 import org.progfun.websocket.Parser;
 
@@ -22,34 +24,48 @@ public class GdaxHandler extends WebSocketHandler {
     }
 
     /**
-     * Send commend to subscribe for specific market orderbook updates
+     * Initialize the handler
      */
     @Override
     public void init() {
-        String symbol = getSymbol();
-        connector.send("{\"type\": \"subscribe\",\"product_ids\": [\""
-                + symbol + "\"],\"channels\": [\"level2\"]}");
+//        String symbol = getSymbol();
+//        connector.send("{\"type\": \"subscribe\",\"product_ids\": [\""
+//                + symbol + "\"],\"channels\": [\"level2\"]}");
     }
+
 
     /**
      * Get Exchange-specific product symbol (BTC-USD, etc)
      *
+     * @param cp currency pair
      * @return
      */
-    private String getSymbol() {
-        if (market == null) {
+    private String getSymbol(CurrencyPair cp) {
+        if (cp == null) {
             return null;
         }
-        String baseCurrency = market.getBaseCurrency();
-        String quoteCurrency = market.getQuoteCurrency();
-        if (baseCurrency == null || quoteCurrency == null) {
-            return null;
-        }
-        return baseCurrency.toUpperCase() + "-" + quoteCurrency.toUpperCase();
+        return cp.getBaseCurrency().toUpperCase()
+                +  "-" + cp.getBaseCurrency().toUpperCase();
+    }
+    /**
+     *
+     * @return
+     */
+
+//    @Override
+//    public String getExchangeSymbol() {
+//        return "GDAX";
+//    }
+
+    @Override
+    protected Exchange createExchange() {
+        Exchange e = new Exchange();
+        e.setSymbol("GDAX");
+        return e;
     }
 
     @Override
-    public String getExchangeSymbol() {
-        return "GDAX";
+    protected boolean supportsMultipleMarkets() {
+        return true;
     }
 }

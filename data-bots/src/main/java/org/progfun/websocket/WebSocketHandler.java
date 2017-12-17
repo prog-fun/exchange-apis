@@ -491,6 +491,15 @@ public abstract class WebSocketHandler implements Runnable {
     protected abstract String getUrl();
 
     /**
+     * Return true if multiple markets (exchange pairs) can be handled on a
+     * single websocket. Return false if a new connection must be made for
+     * every currency pair.
+     *
+     * @return
+     */
+    protected abstract boolean supportsMultipleMarkets();
+    
+    /**
      * Create a parser for API messages
      *
      * @return

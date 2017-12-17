@@ -3,6 +3,7 @@ package org.progfun.bots.gdax;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.progfun.Decimal;
+import org.progfun.Market;
 import org.progfun.websocket.Action;
 import org.progfun.websocket.Parser;
 
@@ -23,6 +24,8 @@ public class GdaxParser extends Parser {
         System.out.println("Received: " + message);
         JSONObject JSONMessage = new JSONObject(message);
         String type = JSONMessage.getString("type");
+        // TODO - find the right market, based in session ID
+        Market market = new Market("ZZZ", "ZZZ"); // !!!
         if (type.equals("snapshot")) {
             JSONArray bids = JSONMessage.getJSONArray("bids");
             for (int i = 0; i < bids.length(); ++i) {

@@ -31,7 +31,7 @@ public class GeminiTest {
         // Create a marker, feed all messages to GeminiParser 
         Market market = new Market("BTC", "USD");
         GeminiParser parser = new GeminiParser();
-        parser.setMarket(market);
+        // TODO - set main market
 
         for (String msg : messages) {
             parser.parseMessage(msg);

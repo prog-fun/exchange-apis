@@ -174,7 +174,8 @@ public class TestScenario {
                     expectedMarket.getQuoteCurrency()
             );
 
-            parser.setMarket(market);
+            // TODO - update TestScenario
+//            parser.setMarket(market);
 
             for (String msg : messages) {
                 parser.parseMessage(msg);
