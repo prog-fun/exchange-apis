@@ -25,38 +25,39 @@ public class SnapshotExample {
     public static void main(String[] args) {
         // Create your crawler here - this example should work the same
         // with all the crawlers: Gemini, GDAX, etc
-        WebSocketHandler handler;
+//        WebSocketHandler handler;
 //        handler = new GdaxHandler();
-        handler = new BitFinexHandler();
-//        handler = new GeminiHandler();
+//        handler = new BitFinexHandler();
+        CurrencyPair btcusd = new CurrencyPair("BTC", "USD");
+        GeminiHandler handler = new GeminiHandler();
+        handler.setMainMarket(btcusd);
+
+        Subscriptions subs = new Subscriptions();
+        subs.add(btcusd, Channel.ORDERBOOK);
+        handler.subscribe(subs);
+        // Start handler in a separate thread
+        Thread handlerThread = new Thread(handler);
+        handlerThread.start();
+        // Notify handler that it has to connect to the WebSocket
+        handler.scheduleConnect(0);
+
+        // Print a snapshot every second
+        SnapshotGenerator sg = new SnapshotGenerator();
+        Exchange e = handler.getExchange();
+        if (e == null) {
+            Logger.log("Can't start Snapshot Generator without an exchange!");
+            return;
+        }
+        sg.setExchange(e);
+        ExchangeLogger ml = new ExchangeLogger();
+        ml.setBidLimit(3); // Show only top 3 bids and asks
+        sg.setListener(ml);
+        sg.schedule(2000);
 
         try {
-            Subscriptions subs = new Subscriptions();
-            CurrencyPair btcusd = new CurrencyPair("BTC", "USD");
-            subs.add(btcusd, Channel.ORDERBOOK);
-            handler.subscribe(subs);
-            // Start handler in a separate thread
-            Thread handlerThread = new Thread(handler);
-            handlerThread.start();
-            // Notify handler that it has to connect to the WebSocket
-            handler.scheduleConnect(0);
-
-            // Print a snapshot every second
-            SnapshotGenerator sg = new SnapshotGenerator();
-            Exchange e = handler.getExchange();
-            if (e == null) {
-                Logger.log("Can't start Snapshot Generator without an exchange!");
-                return;
-            }
-            sg.setExchange(e);
-            ExchangeLogger ml = new ExchangeLogger();
-            ml.setBidLimit(3); // Show only top 3 bids and asks
-            sg.setListener(ml);
-            sg.schedule(2000);
-
             Logger.log("Press Enter to quit");
             System.in.read(); // Wait for <Enter>
-            
+
             Logger.log("Shutting down Handler and connection...");
             handler.scheduleShutdown();
         } catch (IOException ex) {

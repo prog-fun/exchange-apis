@@ -33,7 +33,7 @@ public class GeminiHandler extends WebSocketHandler {
             return null;
         }
         return cp.getBaseCurrency().toLowerCase()
-                + cp.getBaseCurrency().toLowerCase();
+                + cp.getQuoteCurrency().toLowerCase();
     }
 
     /**

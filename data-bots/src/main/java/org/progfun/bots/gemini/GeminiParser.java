@@ -103,7 +103,7 @@ public class GeminiParser extends Parser {
     }
 
     private Action parseTradeEvent(JSONObject event) {
-        // TODO
-        throw new UnsupportedOperationException("Not supported yet.");
+        Logger.log("Gemini Trade parsing not supported yet");
+        return null;
     }
 }
