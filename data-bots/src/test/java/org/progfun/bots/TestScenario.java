@@ -16,6 +16,7 @@ import org.progfun.Market;
 import org.progfun.websocket.Parser;
 import static org.junit.Assert.*;
 import org.progfun.Decimal;
+import org.progfun.Exchange;
 import org.progfun.orderbook.Book;
 
 /**
@@ -174,8 +175,9 @@ public class TestScenario {
                     expectedMarket.getQuoteCurrency()
             );
 
-            // TODO - update TestScenario
-//            parser.setMarket(market);
+            Exchange exchange = new Exchange();
+            exchange.addMarket(market);
+            parser.setExchange(exchange);
 
             for (String msg : messages) {
                 parser.parseMessage(msg);

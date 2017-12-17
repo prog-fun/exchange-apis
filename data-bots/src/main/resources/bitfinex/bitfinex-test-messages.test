@@ -70,6 +70,3 @@ Then the following updates are received:
 8) Ask @761 is removed
 
 
-Expected resulting bids and asks are described above, where each row is in the format price,amount,count
-
-
