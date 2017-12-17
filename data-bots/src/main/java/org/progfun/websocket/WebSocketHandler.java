@@ -298,7 +298,7 @@ public abstract class WebSocketHandler implements Runnable {
             setState(State.CONNECTED);
             return false;
         }
-        parser.setExchange(exchange);
+        parser.setExchange(e);
 
         Logger.log("Starting Handler process...");
 
@@ -332,6 +332,7 @@ public abstract class WebSocketHandler implements Runnable {
             if (startSubscription(s)) {
                 // Mark this channel as initiated
                 s.setState(SubsState.INITIATED);
+                setState(State.SUBSCRIBING);
                 return true;
             }
         }
@@ -639,6 +640,20 @@ public abstract class WebSocketHandler implements Runnable {
         if (s == null) {
             return false;
         }
+        Exchange e = getExchange();
+        if (e == null) {
+            Logger.log("No subscription possible without exchange");
+            return false;
+        }
+        // Get or create market
+        Market m = e.getMarket(s.getCurrencyPair());
+        if (m == null) {
+            Logger.log("Creating market required by subscription");
+            e.addMarket(new Market(s.getCurrencyPair()));
+        }
+        
+        Logger.log("Subscribing to " + s.getChannel() + " for market " 
+                + s.getCurrencyPair());
         switch (s.getChannel()) {
             case ORDERBOOK:
                 return subscribeToOrderbook(s.getCurrencyPair());
