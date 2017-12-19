@@ -34,8 +34,15 @@ public class SnapshotExample {
 //        handler.setVerbose(true);
 
         Subscriptions subs = new Subscriptions();
+        subs.add(new Market("BTC", "USD"), Channel.ORDERBOOK);
+        subs.add(new Market("ETH", "USD"), Channel.ORDERBOOK);
         subs.add(new Market("LTC", "USD"), Channel.ORDERBOOK);
-        subs.add(new Market("ETH", "BTC"), Channel.ORDERBOOK);
+//        subs.add(new Market("LTC", "BTC"), Channel.ORDERBOOK);
+//        subs.add(new Market("ETH", "BTC"), Channel.ORDERBOOK);
+//        subs.add(new Market("DAT", "USD"), Channel.ORDERBOOK);
+//        subs.add(new Market("QTM", "USD"), Channel.ORDERBOOK);
+//        subs.add(new Market("QSH", "USD"), Channel.ORDERBOOK);
+//        subs.add(new Market("YYW", "USD"), Channel.ORDERBOOK);
         handler.subscribe(subs);
         // Start handler in a separate thread
         Thread handlerThread = new Thread(handler);
