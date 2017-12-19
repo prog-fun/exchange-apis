@@ -158,11 +158,6 @@ public class TestScenario {
                 
                 // Create subscription
                 Subscription s = scenario.subscriptions.add(market, Channel.ORDERBOOK);
-                // Set subcription ID that will be references by the response msg
-                if (m.has("subscription_id")) {
-                    String subsId = m.getString("subscription_id");
-                    scenario.subscriptions.setInactiveId(subsId, s);
-                }
                 // TODO - support different channels - trades, etc
             }
 

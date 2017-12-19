@@ -182,6 +182,9 @@ public class BitFinexParser extends Parser {
             return shutDownAction("Wrong snapshot received: " + data);
         }
 
+        // Clear previous orders, start fresh
+        market.clearOrderBook();
+        
         // Snapshot is an array of updates
         try {
             for (int i = 0; i < data.length(); ++i) {
