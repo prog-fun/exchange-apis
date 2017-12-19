@@ -1,7 +1,6 @@
 package org.progfun.websocket;
 
 import org.java_websocket.handshake.ServerHandshake;
-import org.progfun.Channel;
 import org.progfun.CurrencyPair;
 import org.progfun.Exchange;
 import org.progfun.Logger;
@@ -518,7 +517,8 @@ public abstract class WebSocketHandler implements Runnable {
      * @return
      */
     public final String getExchangeSymbol() {
-        return exchange != null ? exchange.getSymbol() : null;
+        Exchange e = getExchange();
+        return e != null ? e.getSymbol() : null;
     }
 
     /**

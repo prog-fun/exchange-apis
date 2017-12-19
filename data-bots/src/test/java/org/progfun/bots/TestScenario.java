@@ -32,7 +32,7 @@ public class TestScenario {
     private List<String> messages;
     // The expected exchange at the end of all tests
     private Exchange expectedExchange;
-    private Subscriptions subscriptions = new Subscriptions();
+    private final Subscriptions subscriptions = new Subscriptions();
 
     /**
      * Load test scenario from a file

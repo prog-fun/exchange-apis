@@ -10,11 +10,18 @@ public class SnapshotGenerator {
 
     private Exchange exchange;
     private SnapshotListener listener;
+    private Timer timer;
+    private final TimerTask task = new TimerTask() {
+        @Override
+        public void run() {
+            notifyListener();
+        }
+    };
 
     public void setExchange(Exchange exchange) {
         this.exchange = exchange;
     }
-    
+
     public void setListener(SnapshotListener listener) {
         this.listener = listener;
     }
@@ -25,15 +32,9 @@ public class SnapshotGenerator {
      * @param interval interval in milliseconds
      */
     public void schedule(long interval) {
-        TimerTask task = new TimerTask() {
-            @Override
-            public void run() {
-                notifyListener();
-            }
-        };
-        Timer timer = new Timer(true);
+        stop(); // Stop previous timer if one running
+        timer = new Timer(true);
         timer.scheduleAtFixedRate(task, interval, interval);
-
     }
 
     /**
@@ -45,8 +46,19 @@ public class SnapshotGenerator {
         }
         // Disable updates while listeners process the snapshot
         exchange.lockUpdates();
-        listener.onSnapshot(exchange);        
+        listener.onSnapshot(exchange);
         exchange.allowUpdates();
+    }
+
+    /**
+     * Stop the scheduled timer
+     */
+    public void stop() {
+        if (timer != null) {
+            Logger.log("Stopping scheduled timer task...");
+            timer.cancel();
+            timer = null;
+        }
     }
 
 }
