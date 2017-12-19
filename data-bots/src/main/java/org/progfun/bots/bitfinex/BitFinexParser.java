@@ -41,10 +41,21 @@ public class BitFinexParser extends Parser {
                     JSONArray data = (JSONArray) val;
                     if (data.length() > 0) {
                         Object firstItem = data.get(0);
+                        if (exchange == null) {
+                            Logger.log("Trying to data update without exchange!");
+                            return Action.SHUTDOWN;
+                        }
+                        // TODO - find the right market, based in session ID
+                        Market market = exchange.getFirstMarket();
+                        if (market == null) {
+                            Logger.log("Trying to parse snapshot without market!");
+                            return Action.SHUTDOWN;
+                        }
+
                         if (firstItem instanceof JSONArray) {
-                            return parseSnapshot(data);
+                            return parseOrderSnapshot(market, data);
                         } else {
-                            return parseUpdate(data);
+                            return parseOrderUpdate(market, data);
                         }
                     }
                 } else if (val instanceof String) {
@@ -137,7 +148,7 @@ public class BitFinexParser extends Parser {
             return shutDownAction("Wrong symbol received, msg: " + msg);
         }
         symbol = symbol.substring(1);
-            
+
         String subsId = getInactiveSubsSymbol(symbol, channel);
         Subscription s = subscriptions.getInactive(subsId);
         if (s != null) {
@@ -150,18 +161,35 @@ public class BitFinexParser extends Parser {
         return Action.SUBSCRIBE;
     }
 
-    private Action parseUpdate(JSONArray values) {
-        // TODO - find the right market, based in session ID
-        if (exchange == null) {
-            Logger.log("Trying to parse update without exchange!");
-            return Action.SHUTDOWN;
-        }
-        Market market = exchange.getFirstMarket();
-        if (market == null) {
-            Logger.log("Trying to parse update without market!");
-            return Action.SHUTDOWN;
+    private Action parseOrderSnapshot(Market market, JSONArray data) {
+        if (data.length() < 1) {
+            return shutDownAction("Wrong snapshot received: " + data);
         }
 
+        // Snapshot is an array of updates
+        try {
+            for (int i = 0; i < data.length(); ++i) {
+                JSONArray values = data.getJSONArray(i);
+                Action a = parseOrderUpdate(market, values);
+                if (a != null) {
+                    return a;
+                }
+            }
+        } catch (JSONException ex) {
+            return shutDownAction("Error in BitFinex snapshot parsing:"
+                    + ex.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * Parse message that contains one update to the orderbook
+     *
+     * @param market
+     * @param values
+     * @return
+     */
+    private Action parseOrderUpdate(Market market, JSONArray values) {
         try {
             Decimal price = new Decimal(values.getDouble(0));
             int count = values.getInt(1);
@@ -184,49 +212,13 @@ public class BitFinexParser extends Parser {
                     market.removeAsk(price);
                 }
             }
+
             return null;
         } catch (JSONException e) {
             Logger.log("Error while parsing JSON msg: " + values);
             return shutDownAction("Error in BitFinex update parsing:"
                     + e.getMessage());
         }
-    }
-
-    private Action parseSnapshot(JSONArray data) {
-        if (data.length() < 1) {
-            return shutDownAction("Wrong snapshot received: " + data);
-        }
-
-        if (exchange == null) {
-            Logger.log("Trying to parse snapshot without exchange!");
-            return Action.SHUTDOWN;
-        }
-        // TODO - find the right market, based in session ID
-        Market market = exchange.getFirstMarket();
-        if (market == null) {
-            Logger.log("Trying to parse snapshot without market!");
-            return Action.SHUTDOWN;
-        }
-
-        try {
-            for (int i = 0; i < data.length(); ++i) {
-                JSONArray values = data.getJSONArray(i);
-                Decimal price = new Decimal(values.getDouble(0));
-                int count = values.getInt(1);
-                Decimal amount = new Decimal(values.getDouble(2));
-                if (count > 0) {
-                    if (amount.isPositive()) {
-                        market.addBid(price, amount, count);
-                    } else if (amount.isNegative()) {
-                        market.addAsk(price, amount.negate(), count);
-                    }
-                }
-            }
-        } catch (JSONException ex) {
-            return shutDownAction("Error in BitFinex snapshot parsing:"
-                    + ex.getMessage());
-        }
-        return null;
     }
 
     /**
@@ -271,5 +263,4 @@ public class BitFinexParser extends Parser {
             return false;
         }
     }
-
 }
