@@ -37,27 +37,11 @@ public class BitFinexParser extends Parser {
             if (updateMsg.length() > 1) {
                 Object val = updateMsg.get(1);
                 if (val instanceof JSONArray) {
-                    // Some data received, check whether it is snapshot or update
+                    // Some data received
                     JSONArray data = (JSONArray) val;
-                    if (data.length() > 0) {
-                        Object firstItem = data.get(0);
-                        if (exchange == null) {
-                            Logger.log("Trying to data update without exchange!");
-                            return Action.SHUTDOWN;
-                        }
-                        // TODO - find the right market, based in session ID
-                        Market market = exchange.getFirstMarket();
-                        if (market == null) {
-                            Logger.log("Trying to parse snapshot without market!");
-                            return Action.SHUTDOWN;
-                        }
-
-                        if (firstItem instanceof JSONArray) {
-                            return parseOrderSnapshot(market, data);
-                        } else {
-                            return parseOrderUpdate(market, data);
-                        }
-                    }
+                    // First item should be channel id
+                    int channelId = updateMsg.getInt(0);
+                    return parseDataMessage(channelId, data);
                 } else if (val instanceof String) {
                     // This may be a heartbeat message
                     String sv = (String) val;
@@ -79,6 +63,38 @@ public class BitFinexParser extends Parser {
         } catch (JSONException ex) {
             return shutDownAction("Could not understand API response: "
                     + message + ", excaption: " + ex.getMessage());
+        }
+    }
+
+    /**
+     * Parse one API response which contains data
+     *
+     * @param channelId ID identifying the channel (Subscription)
+     * @param data
+     * @return
+     */
+    private Action parseDataMessage(int channelId, JSONArray data) {
+        Subscription subscription = subscriptions.getActive("" + channelId);
+        if (subscription == null) {
+            return shutDownAction("Wrong channel ID for data update: " 
+                    + channelId);
+        }
+        Market market = subscription.getMarket();
+        if (market == null) {
+            Logger.log("Trying to parse snapshot without market!");
+            return Action.SHUTDOWN;
+        }
+
+        if (data.length() > 1) {
+            Object firstItem = data.get(0);
+
+            if (firstItem instanceof JSONArray) {
+                return parseOrderSnapshot(market, data);
+            } else {
+                return parseOrderUpdate(market, data);
+            }
+        } else {
+            return shutDownAction("Wrong data message, not enough items: " + data);
         }
     }
 

@@ -51,8 +51,8 @@ public class Subscriptions {
      * @param subscription
      */
     public void activate(String subsId, Subscription subscription) {
-        Logger.log("Activating " + subscription.getChannel() 
-                + " subscription for " 
+        Logger.log("Activating " + subscription.getChannel()
+                + " subscription for "
                 + subscription.getMarket().getCurrencyPair());
         // Move the ssubscription from inactive list to active list
         inactiveSubs.remove(subscription);
@@ -62,8 +62,9 @@ public class Subscriptions {
 
     /**
      * Set temporary ID for an inactive subscriptions
+     *
      * @param subsId
-     * @param s 
+     * @param s
      * @return true when ID successfully set, false otherwise
      */
     public boolean setInactiveId(String subsId, Subscription s) {
@@ -77,6 +78,7 @@ public class Subscriptions {
 
     /**
      * Find an inactive subscription by ID
+     *
      * @param subsId
      * @return the subscription or null if none found
      */
@@ -91,7 +93,16 @@ public class Subscriptions {
         }
         return null;
     }
-    
-    
+
+    /**
+     * Return active subscription identified by a particular ID. Warning: search
+     * is performed only among ACTIVE subscriptions!
+     *
+     * @param subsId subscription ID
+     * @return subscription or null if no active subscription with give ID found
+     */
+    public Subscription getActive(String subsId) {
+        return activeSubs.get(subsId);
+    }
 
 }

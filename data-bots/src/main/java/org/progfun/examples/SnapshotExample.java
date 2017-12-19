@@ -31,7 +31,7 @@ public class SnapshotExample {
 //        GeminiHandler handler = new GeminiHandler();
 //        handler.setMainMarket(btcusd);
         handler.setLogging(true);
-        handler.setVerbose(true);
+//        handler.setVerbose(true);
 
         Subscriptions subs = new Subscriptions();
         subs.add(new Market("LTC", "USD"), Channel.ORDERBOOK);
