@@ -1,16 +1,41 @@
 package org.progfun.websocket;
 
-import org.progfun.Market;
+import org.progfun.Channel;
+import org.progfun.Exchange;
+import org.progfun.Subscriptions;
 
 /**
  * Abstract API command parser
  */
 public abstract class Parser {
 
-    protected Market market;
+    protected Exchange exchange;
+    protected Subscriptions subscriptions;
 
-    public void setMarket(Market market) {
-        this.market = market;
+    public void setExchange(Exchange exchange) {
+        this.exchange = exchange;
+    }
+
+    /**
+     * Set subscriptions that will be used for this parser. No activation is
+     * done at this moment!
+     *
+     * @param subscriptions
+     */
+    public void setSubscriptions(Subscriptions subscriptions) {
+        this.subscriptions = subscriptions;
+    }
+
+    /**
+     * Generate a temporary ID for inactive subscription. Used to identify
+     * subscription from exchange response message
+     *
+     * @param symbol
+     * @param channel
+     * @return
+     */
+    public static String getInactiveSubsSymbol(String symbol, Channel channel) {
+        return symbol + "-" + channel.toString();
     }
 
     /**

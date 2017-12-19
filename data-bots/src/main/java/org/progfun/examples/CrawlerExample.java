@@ -31,9 +31,10 @@ public class CrawlerExample {
 //        handler = new HitBtcHandler();
         
         try {
-            Market market = new Market("BTC", "USD");
-            handler.setMarket(market);
-            market.addListener(new DummyListener());
+            // TODO - subscribe to updates
+//            Market market = new Market("BTC", "USD");
+//            handler.setMarket(market);
+//            market.addListener(new DummyListener());
 
             Thread handlerThread = new Thread(handler);
             handlerThread.start();

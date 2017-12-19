@@ -8,11 +8,11 @@ import java.util.TimerTask;
  */
 public class SnapshotGenerator {
 
-    private Market market;
+    private Exchange exchange;
     private SnapshotListener listener;
 
-    public void setMarket(Market market) {
-        this.market = market;
+    public void setExchange(Exchange exchange) {
+        this.exchange = exchange;
     }
     
     public void setListener(SnapshotListener listener) {
@@ -40,13 +40,13 @@ public class SnapshotGenerator {
      * Send snapshot of the market to the listeners
      */
     private void notifyListener() {
-        if (market == null || listener == null) {
+        if (exchange == null || listener == null) {
             return;
         }
         // Disable updates while listeners process the snapshot
-        market.lockUpdates();
-        listener.onSnapshot(market);        
-        market.allowUpdates();
+        exchange.lockUpdates();
+        listener.onSnapshot(exchange);        
+        exchange.allowUpdates();
     }
 
 }

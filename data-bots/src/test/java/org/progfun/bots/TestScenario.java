@@ -15,8 +15,14 @@ import org.progfun.InvalidFormatException;
 import org.progfun.Market;
 import org.progfun.websocket.Parser;
 import static org.junit.Assert.*;
+import org.progfun.Channel;
+import org.progfun.CurrencyPair;
 import org.progfun.Decimal;
+import org.progfun.Exchange;
+import org.progfun.Subscription;
+import org.progfun.Subscriptions;
 import org.progfun.orderbook.Book;
+import org.progfun.websocket.WebSocketHandler;
 
 /**
  * A class that can run a pre-described test scenario
@@ -24,8 +30,9 @@ import org.progfun.orderbook.Book;
 public class TestScenario {
 
     private List<String> messages;
-    // The market as it is expected to be at the end of all tests
-    private Market expectedMarket;
+    // The expected exchange at the end of all tests
+    private Exchange expectedExchange;
+    private Subscriptions subscriptions = new Subscriptions();
 
     /**
      * Load test scenario from a file
@@ -76,39 +83,19 @@ public class TestScenario {
                 System.out.println("Test scenario JSON is missing messages!");
                 return null;
             }
-            if (!main.has("market")) {
+
+            if (!main.has("expected_results")) {
+                System.out.println("Test scenario JSON is missing expected_results!");
+                return null;
+            }
+            JSONObject results = main.getJSONObject("expected_results");
+
+            if (!results.has("markets")) {
                 System.out.println("Test scenario JSON is missing market!");
                 return null;
             }
 
-            if (!main.has("expected_result")) {
-                System.out.println("Test scenario JSON is missing expected_result!");
-                return null;
-            }
-            JSONObject results = main.getJSONObject("expected_result");
-            if (!results.has("bids")) {
-                System.out.println("Test scenario JSON is missing expected_result bids!");
-                return null;
-            }
-            if (!results.has("asks")) {
-                System.out.println("Test scenario JSON is missing expected_result asks!");
-                return null;
-            }
-            JSONObject market = main.getJSONObject("market");
-            if (!market.has("base_currency")) {
-                System.out.println("Test scenario JSON is missing market base_currency!");
-                return null;
-            }
-            if (!market.has("quote_currency")) {
-                System.out.println("Test scenario JSON is missing market quote_currency!");
-                return null;
-            }
-
             TestScenario scenario = new TestScenario();
-
-            // Parse market
-            scenario.expectedMarket = new Market(market.getString("base_currency"),
-                    market.getString("quote_currency"));
 
             // Parse messages
             JSONArray messages = main.getJSONArray("messages");
@@ -132,21 +119,46 @@ public class TestScenario {
             }
 
             // Parse expected results
-            JSONArray expectedBids = results.getJSONArray("bids");
-            for (int i = 0; i < expectedBids.length(); ++i) {
-                JSONObject bid = expectedBids.getJSONObject(i);
-                scenario.expectedMarket.addBid(
-                        new Decimal(bid.getDouble("price")),
-                        new Decimal(bid.getDouble("amount")),
-                        bid.getInt("count"));
-            }
-            JSONArray expectedAsks = results.getJSONArray("asks");
-            for (int i = 0; i < expectedAsks.length(); ++i) {
-                JSONObject ask = expectedAsks.getJSONObject(i);
-                scenario.expectedMarket.addAsk(
-                        new Decimal(ask.getDouble("price")),
-                        new Decimal(ask.getDouble("amount")),
-                        ask.getInt("count"));
+            scenario.expectedExchange = new Exchange();
+            JSONArray markets = results.getJSONArray("markets");
+            for (int i = 0; i < markets.length(); ++i) {
+                // Create expected market
+                JSONObject m = markets.getJSONObject(i);
+                if (!m.has("base_currency")) {
+                    System.out.println("Test scenario JSON is missing market base_currency!");
+                    return null;
+                }
+                if (!m.has("quote_currency")) {
+                    System.out.println("Test scenario JSON is missing market quote_currency!");
+                    return null;
+                }
+                Market market = new Market(m.getString("base_currency"),
+                        m.getString("quote_currency"));
+                scenario.expectedExchange.addMarket(market);
+                
+                // Add expected bids and asks
+                if (m.has("bids")) {
+                    JSONArray expectedBids = m.getJSONArray("bids");
+                    for (int j = 0; j < expectedBids.length(); ++j) {
+                        JSONObject bid = expectedBids.getJSONObject(j);
+                        market.addBid(new Decimal(bid.getDouble("price")),
+                                new Decimal(bid.getDouble("amount")),
+                                bid.getInt("count"));
+                    }
+                }
+                if (m.has("asks")) {
+                    JSONArray expectedAsks = m.getJSONArray("asks");
+                    for (int j = 0; j < expectedAsks.length(); ++j) {
+                        JSONObject ask = expectedAsks.getJSONObject(j);
+                        market.addAsk(new Decimal(ask.getDouble("price")),
+                                new Decimal(ask.getDouble("amount")),
+                                ask.getInt("count"));
+                    }
+                }
+                
+                // Create subscription
+                Subscription s = scenario.subscriptions.add(market, Channel.ORDERBOOK);
+                // TODO - support different channels - trades, etc
             }
 
             return scenario;
@@ -163,34 +175,62 @@ public class TestScenario {
     /**
      * Runs the test. Uses asserts to check the expected results
      *
-     * @param parser
+     * @param handler
      */
-    public void runTest(Parser parser) {
+    public void runTest(WebSocketHandler handler) {
+        Parser parser = handler.createParser();
         assertNotNull(parser);
         try {
-            // We start with an empty market, having the correct currencies
-            Market market = new Market(
-                    expectedMarket.getBaseCurrency(),
-                    expectedMarket.getQuoteCurrency()
-            );
+            // Prepare mock exchange
+            Exchange exchange = cloneExchange(expectedExchange);
+            parser.setExchange(exchange);
 
-            parser.setMarket(market);
-
+            // Prepare mock subscriptions
+            Subscriptions subs = new Subscriptions();
+            // TODO - allow to specify subscriptions in test scenario files
+            for (Market m : exchange.getMarkets()) {
+                Subscription s = subs.add(m, Channel.ORDERBOOK);
+                String symbol = handler.getSymbolForMarket(m.getCurrencyPair());
+                String subsId = Parser.getInactiveSubsSymbol(symbol, Channel.ORDERBOOK);
+                subs.setInactiveId(subsId, s);
+            }
+            parser.setSubscriptions(subs);
+            
+            
             for (String msg : messages) {
                 parser.parseMessage(msg);
             }
 
-            // Now check if the resulting orderboog corresponds to our expectations
-            Book bids = market.getBids();
-            Book expectedBids = expectedMarket.getBids();
-            assertEquals(expectedBids, bids);
-            
-            Book asks = market.getAsks();
-            Book expectedAsks = expectedMarket.getAsks();
-            assertEquals(expectedAsks, asks);
+            // Now check if the resulting markets are equal
+            for (Market market : exchange.getMarkets()) {
+                Book bids = market.getBids();
+                CurrencyPair cp = market.getCurrencyPair();
+                Market expectedMarket = expectedExchange.getMarket(cp);
+                Book expectedBids = expectedMarket.getBids();
+                assertEquals(expectedBids, bids);
+                Book asks = market.getAsks();
+                Book expectedAsks = expectedMarket.getAsks();
+                assertEquals(expectedAsks, asks);
+            }
 
         } catch (InvalidFormatException ex) {
             System.out.println("Invalid market currencies: " + ex.getMessage());
         }
+    }
+
+    /**
+     * Create a clone of exchange e, without real data (bids, asks, trades, etc)
+     * but with the same markets
+     *
+     * @param originalExchange
+     * @return
+     */
+    private Exchange cloneExchange(Exchange originalExchange) {
+        Exchange e = new Exchange();
+        e.setSymbol(originalExchange.getSymbol());
+        for (Market m : originalExchange.getMarkets()) {
+            e.addMarket(new Market(m.getCurrencyPair()));
+        }
+        return e;
     }
 }

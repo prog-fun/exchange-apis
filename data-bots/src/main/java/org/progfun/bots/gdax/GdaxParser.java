@@ -3,6 +3,8 @@ package org.progfun.bots.gdax;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.progfun.Decimal;
+import org.progfun.Logger;
+import org.progfun.Market;
 import org.progfun.websocket.Action;
 import org.progfun.websocket.Parser;
 
@@ -17,10 +19,20 @@ public class GdaxParser extends Parser {
      * See message documentation: https://docs.gdax.com/#websocket-feed
      *
      * @param message The incoming message
+     * @return 
      */
     @Override
     public Action parseMessage(String message) {
-        System.out.println("Received: " + message);
+        if (exchange == null) {
+            Logger.log("Trying to parse message without exchange!");
+            return Action.SHUTDOWN;
+        }
+        Market market = exchange.getFirstMarket();
+        if (market == null) {
+            Logger.log("Trying to parse update without market!");
+            return Action.SHUTDOWN;
+        }
+
         JSONObject JSONMessage = new JSONObject(message);
         String type = JSONMessage.getString("type");
         if (type.equals("snapshot")) {

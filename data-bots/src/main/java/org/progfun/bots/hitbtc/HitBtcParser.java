@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.progfun.Decimal;
+import org.progfun.Market;
 import org.progfun.websocket.Action;
 import org.progfun.websocket.Parser;
 
@@ -17,6 +18,8 @@ public class HitBtcParser extends Parser {
     public Action parseMessage(String message) {
         JSONObject msg = new JSONObject(message);
         try {
+            // TODO - find the right market, based in session ID
+            Market market = new Market("ZZZ", "ZZZ"); // !!!
 
             JSONObject params = msg.getJSONObject("params");
             if (params.has("ask")) {

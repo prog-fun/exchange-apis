@@ -22,8 +22,7 @@ import org.progfun.orderbook.Order;
  */
 public class Market {
 
-    private final String baseCurrency;
-    private final String quoteCurrency;
+    private final CurrencyPair currencyPair;
 
     private final Book bids = new Book();
     private final Book asks = new Book();
@@ -46,22 +45,33 @@ public class Market {
      * @throws InvalidFormatException when one of currencies missing
      */
     public Market(String baseCurrency, String quoteCurrency) throws InvalidFormatException {
-        if (baseCurrency == null || "".equals(baseCurrency)) {
-            throw new InvalidFormatException("Base currency must be specified");
+        this(new CurrencyPair(baseCurrency, quoteCurrency));
+    }
+
+    /**
+     * Creates a new market for given currency pair
+     *
+     * @param currencyPair
+     * @throws InvalidFormatException when currency pair missing
+     */
+    public Market(CurrencyPair currencyPair) {
+        if (currencyPair == null) {
+            throw new InvalidFormatException(
+                    "Currency pair can not be empty for a market!");
         }
-        if (quoteCurrency == null || "".equals(quoteCurrency)) {
-            throw new InvalidFormatException("Quote currency must be specified");
-        }
-        this.baseCurrency = baseCurrency.toUpperCase();
-        this.quoteCurrency = quoteCurrency.toUpperCase();
+        this.currencyPair = currencyPair;
     }
 
     public String getBaseCurrency() {
-        return baseCurrency;
+        return currencyPair.getBaseCurrency();
     }
 
     public String getQuoteCurrency() {
-        return quoteCurrency;
+        return currencyPair.getQuoteCurrency();
+    }
+
+    public CurrencyPair getCurrencyPair() {
+        return currencyPair;
     }
 
     public Book getBids() {
@@ -133,14 +143,15 @@ public class Market {
 
     /**
      * Wrapper for addBid with Decimal parameters
+     *
      * @param price
      * @param amount
-     * @param orderCount 
+     * @param orderCount
      */
     public void addBid(String price, String amount, int orderCount) {
         addBid(new Decimal(price), new Decimal(amount), orderCount);
     }
-       
+
     /**
      * Add a new ask. If an ask with that price is already registered, the
      * amount and orderCount will be added to it.
@@ -177,14 +188,15 @@ public class Market {
 
     /**
      * Wrapper for addAsk with Decimal parameters
+     *
      * @param price
      * @param amount
-     * @param orderCount 
+     * @param orderCount
      */
     public void addAsk(String price, String amount, int orderCount) {
         addAsk(new Decimal(price), new Decimal(amount), orderCount);
     }
-    
+
     /**
      * Remove a bid - all the orders at specific price
      *
@@ -272,7 +284,8 @@ public class Market {
 
     /**
      * Get bid with the best price, or null if bid orderbook is empty
-     * @return 
+     *
+     * @return
      */
     public Order getBestBid() {
         return bids.getFirstOrder(false);
@@ -280,7 +293,8 @@ public class Market {
 
     /**
      * Get ask with the best price, or null if ask orderbook is empty
-     * @return 
+     *
+     * @return
      */
     public Order getBestAsk() {
         return asks.getFirstOrder(true);
@@ -290,7 +304,59 @@ public class Market {
      * Clear all bids and asks
      */
     public void clearOrderBook() {
+        if (!lockUpdates()) {
+            return;
+        }
+
         bids.clear();
         asks.clear();
+
+        allowUpdates();
+    }
+
+    /**
+     * Register a new trade
+     *
+     * @param t
+     */
+    public void addTrade(Trade t) {
+        if (!lockUpdates()) {
+            return;
+        }
+
+        trades.add(t);
+
+        allowUpdates();
+    }
+
+    /**
+     * Return number of currently registered trades
+     *
+     * @return
+     */
+    public int getTradeCount() {
+        return trades.size();
+    }
+
+    /**
+     * Delete all trade information
+     */
+    public void clearTrades() {
+        if (!lockUpdates()) {
+            return;
+        }
+
+        trades.clear();
+
+        allowUpdates();
+    }
+
+    /**
+     * Delete all data
+     */
+    public void clearData() {
+        // Update locking should happen inside the method calls
+        clearTrades();
+        clearOrderBook();
     }
 }

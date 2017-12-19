@@ -3,7 +3,7 @@ package org.progfun.bots;
 import org.junit.Test;
 import org.progfun.InvalidFormatException;
 import static org.junit.Assert.*;
-import org.progfun.bots.bitfinex.BitFinexParser;
+import org.progfun.bots.bitfinex.BitFinexHandler;
 
 public class BitFinexTest {
 
@@ -14,6 +14,6 @@ public class BitFinexTest {
         TestScenario scenario = TestScenario.loadFromFile(
                 "/bitfinex/bitfinex-test-messages.test");
         assertNotNull(scenario);
-        scenario.runTest(new BitFinexParser());
+        scenario.runTest(new BitFinexHandler());
     }
 }

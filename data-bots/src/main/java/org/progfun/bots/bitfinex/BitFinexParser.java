@@ -3,8 +3,11 @@ package org.progfun.bots.bitfinex;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.progfun.Channel;
 import org.progfun.Decimal;
 import org.progfun.Logger;
+import org.progfun.Market;
+import org.progfun.Subscription;
 import org.progfun.websocket.Action;
 import org.progfun.websocket.Parser;
 
@@ -19,181 +22,231 @@ public class BitFinexParser extends Parser {
     // Info code meaning "Maintenance mode"
     private static final int MAINTENANCE_CODE = 20060;
 
-    // TODO - refactor this to enum
-    private final int GET_VERSION = 0;
-    private final int SUBSCRIBE = 1;
-    private final int SNAPSHOT = 2;
-    private final int UPDATING = 3;
-
-    private int state = GET_VERSION;
     private static final int EXPECTED_VERSION = 2;
 
-    public BitFinexParser() {
-        Logger.log("new BitFinex handler created, hash = " + this.hashCode()
-                + ", state = " + state);
-    }
-    
     @Override
     public Action parseMessage(String message) {
-        //Logger.log("Received: " + message);
-        return bitFinexWSClientStateMachine(message);
-    }
+        // We don't know whether we will receive a JSON Object or JSON array
+        // Try one first, if it fails, try another. JSONArray is more likely,
+        // we try it first
 
-    private Action bitFinexWSClientStateMachine(String message) {
-        switch (state) {
-            case GET_VERSION:
-                return parseVersion(message);
-            case SUBSCRIBE:
-                return parseSubscribe(message);
-            case SNAPSHOT:
-                return parseSnapshot(message);
-            case UPDATING:
-                return parseUpdate(message);
-            default:
-                Logger.log("BitFinex state machine got into wrong state!");
-                return Action.SHUTDOWN;
+        try {
+            JSONArray updateMsg = new JSONArray(message);
+            // We got a valid JSON array. Now let's find out if it is a snapshot
+            // or update
+            if (updateMsg.length() > 1) {
+                Object val = updateMsg.get(1);
+                if (val instanceof JSONArray) {
+                    // Some data received
+                    JSONArray data = (JSONArray) val;
+                    // First item should be channel id
+                    int channelId = updateMsg.getInt(0);
+                    return parseDataMessage(channelId, data);
+                } else if (val instanceof String) {
+                    // This may be a heartbeat message
+                    String sv = (String) val;
+                    if ("hb".equals(sv)) {
+                        return heartbeatReceived();
+                    }
+                }
+            }
+            // If we got here, something is wrong
+            return shutDownAction("Could not understand API response: "
+                    + message);
+        } catch (JSONException ex) {
+        }
+
+        // Check if it is an event message
+        try {
+            JSONObject event = new JSONObject(message);
+            return parseEvent(event);
+        } catch (JSONException ex) {
+            return shutDownAction("Could not understand API response: "
+                    + message + ", excaption: " + ex.getMessage());
         }
     }
 
-    private Action parseVersion(String message) {
-        JSONObject msg = new JSONObject(message);
-        // Response code
-        if (msg.getString("event").equals("info")) {
-            int v = msg.getInt("version");
-            Logger.log("Received version info: " + v);
-            if (v == EXPECTED_VERSION) {
-                state++;
+    /**
+     * Parse one API response which contains data
+     *
+     * @param channelId ID identifying the channel (Subscription)
+     * @param data
+     * @return
+     */
+    private Action parseDataMessage(int channelId, JSONArray data) {
+        Subscription subscription = subscriptions.getActive("" + channelId);
+        if (subscription == null) {
+            return shutDownAction("Wrong channel ID for data update: " 
+                    + channelId);
+        }
+        Market market = subscription.getMarket();
+        if (market == null) {
+            Logger.log("Trying to parse snapshot without market!");
+            return Action.SHUTDOWN;
+        }
+
+        if (data.length() > 1) {
+            Object firstItem = data.get(0);
+
+            if (firstItem instanceof JSONArray) {
+                return parseOrderSnapshot(market, data);
             } else {
-                return shutDownAction("Wrong version, not supported!");
+                return parseOrderUpdate(market, data);
             }
         } else {
-            return shutDownAction(
-                    "Received unexpected API response while waiting "
-                    + "for version info");
+            return shutDownAction("Wrong data message, not enough items: " + data);
         }
-        return null;
     }
 
-    private Action parseSubscribe(String message) {
-        JSONObject msg = new JSONObject(message);
-        String event = msg.getString("event");
-        if (event != null) {
-            switch (event) {
+    private Action parseEvent(JSONObject event) {
+        String eventType = event.getString("event");
+        if (eventType != null) {
+            switch (eventType) {
                 case "subscribed":
-                    Logger.log("Successfully subscribed to "
-                            + market.getBaseCurrency()
-                            + "/" + market.getQuoteCurrency());
-                    state++;
-                    return null;
+                    return parseSubscriptionResponse(event);
                 case "error":
-                    Logger.log("Error occurred: " + msg.getString("msg")
-                            + ", code = " + msg.getInt("code"));
-                    Logger.log("Current state was : " + state);
-                    return shutDownAction("Received msg: " + message);
+                    Logger.log("Error occurred: " + event.getString("msg")
+                            + ", code = " + event.getInt("code"));
+                    return shutDownAction("Received msg: " + event);
                 case "info":
-                    Logger.log("Info message received: " + msg.getString("msg")
-                            + ", code = " + msg.getInt("code"));
-                    // Info is not critical, we hope to recover by reconnecting
-                    return Action.RECONNECT;
+                    return parseInfo(event);
             }
         }
 
         Logger.log("Did not receive 'event' field!");
-        Logger.log("Current state was : " + state);
-        return shutDownAction("Received msg: " + message);
+        return shutDownAction("Received msg: " + event);
     }
 
-    private Action parseUpdate(String message) {
-        // Sometimes instead of data we may receive info message requiring us 
-        // to reconnect
-        if (isReconnectRequest(message)) {
+    /**
+     * Parse info event
+     *
+     * @param event
+     * @return
+     */
+    private Action parseInfo(JSONObject event) {
+        Logger.log("Info message received: " + event);
+        if (event.has("version")) {
+            int v = event.getInt("version");
+            Logger.log("Received version info: " + v);
+            if (v == EXPECTED_VERSION) {
+                return null;
+            } else {
+                return shutDownAction("Wrong version, not supported!");
+            }
+        } else if (isReconnectRequest(event)) {
             return Action.RECONNECT;
+        } else {
+            return shutDownAction("Did not know how to react on info message, shutting down");
+        }
+    }
+
+    private Action parseSubscriptionResponse(JSONObject msg) {
+        if (subscriptions == null) {
+            return shutDownAction("Error: received subscription response "
+                    + "but subscriptions not set in BitFinexParser!");
         }
 
+        // Find out the channel
+        String ch = msg.getString("channel");
+        Channel channel;
+        switch (ch) {
+            case "book":
+                channel = Channel.ORDERBOOK;
+                break;
+            default:
+                return shutDownAction("Invalid channel received: " + ch);
+        }
+
+        // Find the inactive subscription 
+        String symbol = msg.getString("symbol");
+        // strip the first "t"
+        if (symbol.length() < 1) {
+            return shutDownAction("Wrong symbol received, msg: " + msg);
+        }
+        symbol = symbol.substring(1);
+
+        String subsId = getInactiveSubsSymbol(symbol, channel);
+        Subscription s = subscriptions.getInactive(subsId);
+        if (s != null) {
+            // Activate the subscription, store the new ID
+            int newId = msg.getInt("chanId");
+            subscriptions.activate("" + newId, s);
+        }
+
+        // Tell the Handler that we are ready to process next subscription
+        return Action.SUBSCRIBE;
+    }
+
+    private Action parseOrderSnapshot(Market market, JSONArray data) {
+        if (data.length() < 1) {
+            return shutDownAction("Wrong snapshot received: " + data);
+        }
+
+        // Clear previous orders, start fresh
+        market.clearOrderBook();
+        
+        // Snapshot is an array of updates
         try {
-            JSONArray data = new JSONArray(message);
-            Object val = data.get(1);
-            if (val instanceof String) {
-                // This may be a heartbeat message
-                String sv = (String) val;
-                if ("hb".equals(sv)) {
-                    heartbeatReceived();
-                }
-            } else if (val instanceof JSONArray) {
-                JSONArray values = (JSONArray) val;
-                Decimal price = new Decimal(values.getDouble(0));
-                int count = values.getInt(1);
-                Decimal amount = new Decimal(values.getDouble(2));
-//            Logger.log("Price: " + price + ", Count: " + count + ", Amount: " + amount);
-                if (count > 0) {
-                    // BitFinex always reports the total updated amount, 
-                    // not the difference. Therefore we must first remove the
-                    // old order and then add it
-                    if (amount.isPositive()) {
-                        market.removeBid(price);
-                        market.addBid(price, amount, count);
-                    } else if (amount.isNegative()) {
-                        market.removeAsk(price);
-                        market.addAsk(price, amount.negate(), count);
-                    }
-                } else if (count == 0) {
-                    if (amount.equals(Decimal.ONE)) {
-                        market.removeBid(price);
-                    } else if (amount.negate().equals(Decimal.ONE)) {
-                        market.removeAsk(price);
-                    }
+            for (int i = 0; i < data.length(); ++i) {
+                JSONArray values = data.getJSONArray(i);
+                Action a = parseOrderUpdate(market, values);
+                if (a != null) {
+                    return a;
                 }
             }
+        } catch (JSONException ex) {
+            return shutDownAction("Error in BitFinex snapshot parsing:"
+                    + ex.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * Parse message that contains one update to the orderbook
+     *
+     * @param market
+     * @param values
+     * @return
+     */
+    private Action parseOrderUpdate(Market market, JSONArray values) {
+        try {
+            Decimal price = new Decimal(values.getDouble(0));
+            int count = values.getInt(1);
+            Decimal amount = new Decimal(values.getDouble(2));
+            if (count > 0) {
+                // BitFinex always reports the total updated amount, 
+                // not the difference. Therefore we must first remove the
+                // old order and then add it
+                if (amount.isPositive()) {
+                    market.removeBid(price);
+                    market.addBid(price, amount, count);
+                } else if (amount.isNegative()) {
+                    market.removeAsk(price);
+                    market.addAsk(price, amount.negate(), count);
+                }
+            } else if (count == 0) {
+                if (amount.equals(Decimal.ONE)) {
+                    market.removeBid(price);
+                } else if (amount.negate().equals(Decimal.ONE)) {
+                    market.removeAsk(price);
+                }
+            }
+
             return null;
-            // TODO - test if parsing works correctly
         } catch (JSONException e) {
-            Logger.log("Current state was : " + state);
-            Logger.log("Received msg: " + message);
+            Logger.log("Error while parsing JSON msg: " + values);
             return shutDownAction("Error in BitFinex update parsing:"
                     + e.getMessage());
         }
     }
 
-    private Action parseSnapshot(String message) {
-        // Sometimes instead of data we may receive info message requiring us 
-        // to reconnect
-        if (isReconnectRequest(message)) {
-            return Action.RECONNECT;
-        }
-        try {
-            JSONArray data = new JSONArray(message);
-            JSONArray array = data.getJSONArray(1);
-            for (Object json : array) {
-                JSONArray values = (JSONArray) json;
-                Decimal price = new Decimal(values.getDouble(0));
-                int count = values.getInt(1);
-                Decimal amount = new Decimal(values.getDouble(2));
-                if (count > 0) {
-                    if (amount.isPositive()) {
-                        market.addBid(price, amount, count);
-                    } else if (amount.isNegative()) {
-                        market.addAsk(price, amount.negate(), count);
-                    }
-                }
-            }
-        } catch (JSONException ex) {
-            Logger.log("Current state was : " + state);
-            Logger.log("Received msg: " + message);
-            return shutDownAction("Error in BitFinex snapshot parsing:"
-                    + ex.getMessage());
-        }
-        state++; // Snapshot parsed, move to Update parsing state
-        return null;
-//        Logger.log(market.getAsks().size());
-//        Logger.log(market.getBids().size());
-    }
-
     /**
      * Heart-beat message received from the server
      */
-    private void heartbeatReceived() {
+    private Action heartbeatReceived() {
         // TODO - Reset alarm timer
         Logger.log("Heartbeat received");
+        return null;
     }
 
     /**
@@ -213,22 +266,20 @@ public class BitFinexParser extends Parser {
      * @param message
      * @return
      */
-    private boolean isReconnectRequest(String message) {
+    private boolean isReconnectRequest(JSONObject event) {
         // We check if the message is something like this:
         // {"event":"info","code":20051,"msg":"Stopping. Please try to reconnect"}
 
         try {
-            JSONObject o = new JSONObject(message);
-            String event = o.getString("event");
-            if (!"info".equals(event)) {
+            String eventType = event.getString("event");
+            if (!"info".equals(eventType)) {
                 return false;
             }
-            int code = o.getInt("code");
+            int code = event.getInt("code");
             return code == RECONNECT_CODE || code == MAINTENANCE_CODE;
         } catch (JSONException ex) {
             // Nope, not a valid info message
             return false;
         }
     }
-
 }

@@ -1,0 +1,63 @@
+{
+  "messages": [
+    {
+      "type":"update",
+      "eventId":2146332899,
+      "socket_sequence":0,
+      "events":[
+        {"type":"change","reason":"initial","price":"701","delta":"61","remaining":"61","side":"bid"},
+        {"type":"change","reason":"initial","price":"702","delta":"32","remaining":"32","side":"bid"},
+        {"type":"change","reason":"initial","price":"741","delta":"0.8","remaining":"0.8","side":"ask"},
+        {"type":"change","reason":"initial","price":"751","delta":"1.2","remaining":"1.2","side":"ask"}
+      ]
+    },
+    {"type":"update","eventId":2146332935,"timestamp":1509815704,"timestampms":1509815704822,"socket_sequence":4,"events":[{"type":"change","side":"bid","price":"701","remaining":"20","delta":"-50","reason":"trade"}]},
+    {"type":"update","eventId":2146332936,"timestamp":1509815706,"timestampms":1509815706000,"socket_sequence":5,"events":[{"type":"change","side":"ask","price":"761","remaining":"2","delta":"2","reason":"place"}]},
+    {"type":"update","eventId":2146332937,"timestamp":1509815707,"timestampms":1509815707000,"socket_sequence":6,"events":[{"type":"change","side":"ask","price":"751","remaining":"2.0","delta":"0.8","reason":"place"}]},
+    {"type":"update","eventId":2146332937,"timestamp":1509815708,"timestampms":1509815708000,"socket_sequence":7,"events":[{"type":"change","side":"ask","price":"751","remaining":"1.5","delta":"-0.5","reason":"place"}]},
+    {"type":"update","eventId":2146332937,"timestamp":1509815708,"timestampms":1509815708000,"socket_sequence":7,"events":[{"type":"change","side":"ask","price":"761","remaining":"0.00000","delta":"-2.000","reason":"trade"}]},
+    {"type":"update","eventId":2146332901,"timestamp":1509815704,"timestampms":1509815704551,"socket_sequence":1,"events":[{"type":"change","side":"bid","price":"702","remaining":"0","delta":"-32","reason":"cancel"}]},
+    {"type":"update","eventId":2146332924,"timestamp":1509815704,"timestampms":1509815704819,"socket_sequence":2,"events":[{"type":"change","side":"bid","price":"703","remaining":"45","delta":"45","reason":"place"}]},
+    {"type":"update","eventId":2146332925,"timestamp":1509815704,"timestampms":1509815704820,"socket_sequence":3,"events":[{"type":"change","side":"bid","price":"701","remaining":"70","delta":"9","reason":"place"}]}
+  ],
+  "expected_results": {
+    "markets": [
+      {
+        "base_currency": "BTC",
+        "quote_currency": "USD",
+        "bids": [
+          { "price": 701, "amount": 20, "count": 0 },
+          { "price": 703, "amount": 45, "count": 0 }
+        ],
+        "asks": [
+          { "price": 741, "amount": 0.8, "count": 0 },
+          { "price": 751, "amount": 1.5, "count": 0 }
+        ]
+      }
+    ]
+  }
+}
+/PART-SEPARATOR/
+
+This is a test-data file. Everything after the part separator will be ignored
+
+Scenario:
+We get the following bids and asks at the beginning:
+Bids:
+price=701, count=1, amount=61
+price=702, count=2, amount=32
+Asks:
+price=741, count=1, amount=0.8
+price=751, count=3, amount=1.2
+
+Then the following updates are received:
+1) Bid @702 is cancelled
+2) New bid @703 arrives, amount=45, count=1
+3) Bid @701 is increased by 9 units, remaining amount=70, count=3
+4) Bid @701 is decreased by 50 units, remaining amount=20, count=2
+5) New ask @761 arrives, amount=2, count=3
+6) Ask @751 is increased by 0.8 units, remaining amount=2.0, count=4
+7) Ask @751 is decreased by 0.5 units, remaining amount=1.5, count=2
+8) Ask @761 is removed
+
+

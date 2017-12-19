@@ -1,8 +1,4 @@
 {
-  "market": {
-    "base_currency": "BTC",
-    "quote_currency": "USD"
-  },
   "messages": [
     {"event":"info","version":2},
     {
@@ -24,6 +20,26 @@
         [ 751, 3, -1.2 ]
       ]
     ],
+    {
+      "event":"subscribed",
+      "channel":"book",
+      "chanId":555,
+      "symbol":"tLTCETH",
+      "prec":"P0",
+      "freq":"F0",
+      "len":"100",
+      "pair":"BTCUSD"
+    },
+    [
+      555,
+      [
+        [ 71, 10, 610 ],
+        [ 72, 20, 320 ],
+        [ 74, 10, -8 ],
+        [ 75, 30, -12 ]
+      ]
+    ],
+    [555,[72,0,1]],
     [476,[702,0,1]],
 	[476, "hb"],
     [476,[703,1,45]],
@@ -32,17 +48,42 @@
     [476,[761,3,-2]],
 	[476, "hb"],
     [476,[751,4,-2.0]],
+    [555,[73,10,450]],
+    [555,[71,30,700]],
+    [555,[71,20,200]],
+    [555,[76,30,-200]],
     [476,[751,2,-1.5]],
+    [555,[75,20,-15]],
     [476,[761,0,-1]],
+    [555,[76,0,-1]],
   ],
-  "expected_result": {
-    "bids": [
-      { "price": 701, "amount": 20, "count": 2 },
-      { "price": 703, "amount": 45, "count": 1 }
-    ],
-    "asks": [
-      { "price": 741, "amount": 0.8, "count": 1 },
-      { "price": 751, "amount": 1.5, "count": 2 }
+  "expected_results": {
+    "markets": [
+      {
+        "subscription_id": "BTCUSD-ORDERBOOK",
+        "base_currency": "BTC",
+        "quote_currency": "USD",
+        "bids": [
+          { "price": 701, "amount": 20, "count": 2 },
+          { "price": 703, "amount": 45, "count": 1 }
+        ],
+        "asks": [
+          { "price": 741, "amount": 0.8, "count": 1 },
+          { "price": 751, "amount": 1.5, "count": 2 }
+        ]
+      },
+      {
+        "base_currency": "LTC",
+        "quote_currency": "ETH",
+        "bids": [
+          { "price": 71, "amount": 200, "count": 20 },
+          { "price": 73, "amount": 450, "count": 10 }
+        ],
+        "asks": [
+          { "price": 74, "amount": 8, "count": 10 },
+          { "price": 75, "amount": 15, "count": 20 }
+        ]
+      }
     ]
   }
 }
@@ -50,8 +91,11 @@
 
 This is a test-data file. Everything after the part separator will be ignored
 
+First we have subscribed to two markets: BTC/USD and LTC/ETH.
+        
 Scenario:
 We get the following bids and asks at the beginning:
+BTC/USD
 Bids:
 price=701, count=1, amount=61
 price=702, count=2, amount=32
@@ -59,7 +103,14 @@ Asks:
 price=741, count=1, amount=0.8
 price=751, count=3, amount=1.2
 
-Then the following updates are received:
+LTC/ETH:
+price=71, count=10, amount=610
+price=72, count=20, amount=320
+Asks:
+price=74, count=10, amount=8
+price=75, count=30, amount=12
+        
+Then the following updates are received for BTC/USD
 1) Bid @702 is cancelled
 2) New bid @703 arrives, amount=45, count=1
 3) Bid @701 is increased by 9 units, remaining amount=70, count=3
@@ -69,7 +120,14 @@ Then the following updates are received:
 7) Ask @751 is decreased by 0.5 units, remaining amount=1.5, count=2
 8) Ask @761 is removed
 
-
-Expected resulting bids and asks are described above, where each row is in the format price,amount,count
+Then we receive updates for LTC/ETH
+1) Bid @72 is cancelled
+2) New bid @73 arrives, amount=450, count=10
+3) Bid @71 is increased by 90 units, remaining amount=700, count=30
+4) Bid @71 is decreased by 500 units, remaining amount=200, count=20
+5) New ask @76 arrives, amount=20, count=30
+6) Ask @75 is increased by 8 units, remaining amount=20, count=40
+7) Ask @75 is decreased by 5 units, remaining amount=15, count=20
+8) Ask @76 is removed
 
 
