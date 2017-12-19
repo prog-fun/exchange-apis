@@ -1,8 +1,4 @@
 {
-  "market": {
-    "base_currency": "BTC",
-    "quote_currency": "USD"
-  },
   "messages": [
     {
       "type":"update",
@@ -24,14 +20,20 @@
     {"type":"update","eventId":2146332924,"timestamp":1509815704,"timestampms":1509815704819,"socket_sequence":2,"events":[{"type":"change","side":"bid","price":"703","remaining":"45","delta":"45","reason":"place"}]},
     {"type":"update","eventId":2146332925,"timestamp":1509815704,"timestampms":1509815704820,"socket_sequence":3,"events":[{"type":"change","side":"bid","price":"701","remaining":"70","delta":"9","reason":"place"}]}
   ],
-  "expected_result": {
-    "bids": [
-      { "price": 701, "amount": 20, "count": 0 },
-      { "price": 703, "amount": 45, "count": 0 }
-    ],
-    "asks": [
-      { "price": 741, "amount": 0.8, "count": 0 },
-      { "price": 751, "amount": 1.5, "count": 0 }
+  "expected_results": {
+    "markets": [
+      {
+        "base_currency": "BTC",
+        "quote_currency": "USD",
+        "bids": [
+          { "price": 701, "amount": 20, "count": 0 },
+          { "price": 703, "amount": 45, "count": 0 }
+        ],
+        "asks": [
+          { "price": 741, "amount": 0.8, "count": 0 },
+          { "price": 751, "amount": 1.5, "count": 0 }
+        ]
+      }
     ]
   }
 }

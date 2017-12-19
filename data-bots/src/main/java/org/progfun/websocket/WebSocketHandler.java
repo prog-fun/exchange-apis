@@ -1,6 +1,7 @@
 package org.progfun.websocket;
 
 import org.java_websocket.handshake.ServerHandshake;
+import org.progfun.Channel;
 import org.progfun.CurrencyPair;
 import org.progfun.Exchange;
 import org.progfun.Logger;
@@ -30,7 +31,7 @@ public abstract class WebSocketHandler implements Runnable {
 
     private boolean verbose = false; // When true, print more output
 
-    private Subscriptions subscriptions;
+    protected Subscriptions subscriptions;
 
     /**
      * When set to true, print more output
@@ -299,6 +300,7 @@ public abstract class WebSocketHandler implements Runnable {
             return false;
         }
         parser.setExchange(e);
+        parser.setSubscriptions(subscriptions);
 
         Logger.log("Starting Handler process...");
 
@@ -324,6 +326,7 @@ public abstract class WebSocketHandler implements Runnable {
     private boolean subscribeNext() {
         // Take the next inactive subscription, subscribe to it
         if (subscriptions == null) {
+            Logger.log("No more subscriptions left, stop subscription chain");
             return false;
         }
 
@@ -465,9 +468,14 @@ public abstract class WebSocketHandler implements Runnable {
                         Logger.log("Critical error from remote API");
                         scheduleShutdown();
                         break;
+                    case SUBSCRIBE:
+                        Logger.log("Subscription done, process next one");
+                        scheduleAction(Action.SUBSCRIBE);
+                        break;
                     default:
-                        throw new UnsupportedOperationException(
-                                "TODO: implement support for action " + a);
+                        Logger.log("TODO: implement support for action " + a);
+                        scheduleShutdown();
+                        break;
                 }
             }
         }
@@ -496,16 +504,6 @@ public abstract class WebSocketHandler implements Runnable {
         return scheduledAction;
     }
 
-//    /**
-//     * Return true is there is a scheduled action which is not yet processed in
-//     * the main Handler thread
-//     *
-//     * @return
-//     */
-//    private synchronized boolean actionInProgress() {
-//        return getScheduledAction() != null;
-//    }
-//
     /**
      * Mark current scheduled action as done
      */
@@ -609,6 +607,9 @@ public abstract class WebSocketHandler implements Runnable {
      */
     public void subscribe(Subscriptions subscriptions) {
         this.subscriptions = subscriptions;
+        if (parser != null) {
+            parser.setSubscriptions(subscriptions);
+        }
         if (currentState == State.RUNNING) {
             // If subscriptions set when connection already established,
             // schedule subscriptions
@@ -618,6 +619,7 @@ public abstract class WebSocketHandler implements Runnable {
 
     /**
      * Get the first market registered for this exchange
+     *
      * @return first market or null if no markets registered
      */
     public Market getFirstMarket() {
@@ -646,31 +648,21 @@ public abstract class WebSocketHandler implements Runnable {
             return false;
         }
         // Get or create market
-        Market m = e.getMarket(s.getCurrencyPair());
-        if (m == null) {
-            Logger.log("Creating market required by subscription");
-            e.addMarket(new Market(s.getCurrencyPair()));
+        Market market = s.getMarket();
+        if (e.addMarket(market)) {
+            Logger.log("Market " + market.getCurrencyPair()
+                    + " added to exchange by Handler");
         }
-        
-        Logger.log("Subscribing to " + s.getChannel() + " for market " 
-                + s.getCurrencyPair());
-        switch (s.getChannel()) {
-            case ORDERBOOK:
-                return subscribeToOrderbook(s.getCurrencyPair());
-            case TRADES:
-                return subscribeToTrades(s.getCurrencyPair());
-            case TICKER:
-                return subscribeToTicker(s.getCurrencyPair());
-            default:
-                Logger.log("Channel "
-                        + s.getChannel() + " not supported!");
-                return false;
-        }
+
+        Logger.log("Subscribing to " + s.getChannel() + " for market "
+                + s.getMarket().getCurrencyPair());
+        return subscribeToChannel(s);
     }
 
     /**
      * Get exchange. It is created on first request
-     * @return 
+     *
+     * @return
      */
     public Exchange getExchange() {
         if (exchange == null) {
@@ -678,7 +670,7 @@ public abstract class WebSocketHandler implements Runnable {
         }
         return exchange;
     }
-    
+
     /**
      * Return URL to WebSocket server
      *
@@ -700,7 +692,7 @@ public abstract class WebSocketHandler implements Runnable {
      *
      * @return
      */
-    protected abstract Parser createParser();
+    public abstract Parser createParser();
 
     /**
      * Initialize the handler: send the initial commands (subscribe to channels,
@@ -710,33 +702,19 @@ public abstract class WebSocketHandler implements Runnable {
     protected abstract void init();
 
     /**
-     * Send request to Exchange: subscribe to ticker for particular currency
-     * pair
+     * Send request to Exchange: subscribe to specific channel (orderbook,
+     * trades, ...) for particular market
      *
-     * @param currencyPair
+     * @param s subscription
      * @return true if request was initiated (response not received yet), false
      * otherwise
      */
-    protected abstract boolean subscribeToTicker(CurrencyPair currencyPair);
+    protected abstract boolean subscribeToChannel(Subscription s);
 
     /**
-     * Send request to Exchange: subscribe to trades for particular currency
-     * pair
+     * Return a symbol as used in the exchange for the particular arket
      *
-     * @param currencyPair
-     * @return true if request was initiated (response not received yet), false
-     * otherwise
+     * @return
      */
-    protected abstract boolean subscribeToTrades(CurrencyPair currencyPair);
-
-    /**
-     * Send request to Exchange: subscribe to order book (bids and asks) for
-     * particular currency pair
-     *
-     * @param currencyPair
-     * @return true if request was initiated (response not received yet), false
-     * otherwise
-     */
-    protected abstract boolean subscribeToOrderbook(CurrencyPair currencyPair);
-
+    public abstract String getSymbolForMarket(CurrencyPair currencyPair);
 }

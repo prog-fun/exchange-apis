@@ -2,26 +2,43 @@ package org.progfun;
 
 /**
  * Subscription for updates to a particular channel, for particular currency
- * pair
+ * pair (market)
  */
 public class Subscription {
 
-    private final CurrencyPair currencyPair;
+    private final Market market;
     private final Channel channel;
     private SubsState state;
+    private String id;
 
-    public Subscription(CurrencyPair currencyPair, Channel channel) {
-        this(currencyPair, channel, SubsState.INACTIVE);
+    /**
+     * Get unique ID for this subscription
+     * @return 
+     */
+    public String getId() {
+        return id;
     }
 
-    public Subscription(CurrencyPair currencyPair, Channel channel, SubsState state) {
-        this.currencyPair = currencyPair;
+    /**
+     * Set a unique ID for this subscription
+     * @param id 
+     */
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public Subscription(Market market, Channel channel) {
+        this(market, channel, SubsState.INACTIVE);
+    }
+
+    public Subscription(Market market, Channel channel, SubsState state) {
+        this.market = market;
         this.channel = channel;
         this.state = state;
     }
 
-    public CurrencyPair getCurrencyPair() {
-        return currencyPair;
+    public Market getMarket() {
+        return market;
     }
 
     public Channel getChannel() {

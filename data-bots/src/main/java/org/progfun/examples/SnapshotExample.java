@@ -1,11 +1,11 @@
 package org.progfun.examples;
 
 import java.io.IOException;
-import org.progfun.CurrencyPair;
 import org.progfun.Logger;
 import org.progfun.SnapshotGenerator;
 import org.progfun.Channel;
 import org.progfun.Exchange;
+import org.progfun.Market;
 import org.progfun.Subscriptions;
 import org.progfun.bots.bitfinex.BitFinexHandler;
 import org.progfun.bots.gdax.GdaxHandler;
@@ -25,15 +25,17 @@ public class SnapshotExample {
     public static void main(String[] args) {
         // Create your crawler here - this example should work the same
         // with all the crawlers: Gemini, GDAX, etc
-//        WebSocketHandler handler;
+        WebSocketHandler handler;
 //        handler = new GdaxHandler();
-//        handler = new BitFinexHandler();
-        CurrencyPair btcusd = new CurrencyPair("BTC", "USD");
-        GeminiHandler handler = new GeminiHandler();
-        handler.setMainMarket(btcusd);
+        handler = new BitFinexHandler();
+//        GeminiHandler handler = new GeminiHandler();
+//        handler.setMainMarket(btcusd);
+        handler.setLogging(true);
+        handler.setVerbose(true);
 
         Subscriptions subs = new Subscriptions();
-        subs.add(btcusd, Channel.ORDERBOOK);
+        subs.add(new Market("LTC", "USD"), Channel.ORDERBOOK);
+        subs.add(new Market("ETH", "BTC"), Channel.ORDERBOOK);
         handler.subscribe(subs);
         // Start handler in a separate thread
         Thread handlerThread = new Thread(handler);

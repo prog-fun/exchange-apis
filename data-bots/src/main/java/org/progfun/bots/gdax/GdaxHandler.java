@@ -2,6 +2,9 @@ package org.progfun.bots.gdax;
 
 import org.progfun.CurrencyPair;
 import org.progfun.Exchange;
+import org.progfun.Logger;
+import org.progfun.Market;
+import org.progfun.Subscription;
 import org.progfun.websocket.WebSocketHandler;
 import org.progfun.websocket.Parser;
 
@@ -19,7 +22,7 @@ public class GdaxHandler extends WebSocketHandler {
     }
 
     @Override
-    protected Parser createParser() {
+    public Parser createParser() {
         return new GdaxParser();
     }
 
@@ -29,30 +32,6 @@ public class GdaxHandler extends WebSocketHandler {
     @Override
     public void init() {
     }
-
-
-    /**
-     * Get Exchange-specific product symbol (BTC-USD, etc)
-     *
-     * @param cp currency pair
-     * @return
-     */
-    private String getSymbol(CurrencyPair cp) {
-        if (cp == null) {
-            return null;
-        }
-        return cp.getBaseCurrency().toUpperCase()
-                +  "-" + cp.getQuoteCurrency().toUpperCase();
-    }
-    /**
-     *
-     * @return
-     */
-
-//    @Override
-//    public String getExchangeSymbol() {
-//        return "GDAX";
-//    }
 
     @Override
     protected Exchange createExchange() {
@@ -66,24 +45,49 @@ public class GdaxHandler extends WebSocketHandler {
         return true;
     }
 
-    @Override
-    protected boolean subscribeToTicker(CurrencyPair currencyPair) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    protected boolean subscribeToTicker(Market market) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    @Override
-    protected boolean subscribeToTrades(CurrencyPair currencyPair) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    protected boolean subscribeToTrades(Market market) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    @Override
-    protected boolean subscribeToOrderbook(CurrencyPair currencyPair) {
-        String symbol = getSymbol(currencyPair);
-        if (connector == null || symbol == null) {
+    protected boolean subscribeToOrderbook(Market market) {
+        if (connector == null || market == null) {
+            return false;
+        }
+        String symbol = getSymbolForMarket(market.getCurrencyPair());
+        if (symbol == null) {
             return false;
         }
         connector.send("{\"type\": \"subscribe\",\"product_ids\": [\""
                 + symbol + "\"],\"channels\": [\"level2\"]}");
         return true;
+    }
+
+    @Override
+    protected boolean subscribeToChannel(Subscription s) {
+        switch (s.getChannel()) {
+            case ORDERBOOK:
+                return subscribeToOrderbook(s.getMarket());
+            case TRADES:
+                return subscribeToTrades(s.getMarket());
+            case TICKER:
+                return subscribeToTicker(s.getMarket());
+            default:
+                Logger.log("Channel "
+                        + s.getChannel() + " not supported!");
+                return false;
+        }
+    }
+
+    @Override
+    public String getSymbolForMarket(CurrencyPair cp) {
+        if (cp == null) {
+            return null;
+        }
+        return cp.getBaseCurrency().toUpperCase()
+                +  "-" + cp.getQuoteCurrency().toUpperCase();
     }
 }

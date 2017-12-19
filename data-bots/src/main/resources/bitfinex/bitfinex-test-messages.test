@@ -1,8 +1,4 @@
 {
-  "market": {
-    "base_currency": "BTC",
-    "quote_currency": "USD"
-  },
   "messages": [
     {"event":"info","version":2},
     {
@@ -35,14 +31,21 @@
     [476,[751,2,-1.5]],
     [476,[761,0,-1]],
   ],
-  "expected_result": {
-    "bids": [
-      { "price": 701, "amount": 20, "count": 2 },
-      { "price": 703, "amount": 45, "count": 1 }
-    ],
-    "asks": [
-      { "price": 741, "amount": 0.8, "count": 1 },
-      { "price": 751, "amount": 1.5, "count": 2 }
+  "expected_results": {
+    "markets": [
+      {
+        "subscription_id": "BTCUSD-ORDERBOOK",
+        "base_currency": "BTC",
+        "quote_currency": "USD",
+        "bids": [
+          { "price": 701, "amount": 20, "count": 2 },
+          { "price": 703, "amount": 45, "count": 1 }
+        ],
+        "asks": [
+          { "price": 741, "amount": 0.8, "count": 1 },
+          { "price": 751, "amount": 1.5, "count": 2 }
+        ]
+      }
     ]
   }
 }

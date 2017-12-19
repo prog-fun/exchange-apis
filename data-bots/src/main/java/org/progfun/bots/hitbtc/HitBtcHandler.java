@@ -2,6 +2,8 @@ package org.progfun.bots.hitbtc;
 
 import org.progfun.CurrencyPair;
 import org.progfun.Exchange;
+import org.progfun.Logger;
+import org.progfun.Subscription;
 import org.progfun.websocket.WebSocketHandler;
 import org.progfun.websocket.Parser;
 
@@ -14,27 +16,13 @@ public class HitBtcHandler extends WebSocketHandler {
     // Used to separate different subscription channels
     private int channelId = 1;
 
-    /**
-     * Return a single symbols as understood by the exchange API
-     *
-     * @param cp currency pair
-     * @return
-     */
-    private String getSymbol(CurrencyPair cp) {
-        if (cp == null) {
-            return null;
-        }
-        return cp.getBaseCurrency().toUpperCase()
-                + cp.getQuoteCurrency().toUpperCase();
-    }
-
     @Override
     protected String getUrl() {
         return API_URL;
     }
 
     @Override
-    protected Parser createParser() {
+    public Parser createParser() {
         return new HitBtcParser();
     }
 
@@ -71,19 +59,16 @@ public class HitBtcHandler extends WebSocketHandler {
         return e;
     }
 
-    @Override
-    protected boolean subscribeToTicker(CurrencyPair currencyPair) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    protected boolean subscribeToTicker(Subscription s) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    @Override
-    protected boolean subscribeToTrades(CurrencyPair currencyPair) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    protected boolean subscribeToTrades(Subscription s) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    @Override
-    protected boolean subscribeToOrderbook(CurrencyPair currencyPair) {
-        String symbol = getSymbol(currencyPair);
+    protected boolean subscribeToOrderbook(Subscription s) {
+        String symbol = getSymbolForMarket(s.getMarket().getCurrencyPair());
         if (connector == null || symbol == null) {
             return false;
         }
@@ -96,6 +81,31 @@ public class HitBtcHandler extends WebSocketHandler {
                 + "}");
         // TODO - save the channelId somewhere, map to the currency pair
         return true;
+    }
+
+    @Override
+    protected boolean subscribeToChannel(Subscription s) {
+        switch (s.getChannel()) {
+            case ORDERBOOK:
+                return subscribeToOrderbook(s);
+            case TRADES:
+                return subscribeToTrades(s);
+            case TICKER:
+                return subscribeToTicker(s);
+            default:
+                Logger.log("Channel "
+                        + s.getChannel() + " not supported!");
+                return false;
+        }
+    }
+
+    @Override
+    public String getSymbolForMarket(CurrencyPair cp) {
+        if (cp == null) {
+            return null;
+        }
+        return cp.getBaseCurrency().toUpperCase()
+                + cp.getQuoteCurrency().toUpperCase();
     }
 
 }

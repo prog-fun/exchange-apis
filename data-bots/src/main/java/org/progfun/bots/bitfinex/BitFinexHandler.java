@@ -1,7 +1,10 @@
 package org.progfun.bots.bitfinex;
 
+import org.progfun.Channel;
 import org.progfun.CurrencyPair;
 import org.progfun.Exchange;
+import org.progfun.Logger;
+import org.progfun.Subscription;
 import org.progfun.websocket.Parser;
 import org.progfun.websocket.WebSocketHandler;
 
@@ -18,27 +21,13 @@ public class BitFinexHandler extends WebSocketHandler {
     }
 
     @Override
-    protected Parser createParser() {
+    public Parser createParser() {
         return new BitFinexParser();
     }
 
     @Override
     public void init() {
-//        subscribeToOrderbook(getSymbol());
-    }
-
-    /**
-     * Return a single symbols as understood by the exchange API
-     *
-     * @param cp currency pair
-     * @return
-     */
-    private String getSymbol(CurrencyPair cp) {
-        if (cp == null) {
-            return null;
-        }
-        return cp.getBaseCurrency().toUpperCase()
-                + cp.getQuoteCurrency().toUpperCase();
+        // Nothing to do initially
     }
 
     @Override
@@ -46,24 +35,6 @@ public class BitFinexHandler extends WebSocketHandler {
         Exchange e = new Exchange();
         e.setSymbol("BITF");
         return e;
-    }
-
-    /**
-     * Subscribe to orderbook update channel for a specific currency pair
-     *
-     * @param currencyPair currency pair, such as (BTC,USD)
-     * @return true when request sent, false otherwise.
-     */
-    @Override
-    protected boolean subscribeToOrderbook(CurrencyPair currencyPair) {
-        String symbol = getSymbol(currencyPair);
-        if (connector == null || symbol == null) {
-            return false;
-        }
-        connector.send("{\"event\":\"subscribe\", \"channel\":\"book\", "
-                + "\"symbol\":\"t" + symbol
-                + "\", \"prec\":\"P1\", \"freq\":\"F0\", \"len\":\"100\"}");
-        return true;
     }
 
     /**
@@ -76,14 +47,58 @@ public class BitFinexHandler extends WebSocketHandler {
         return true;
     }
 
-    @Override
-    protected boolean subscribeToTicker(CurrencyPair currencyPair) {
+    /**
+     * Subscribe to orderbook update channel for a specific currency pair
+     *
+     * @param s subscription for the orderbook
+     * @return true when request sent, false otherwise.
+     */
+    protected boolean subscribeToOrderbook(Subscription s) {
+        String symbol = getSymbolForMarket(s.getMarket().getCurrencyPair());
+        if (connector == null || symbol == null) {
+            return false;
+        }
+        connector.send("{\"event\":\"subscribe\", \"channel\":\"book\", "
+                + "\"symbol\":\"t" + symbol
+                + "\", \"prec\":\"P1\", \"freq\":\"F0\", \"len\":\"100\"}");
+        // Save the symbol for subscription, so that it can be identified 
+        // when response is received
+        String subsId = Parser.getInactiveSubsSymbol(symbol, Channel.ORDERBOOK);
+        subscriptions.setInactiveId(subsId, s);
+        return true;
+    }
+
+    protected boolean subscribeToTicker(Subscription s) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    protected boolean subscribeToTrades(Subscription s) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected boolean subscribeToTrades(CurrencyPair currencyPair) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    protected boolean subscribeToChannel(Subscription s) {
+        switch (s.getChannel()) {
+            case ORDERBOOK:
+                return subscribeToOrderbook(s);
+            case TRADES:
+                return subscribeToTrades(s);
+            case TICKER:
+                return subscribeToTicker(s);
+            default:
+                Logger.log("Channel "
+                        + s.getChannel() + " not supported!");
+                return false;
+        }
+    }
+
+    @Override
+    public String getSymbolForMarket(CurrencyPair cp) {
+        if (cp == null) {
+            return null;
+        }
+        return cp.getBaseCurrency().toUpperCase()
+                + cp.getQuoteCurrency().toUpperCase();
     }
 
 }
