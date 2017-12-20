@@ -325,7 +325,7 @@ public abstract class WebSocketHandler implements Runnable {
     private boolean subscribeNext() {
         // Take the next inactive subscription, subscribe to it
         if (subscriptions == null) {
-            Logger.log("No more subscriptions left, stop subscription chain");
+            Logger.log("No subscriptions defined");
             return false;
         }
 
@@ -337,8 +337,11 @@ public abstract class WebSocketHandler implements Runnable {
                 setState(State.SUBSCRIBING);
                 return true;
             }
+        } else {
+            Logger.log("No more subscriptions left, stop subscription chain");
         }
 
+        setState(State.RUNNING); // Done with all subscriptions
         return false;
     }
 
@@ -560,7 +563,8 @@ public abstract class WebSocketHandler implements Runnable {
                         || currentState == State.WAIT_CONNECT;
                 break;
             case RECONNECT_SCHEDULED:
-                valid = currentState == State.RUNNING;
+                valid = currentState == State.RUNNING
+                        || currentState == State.SUBSCRIBING;
                 break;
             case RUNNING:
                 valid = currentState == State.START_SCHEDULED;
@@ -574,7 +578,7 @@ public abstract class WebSocketHandler implements Runnable {
         }
         if (!valid) {
             Logger.log("Trying incorrect state change: from " + currentState
-                    + " to " + currentState);
+                    + " to " + targetState);
         }
         return valid;
     }
