@@ -1,6 +1,7 @@
-package org.progfun;
+package org.progfun.trade;
 
 import java.util.Date;
+import org.progfun.Decimal;
 
 /**
  * Represents one historical trade
@@ -12,7 +13,7 @@ public class Trade {
     private final Decimal amount;
     // Was buyer the market maker? (Bid came before ask)
     private final boolean sellSide;
-
+    
     /**
      * Create a new Trade
      *
@@ -53,7 +54,7 @@ public class Trade {
     }
     
     public String toString() {
-        return (sellSide ? "Sell " : "Buy ") + amount + "@" + price + " [" + time + "]";
+        return (sellSide ? "Sell " : "Buy ") + amount + " @ " + price + " [" + time + "]";
     }
 
 }

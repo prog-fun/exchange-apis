@@ -1,12 +1,14 @@
 package org.progfun;
 
+import org.progfun.trade.Trade;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
 import org.progfun.orderbook.Book;
-import org.progfun.orderbook.Listener;
 import org.progfun.orderbook.Order;
+import org.progfun.orderbook.OrderbookListener;
+import org.progfun.trade.TradeListener;
 
 /**
  * Represents a market trading a pair of assets (Currencies). Example markets:
@@ -29,7 +31,8 @@ public class Market {
 
     private final List<Trade> trades = new ArrayList<>();
 
-    private final List<Listener> listeners = new ArrayList<>();
+    private final List<OrderbookListener> bookListeners = new ArrayList<>();
+    private final List<TradeListener> tradeListeners = new ArrayList<>();
 
     // We use semaphore to lock updates while a snapshot is processed
     private final Semaphore mutex = new Semaphore(1);
@@ -123,7 +126,7 @@ public class Market {
         Order bid = new Order(price, amount, orderCount);
         Order updatedBid = bids.add(bid);
         // Notify listeners about changes
-        for (Listener l : listeners) {
+        for (OrderbookListener l : bookListeners) {
             if (updatedBid != null) {
                 // Check if the update resulted in a delete
                 Decimal a = updatedBid.getAmount();
@@ -169,7 +172,7 @@ public class Market {
         Order ask = new Order(price, amount, orderCount);
         Order updatedAsk = asks.add(ask);
         // Notify listeners about changes
-        for (Listener l : listeners) {
+        for (OrderbookListener l : bookListeners) {
             if (updatedAsk != null) {
                 // Check if the update resulted in a delete
                 if (updatedAsk.getAmount().isPositive()) {
@@ -209,7 +212,7 @@ public class Market {
 
         bids.remove(price);
         // Notify listeners about changes
-        for (Listener l : listeners) {
+        for (OrderbookListener l : bookListeners) {
             l.bidRemoved(this, price);
         }
 
@@ -228,7 +231,7 @@ public class Market {
 
         asks.remove(price);
         // Notify listeners about changes
-        for (Listener l : listeners) {
+        for (OrderbookListener l : bookListeners) {
             l.askRemoved(this, price);
         }
 
@@ -258,14 +261,14 @@ public class Market {
     }
 
     /**
-     * Add a new listener, if it is not already registered
+     * Add a new listener for order book, if it is not already registered
      *
      * @param listener
      * @return true if listener was added
      */
-    public boolean addListener(Listener listener) {
-        if (listener != null && !listeners.contains(listener)) {
-            listeners.add(listener);
+    public boolean addBookListener(OrderbookListener listener) {
+        if (listener != null && !bookListeners.contains(listener)) {
+            bookListeners.add(listener);
             return true;
         } else {
             return false;
@@ -273,13 +276,28 @@ public class Market {
     }
 
     /**
+     * Add a new listener for trades, if it is not already registered
+     *
+     * @param listener
+     * @return true if listener was added
+     */
+    public boolean addTradeListener(TradeListener listener) {
+        if (listener != null && !tradeListeners.contains(listener)) {
+            tradeListeners.add(listener);
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    /**
      * Remove listener. Return true if it was in the list.
      *
      * @param listener
      * @return
      */
-    public boolean removeListener(Listener listener) {
-        return listeners.remove(listener);
+    public boolean removeListener(OrderbookListener listener) {
+        return bookListeners.remove(listener);
     }
 
     /**
@@ -326,6 +344,11 @@ public class Market {
 
         trades.add(t);
 
+        // Notify listeners about changes
+        for (TradeListener l : tradeListeners) {
+            l.tradeAdded(t);
+        }
+        
         allowUpdates();
     }
 

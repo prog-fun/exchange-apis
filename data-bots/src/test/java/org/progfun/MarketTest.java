@@ -2,10 +2,10 @@ package org.progfun;
 
 import org.junit.Test;
 import org.progfun.orderbook.Book;
-import org.progfun.orderbook.Listener;
 import org.progfun.orderbook.Order;
 
 import static org.junit.Assert.*;
+import org.progfun.orderbook.OrderbookListener;
 
 public class MarketTest {
 
@@ -179,7 +179,7 @@ public class MarketTest {
         m = new Market("btc", "usd");
         assertNotNull(m);
         DummyListener l = new DummyListener();
-        m.addListener(l);
+        m.addBookListener(l);
         // Add one new ask
         Decimal D5 = new Decimal(5);
         Decimal D2 = new Decimal(2);
@@ -408,7 +408,7 @@ public class MarketTest {
 }
 
 // Simply counting how many events of each type received
-class DummyListener implements Listener {
+class DummyListener implements OrderbookListener {
 
     int numNewBids = 0;
     int numUpdatedBids = 0;

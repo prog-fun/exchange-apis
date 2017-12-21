@@ -6,7 +6,7 @@ import org.progfun.Market;
 /**
  * Prints all order book updates to system console
  */
-public class DummyListener implements Listener {
+public class DummyListener implements OrderbookListener {
 
     @Override
     public void bidAdded(Market market, Order bid) {

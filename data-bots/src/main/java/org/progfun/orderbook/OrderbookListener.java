@@ -6,7 +6,7 @@ import org.progfun.Market;
 /**
  * Listener for Order book updates
  */
-public interface Listener {
+public interface OrderbookListener {
 
     /**
      * A new bid added for the specific price

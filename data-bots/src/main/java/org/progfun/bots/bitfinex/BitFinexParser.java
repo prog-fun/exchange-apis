@@ -9,7 +9,7 @@ import org.progfun.Decimal;
 import org.progfun.Logger;
 import org.progfun.Market;
 import org.progfun.Subscription;
-import org.progfun.Trade;
+import org.progfun.trade.Trade;
 import org.progfun.websocket.Action;
 import org.progfun.websocket.Parser;
 
@@ -321,7 +321,6 @@ public class BitFinexParser extends Parser {
             Decimal price = new Decimal(values.getDouble(3));
             Date time = new Date(timestampMs);
             Trade trade = new Trade(time, price, amount, sellSide);
-            Logger.log(trade.toString());
             market.addTrade(trade);
 
             return null;
