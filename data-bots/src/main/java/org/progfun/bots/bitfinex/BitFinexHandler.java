@@ -48,48 +48,50 @@ public class BitFinexHandler extends WebSocketHandler {
     }
 
     /**
-     * Subscribe to orderbook update channel for a specific currency pair
+     * Subscribe to an update channel (orderbook, trades, ...)
      *
-     * @param s subscription for the orderbook
-     * @return true when request sent, false otherwise.
+     * @param s
+     * @return
      */
-    protected boolean subscribeToOrderbook(Subscription s) {
+    @Override
+    protected boolean subscribeToChannel(Subscription s) {
+        if (s == null) {
+            return false;
+        }
+
         String symbol = getSymbolForMarket(s.getMarket().getCurrencyPair());
         if (connector == null || symbol == null) {
             return false;
         }
-        connector.send("{\"event\":\"subscribe\", \"channel\":\"book\", "
-                + "\"symbol\":\"t" + symbol
-                + "\", \"prec\":\"P1\", \"freq\":\"F0\", \"len\":\"100\"}");
-        // Save the symbol for subscription, so that it can be identified 
-        // when response is received
-        String subsId = Parser.getInactiveSubsSymbol(symbol, Channel.ORDERBOOK);
-        subscriptions.setInactiveId(subsId, s);
-        return true;
-    }
 
-    protected boolean subscribeToTicker(Subscription s) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    protected boolean subscribeToTrades(Subscription s) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    protected boolean subscribeToChannel(Subscription s) {
-        switch (s.getChannel()) {
+        Channel channel = s.getChannel();
+        String channelName;
+        String optionalParams = "";
+        switch (channel) {
             case ORDERBOOK:
-                return subscribeToOrderbook(s);
+                channelName = "book";
+                optionalParams = "\"prec\":\"P1\", \"freq\":\"F0\", \"len\":\"100\"";
+                break;
             case TRADES:
-                return subscribeToTrades(s);
-            case TICKER:
-                return subscribeToTicker(s);
+                channelName = "trades";
+                break;
             default:
                 Logger.log("Channel "
                         + s.getChannel() + " not supported!");
                 return false;
         }
+
+        
+        String msg = "{\"event\":\"subscribe\", \"channel\":\""
+                + channelName + "\", "
+                + "\"symbol\":\"t" + symbol + "\"" + optionalParams + "}";
+        connector.send(msg);
+        // Save the symbol for subscription, so that it can be identified 
+        // when response is received
+        String subsId = Parser.getInactiveSubsSymbol(symbol, channel);
+        subscriptions.setInactiveId(subsId, s);
+        return true;
+
     }
 
     @Override

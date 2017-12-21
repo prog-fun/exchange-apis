@@ -51,5 +51,9 @@ public class Trade {
     public boolean isSellSide() {
         return sellSide;
     }
+    
+    public String toString() {
+        return (sellSide ? "Sell " : "Buy ") + amount + "@" + price + " [" + time + "]";
+    }
 
 }

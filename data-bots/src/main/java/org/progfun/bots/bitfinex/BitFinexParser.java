@@ -1,5 +1,6 @@
 package org.progfun.bots.bitfinex;
 
+import java.util.Date;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -8,6 +9,7 @@ import org.progfun.Decimal;
 import org.progfun.Logger;
 import org.progfun.Market;
 import org.progfun.Subscription;
+import org.progfun.Trade;
 import org.progfun.websocket.Action;
 import org.progfun.websocket.Parser;
 
@@ -34,19 +36,26 @@ public class BitFinexParser extends Parser {
             JSONArray updateMsg = new JSONArray(message);
             // We got a valid JSON array. Now let's find out if it is a snapshot
             // or update
+            int channelId = updateMsg.getInt(0);
             if (updateMsg.length() > 1) {
                 Object val = updateMsg.get(1);
                 if (val instanceof JSONArray) {
                     // Some data received
                     JSONArray data = (JSONArray) val;
                     // First item should be channel id
-                    int channelId = updateMsg.getInt(0);
                     return parseDataMessage(channelId, data);
                 } else if (val instanceof String) {
                     // This may be a heartbeat message
                     String sv = (String) val;
                     if ("hb".equals(sv)) {
                         return heartbeatReceived();
+                    } else if ("tu".equals(sv) || "te".equals(sv)) {
+                        // Trade updates have a bit different format
+                        Object val2 = updateMsg.get(2);
+                        if (val2 instanceof JSONArray) {
+                            JSONArray data = (JSONArray) val2;
+                            return parseDataMessage(channelId, data);
+                        }
                     }
                 }
             }
@@ -76,7 +85,7 @@ public class BitFinexParser extends Parser {
     private Action parseDataMessage(int channelId, JSONArray data) {
         Subscription subscription = subscriptions.getActive("" + channelId);
         if (subscription == null) {
-            return shutDownAction("Wrong channel ID for data update: " 
+            return shutDownAction("Wrong channel ID for data update: "
                     + channelId);
         }
         Market market = subscription.getMarket();
@@ -85,13 +94,29 @@ public class BitFinexParser extends Parser {
             return Action.SHUTDOWN;
         }
 
+        // Check if we got snapshot or update
         if (data.length() > 1) {
             Object firstItem = data.get(0);
-
             if (firstItem instanceof JSONArray) {
-                return parseOrderSnapshot(market, data);
+                switch (subscription.getChannel()) {
+                    case ORDERBOOK:
+                        return parseOrderSnapshot(market, data);
+                    case TRADES:
+                        return parseTradeSnapshot(market, data);
+                    default:
+                        return shutDownAction("Snapshot for unsupported channel: "
+                                + subscription.getChannel());
+                }
             } else {
-                return parseOrderUpdate(market, data);
+                switch (subscription.getChannel()) {
+                    case ORDERBOOK:
+                        return parseOrderUpdate(market, data);
+                    case TRADES:
+                        return parseTrade(market, data);
+                    default:
+                        return shutDownAction("Update for unsupported channel: "
+                                + subscription.getChannel());
+                }
             }
         } else {
             return shutDownAction("Wrong data message, not enough items: " + data);
@@ -153,6 +178,9 @@ public class BitFinexParser extends Parser {
             case "book":
                 channel = Channel.ORDERBOOK;
                 break;
+            case "trades":
+                channel = Channel.TRADES;
+                break;
             default:
                 return shutDownAction("Invalid channel received: " + ch);
         }
@@ -184,7 +212,7 @@ public class BitFinexParser extends Parser {
 
         // Clear previous orders, start fresh
         market.clearOrderBook();
-        
+
         // Snapshot is an array of updates
         try {
             for (int i = 0; i < data.length(); ++i) {
@@ -231,6 +259,70 @@ public class BitFinexParser extends Parser {
                     market.removeAsk(price);
                 }
             }
+
+            return null;
+        } catch (JSONException e) {
+            Logger.log("Error while parsing JSON msg: " + values);
+            return shutDownAction("Error in BitFinex update parsing:"
+                    + e.getMessage());
+        }
+    }
+
+    /**
+     * Parse message that contains snapshot of trades
+     *
+     * @param market
+     * @param data JSON array containing the items
+     * @return
+     */
+    private Action parseTradeSnapshot(Market market, JSONArray data) {
+        if (data.length() < 1) {
+            return shutDownAction("Wrong snapshot received: " + data);
+        }
+
+        // Clear previous trades, start fresh
+        market.clearTrades();
+
+        // Snapshot is an array of updates
+        try {
+            for (int i = 0; i < data.length(); ++i) {
+                JSONArray values = data.getJSONArray(i);
+                Action a = parseTrade(market, values);
+                if (a != null) {
+                    return a;
+                }
+            }
+        } catch (JSONException ex) {
+            return shutDownAction("Error in BitFinex snapshot parsing:"
+                    + ex.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * Parse message that contains one update - trade
+     * @param market
+     * @param values
+     * @return 
+     */
+    private Action parseTrade(Market market, JSONArray values) {
+        try {
+            int tradeId = values.getInt(0);
+            long timestampMs = values.getLong(1);
+            Decimal amount = new Decimal(values.getDouble(2));
+            boolean sellSide;
+            if (amount.isNegative()) {
+                // Negative amount means "this was a sell-side trade"
+                amount = amount.negate();
+                sellSide = true;
+            } else {
+                sellSide = false;
+            }
+            Decimal price = new Decimal(values.getDouble(3));
+            Date time = new Date(timestampMs);
+            Trade trade = new Trade(time, price, amount, sellSide);
+            Logger.log(trade.toString());
+            market.addTrade(trade);
 
             return null;
         } catch (JSONException e) {
