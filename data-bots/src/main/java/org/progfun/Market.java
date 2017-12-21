@@ -346,7 +346,7 @@ public class Market {
 
         // Notify listeners about changes
         for (TradeListener l : tradeListeners) {
-            l.tradeAdded(t);
+            l.tradeAdded(this, t);
         }
         
         allowUpdates();

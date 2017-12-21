@@ -8,6 +8,7 @@ import org.progfun.Market;
 import org.progfun.Subscriptions;
 import org.progfun.bots.bitfinex.BitFinexHandler;
 import org.progfun.trade.Trade;
+import org.progfun.trade.TradeListener;
 import org.progfun.websocket.WebSocketHandler;
 
 /**
@@ -32,7 +33,7 @@ public class TradeCrawlerExample {
             subs.add(m, Channel.TRADES);
             handler.subscribe(subs);
             handler.setVerbose(false);
-            m.addTradeListener((Trade trade) -> {
+            m.addTradeListener((Market market, Trade trade) -> {
                 System.out.println("Added trade: " + trade.toString());
             });
             
