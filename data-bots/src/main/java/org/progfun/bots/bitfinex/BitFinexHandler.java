@@ -70,7 +70,7 @@ public class BitFinexHandler extends WebSocketHandler {
         switch (channel) {
             case ORDERBOOK:
                 channelName = "book";
-                optionalParams = "\"prec\":\"P1\", \"freq\":\"F0\", \"len\":\"100\"";
+                optionalParams = ", \"prec\":\"P1\", \"freq\":\"F0\", \"len\":\"100\"";
                 break;
             case TRADES:
                 channelName = "trades";
