@@ -32,6 +32,10 @@ public abstract class WebSocketHandler implements Runnable {
 
     protected Subscriptions subscriptions;
 
+    // Force reconnect after this many messages
+    // Use negative number to disable this debug feature
+    private int reconnectAfterMsg = -1;
+
     /**
      * When set to true, print more output
      *
@@ -39,6 +43,22 @@ public abstract class WebSocketHandler implements Runnable {
      */
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
+    }
+
+    /**
+     * Call this method to force handler to reconnect after n messages. Can be
+     * used for debugging purposes.
+     *
+     * @param numMessages set how many messages will be received from API before
+     * reconnecting. Set this to a negative number to disable forced reconnect.
+     */
+    public void setDebugReconnect(int numMessages) {
+        this.reconnectAfterMsg = numMessages;
+        if (numMessages > 0) {
+            Logger.log("Enabling forced reconnect after " + numMessages + " messages");
+        } else {
+            Logger.log("Disabling forced reconnect");
+        }
     }
 
     /**
@@ -268,6 +288,10 @@ public abstract class WebSocketHandler implements Runnable {
         }
 
         setState(State.CONNECTING);
+        // Mark all subscriptions as inactive
+        if (subscriptions != null) {
+            subscriptions.inactivateAll();
+        }
 
         Logger.log("Starting bot for URL " + url);
         if (connector.connect(url)) {
@@ -455,6 +479,18 @@ public abstract class WebSocketHandler implements Runnable {
         if (verbose) {
             Logger.log("API: " + message);
         }
+
+        if (reconnectAfterMsg > 0) {
+            // "Force reconnect" feature enabled
+            reconnectAfterMsg--;
+            if (reconnectAfterMsg == 0) {
+                Logger.log("Message limit reached, force 'Reconnect for debug purpose'");
+                reconnectAfterMsg = -1; // Disable reconnecting again
+                scheduleReconnect();
+                return;
+            }
+        }
+
         if (parser != null) {
             Action a = parser.parseMessage(message);
             if (a != null) {

@@ -22,10 +22,27 @@ public class Subscriptions {
      * @param channel type of subscription (orderbook, trades, ...)
      * @return the newly created subscription
      */
-    public Subscription add(Market market, Channel channel) {
+    public Subscription addInactive(Market market, Channel channel) {
         Subscription s = new Subscription(market, channel);
-        inactiveSubs.add(s);
+        addInactive(s);
         return s;
+    }
+    
+    /**
+     * Add an inactive subscription
+     * @param s
+     * @return true if subscription added, false otherwise
+     */
+    public boolean addInactive(Subscription s) {
+        if (s == null) {
+            return false;
+        }
+        s.setState(SubsState.INACTIVE);
+        if (!inactiveSubs.contains(s)) {
+            inactiveSubs.add(s);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -103,6 +120,18 @@ public class Subscriptions {
      */
     public Subscription getActive(String subsId) {
         return activeSubs.get(subsId);
+    }
+
+    /**
+     * Mark all subscriptions as inactive
+     */
+    public void inactivateAll() {
+        for (Subscription s: activeSubs.values()) {
+            s.setId(null);
+            s.setState(SubsState.INACTIVE);
+            addInactive(s);
+        }
+        activeSubs.clear();
     }
 
 }
