@@ -157,7 +157,7 @@ public class TestScenario {
                 }
                 
                 // Create subscription
-                Subscription s = scenario.subscriptions.add(market, Channel.ORDERBOOK);
+                Subscription s = scenario.subscriptions.addInactive(market, Channel.ORDERBOOK);
                 // TODO - support different channels - trades, etc
             }
 
@@ -189,7 +189,7 @@ public class TestScenario {
             Subscriptions subs = new Subscriptions();
             // TODO - allow to specify subscriptions in test scenario files
             for (Market m : exchange.getMarkets()) {
-                Subscription s = subs.add(m, Channel.ORDERBOOK);
+                Subscription s = subs.addInactive(m, Channel.ORDERBOOK);
                 String symbol = handler.getSymbolForMarket(m.getCurrencyPair());
                 String subsId = Parser.getInactiveSubsSymbol(symbol, Channel.ORDERBOOK);
                 subs.setInactiveId(subsId, s);

@@ -34,9 +34,9 @@ public class SnapshotExample {
 //        handler.setVerbose(true);
 
         Subscriptions subs = new Subscriptions();
-        subs.add(new Market("BTC", "USD"), Channel.ORDERBOOK);
-        subs.add(new Market("ETH", "USD"), Channel.ORDERBOOK);
-        subs.add(new Market("LTC", "USD"), Channel.ORDERBOOK);
+        subs.addInactive(new Market("BTC", "USD"), Channel.ORDERBOOK);
+        subs.addInactive(new Market("ETH", "USD"), Channel.ORDERBOOK);
+        subs.addInactive(new Market("LTC", "USD"), Channel.ORDERBOOK);
 //        subs.add(new Market("LTC", "BTC"), Channel.ORDERBOOK);
 //        subs.add(new Market("ETH", "BTC"), Channel.ORDERBOOK);
 //        subs.add(new Market("DAT", "USD"), Channel.ORDERBOOK);
