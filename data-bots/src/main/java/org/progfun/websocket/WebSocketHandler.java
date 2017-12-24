@@ -36,6 +36,20 @@ public abstract class WebSocketHandler implements Runnable {
     // Use negative number to disable this debug feature
     private int reconnectAfterMsg = -1;
 
+    private SocketStateListener stateListener;
+
+    // Subscription which is currently in processing
+    private Subscription currentSubscription;
+
+    /**
+     * Set listener for socket state changes (connected, disconnected, etc)
+     *
+     * @param stateListener
+     */
+    public void setStateListener(SocketStateListener stateListener) {
+        this.stateListener = stateListener;
+    }
+
     /**
      * When set to true, print more output
      *
@@ -355,6 +369,7 @@ public abstract class WebSocketHandler implements Runnable {
 
         Subscription s = subscriptions.getNextInactive();
         if (s != null) {
+            currentSubscription = s;
             if (startSubscription(s)) {
                 // Mark this channel as initiated
                 s.setState(SubsState.INITIATED);
@@ -363,6 +378,9 @@ public abstract class WebSocketHandler implements Runnable {
             }
         } else {
             Logger.log("No more subscriptions left, stop subscription chain");
+            if (stateListener != null) {
+                stateListener.onReady();
+            }
         }
 
         setState(State.RUNNING); // Done with all subscriptions
@@ -432,6 +450,10 @@ public abstract class WebSocketHandler implements Runnable {
         setState(State.CONNECTED);
         setState(State.START_SCHEDULED);
         scheduleAction(Action.START);
+
+        if (stateListener != null) {
+            stateListener.onConnected();
+        }
     }
 
     /**
@@ -453,6 +475,10 @@ public abstract class WebSocketHandler implements Runnable {
         // after reconnect - old parser may be in wrong state
         Logger.log("Disposing parser " + parser.hashCode());
         parser = null;
+
+        if (stateListener != null) {
+            stateListener.onDisconnected(reason);
+        }
 
         if (mustReconnectOnClose()) {
             setState(State.WAIT_CONNECT);
@@ -507,8 +533,7 @@ public abstract class WebSocketHandler implements Runnable {
                         scheduleShutdown();
                         break;
                     case SUBSCRIBE:
-                        Logger.log("Subscription done, process next one");
-                        scheduleAction(Action.SUBSCRIBE);
+                        onSubscribed();
                         break;
                     default:
                         Logger.log("TODO: implement support for action " + a);
@@ -559,14 +584,6 @@ public abstract class WebSocketHandler implements Runnable {
         Exchange e = getExchange();
         return e != null ? e.getSymbol() : null;
     }
-
-    /**
-     * Create empty exchange object. Each handler should know which exchange it
-     * is targetting.
-     *
-     * @return
-     */
-    protected abstract Exchange createExchange();
 
     /**
      * Start writing log to file.
@@ -700,6 +717,18 @@ public abstract class WebSocketHandler implements Runnable {
     }
 
     /**
+     * Subscription successful
+     */
+    private void onSubscribed() {
+        Logger.log("Subscription done, process next one");
+        if (stateListener != null) {
+            stateListener.onSubscribed(currentSubscription);
+        }
+        currentSubscription = null;
+        scheduleAction(Action.SUBSCRIBE);
+    }
+
+    /**
      * Get exchange. It is created on first request
      *
      * @return
@@ -757,4 +786,12 @@ public abstract class WebSocketHandler implements Runnable {
      * @return
      */
     public abstract String getSymbolForMarket(CurrencyPair currencyPair);
+
+    /**
+     * Create empty exchange object. Each handler should know which exchange it
+     * is targetting.
+     *
+     * @return
+     */
+    protected abstract Exchange createExchange();
 }
