@@ -63,6 +63,7 @@ public class GdaxHandler extends WebSocketHandler {
         }
         connector.send("{\"type\": \"subscribe\",\"product_ids\": [\""
                 + symbol + "\"],\"channels\": [\"level2\"]}");
+        // TODO - save subscription ID
         return true;
     }
 

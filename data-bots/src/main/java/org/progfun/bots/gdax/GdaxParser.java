@@ -19,10 +19,12 @@ public class GdaxParser extends Parser {
      * See message documentation: https://docs.gdax.com/#websocket-feed
      *
      * @param message The incoming message
-     * @return 
+     * @return
      */
     @Override
     public Action parseMessage(String message) {
+        // TODO - support multiple currencies
+        // TODO - give Action.SUBSCRIBE response when some kind of "subscription done" is received
         if (exchange == null) {
             Logger.log("Trying to parse message without exchange!");
             return Action.SHUTDOWN;
