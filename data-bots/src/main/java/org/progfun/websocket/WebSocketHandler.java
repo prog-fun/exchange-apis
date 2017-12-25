@@ -648,6 +648,7 @@ public abstract class WebSocketHandler implements Runnable {
             case CONNECTED:
             case START_SCHEDULED:
             case RUNNING:
+            case SUBSCRIBING:
             case REC_DISCONNECTING:
                 return true;
             default:
