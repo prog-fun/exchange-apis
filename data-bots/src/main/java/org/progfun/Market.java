@@ -84,6 +84,14 @@ public class Market {
     public Book getAsks() {
         return asks;
     }
+    
+    /**
+     * Return all currently cached real-time trades
+     * @return 
+     */
+    public Iterable<Trade> getTrades() {
+        return trades;
+    }
 
     /**
      * Return a copy of bid orders, limited by price
@@ -320,10 +328,16 @@ public class Market {
 
     /**
      * Clear all bids and asks
+     * @param ignoreLocks when true, bypass the modification locks. This is
+     * useful if orderbook must be deleted in the same thread that locked updates,
+     * and we want to make sure that clearing happens before any new trades are
+     * added
      */
-    public void clearOrderBook() {
-        if (!lockUpdates()) {
-            return;
+    public void clearOrderBook(boolean ignoreLocks) {
+        if (!ignoreLocks) {
+            if (!lockUpdates()) {
+                return;
+            }
         }
 
         bids.clear();
@@ -363,23 +377,35 @@ public class Market {
 
     /**
      * Delete all trade information
+     * @param ignoreLocks when true, bypass the modification locks. This is
+     * useful if trades must be deleted in the same thread that locked updates,
+     * and we want to make sure that clearing happens before any new trades are
+     * added
      */
-    public void clearTrades() {
-        if (!lockUpdates()) {
-            return;
+    public void clearTrades(boolean ignoreLocks) {
+        if (!ignoreLocks) {
+            if (!lockUpdates()) {
+                return;
+            }
         }
 
         trades.clear();
 
-        allowUpdates();
+        if (!ignoreLocks) {
+            allowUpdates();
+        }
     }
 
     /**
      * Delete all data
+     * @param ignoreLocks when true, bypass the modification locks. This is
+     * useful if trades must be deleted in the same thread that locked updates,
+     * and we want to make sure that clearing happens before any new trades are
+     * added
      */
-    public void clearData() {
+    public void clearData(boolean ignoreLocks) {
         // Update locking should happen inside the method calls
-        clearTrades();
-        clearOrderBook();
+        clearTrades(ignoreLocks);
+        clearOrderBook(ignoreLocks);
     }
 }

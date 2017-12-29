@@ -11,6 +11,16 @@ public class SnapshotGenerator {
     private Exchange exchange;
     private SnapshotListener listener;
     private Timer timer;
+    private final boolean deleteTrades;
+    
+    /**
+     * Create a new snapshot generator
+     * @param deleteTrades when true, trades will be cleared after each snapshot
+     */
+    public SnapshotGenerator(boolean deleteTrades) {
+        this.deleteTrades = deleteTrades;
+    }
+    
     private final TimerTask task = new TimerTask() {
         @Override
         public void run() {
@@ -35,6 +45,7 @@ public class SnapshotGenerator {
         stop(); // Stop previous timer if one running
         timer = new Timer(true);
         timer.scheduleAtFixedRate(task, interval, interval);
+        Logger.log("Snapshot generator started");
     }
 
     /**
@@ -47,6 +58,10 @@ public class SnapshotGenerator {
         // Disable updates while listeners process the snapshot
         exchange.lockUpdates();
         listener.onSnapshot(exchange);
+        if (deleteTrades) {
+            // Delete all trades
+            exchange.clearTrades(true);
+        }
         exchange.allowUpdates();
     }
 
@@ -55,7 +70,7 @@ public class SnapshotGenerator {
      */
     public void stop() {
         if (timer != null) {
-            Logger.log("Stopping scheduled timer task...");
+            Logger.log("Stopping snapshot generator...");
             timer.cancel();
             timer = null;
         }

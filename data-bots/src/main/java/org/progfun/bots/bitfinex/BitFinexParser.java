@@ -211,7 +211,7 @@ public class BitFinexParser extends Parser {
         }
 
         // Clear previous orders, start fresh
-        market.clearOrderBook();
+        market.clearOrderBook(false);
 
         // Snapshot is an array of updates
         try {
@@ -281,7 +281,7 @@ public class BitFinexParser extends Parser {
         }
 
         // Clear previous trades, start fresh
-        market.clearTrades();
+        market.clearTrades(false);
 
         // Snapshot is an array of updates
         try {

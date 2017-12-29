@@ -1,11 +1,13 @@
 package org.progfun;
 
+import java.util.Date;
 import org.junit.Test;
 import org.progfun.orderbook.Book;
 import org.progfun.orderbook.Order;
 
 import static org.junit.Assert.*;
 import org.progfun.orderbook.OrderbookListener;
+import org.progfun.trade.Trade;
 
 public class MarketTest {
 
@@ -288,11 +290,8 @@ public class MarketTest {
         final Decimal AMOUNT = Decimal.TEN;
         final Decimal PRICE = new Decimal(15);
         // Try to update the market in another thread
-        Runnable r = new Runnable() {
-            @Override
-            public void run() {
-                m.addBid(PRICE, AMOUNT, 1);
-            }
+        Runnable r = () -> {
+            m.addBid(PRICE, AMOUNT, 1);
         };
         Thread t;
         t = new Thread(r);
@@ -317,6 +316,25 @@ public class MarketTest {
         Order o = m.getBids().getOrderForPrice(PRICE);
         assertNotNull(o);
         assertEquals(AMOUNT.multiply(new Decimal(2)), o.getAmount());
+        
+        // Test lock prohibiting to clear data
+        m.addTrade(new Trade(new Date(), Decimal.ONE, Decimal.ONE, false));
+        m.lockUpdates();
+        Runnable r2 = () -> {
+             // Wait for lock to be released
+            m.clearData(false);
+        };
+        t = new Thread(r2);
+        t.start();
+        Thread.sleep(200);
+        assertEquals(1, m.getBids().size());
+        assertEquals(1, m.getTradeCount());
+        m.allowUpdates();
+        Thread.sleep(200);
+        assertEquals(0, m.getBids().size());
+        assertEquals(0, m.getTradeCount());
+        m.allowUpdates();
+
     }
 
     /**
@@ -400,7 +418,7 @@ public class MarketTest {
         assertNotNull(m.getBestAsk());
         assertNotNull(m.getBestBid());
         
-        m.clearOrderBook();
+        m.clearOrderBook(false);
         assertNull(m.getBestAsk());
         assertNull(m.getBestBid());
     }

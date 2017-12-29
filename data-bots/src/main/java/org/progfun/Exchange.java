@@ -11,9 +11,10 @@ public class Exchange {
 
     private final HashMap<CurrencyPair, Market> markets = new HashMap<>();
     private String symbol;
-    
+
     /**
      * Set symbol identifying the exchange
+     *
      * @param symbol the symbol of the exchange: GDAX, BITF, etc.
      */
     public void setSymbol(String symbol) {
@@ -22,13 +23,13 @@ public class Exchange {
 
     /**
      * Get symbol identifying the exchange: BITF, GDAX, etc.
-     * @return 
+     *
+     * @return
      */
     public String getSymbol() {
         return symbol;
     }
 
-    
     /**
      * Return all the markets available in the exchange
      *
@@ -39,9 +40,10 @@ public class Exchange {
         markets.values().toArray(m);
         return m;
     }
-    
+
     /**
      * Get first market in the list. Handy if we use only one market.
+     *
      * @return first market or null if there are no markets
      */
     public Market getFirstMarket() {
@@ -77,13 +79,14 @@ public class Exchange {
 
     /**
      * Get market for specific currency pair
+     *
      * @param cp base and quote currency pair
      * @return the market or null if none found
      */
     public Market getMarket(CurrencyPair cp) {
         return markets.get(cp);
     }
-    
+
     /**
      * Get market for specific currency pair
      *
@@ -124,10 +127,14 @@ public class Exchange {
 
     /**
      * Clear all data from the exchange
+     * @param ignoreLocks when true, bypass the modification locks. This is
+     * useful if trades must be deleted in the same thread that locked updates,
+     * and we want to make sure that clearing happens before any new trades are
+     * added
      */
-    public void clearData() {
+    public void clearData(boolean ignoreLocks) {
         for (Market m : markets.values()) {
-            m.clearData();
+            m.clearData(ignoreLocks);
         }
     }
 
@@ -146,6 +153,20 @@ public class Exchange {
     public void allowUpdates() {
         for (Market m : markets.values()) {
             m.allowUpdates();
+        }
+    }
+
+    /**
+     * Delete all trades, in all markets
+     *
+     * @param ignoreLocks when true, bypass the modification locks. This is
+     * useful if trades must be deleted in the same thread that locked updates,
+     * and we want to make sure that clearing happens before any new trades are
+     * added
+     */
+    public void clearTrades(boolean ignoreLocks) {
+        for (Market m : markets.values()) {
+            m.clearTrades(ignoreLocks);
         }
     }
 }
