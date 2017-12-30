@@ -130,11 +130,13 @@ public abstract class WebSocketHandler implements Runnable {
 
         // Set name for this thread, used for debugging
         Thread.currentThread().setName("Handler Thread");
+        Logger.log("Handler thread run() method started");
 
         while (mustRun) {
 
             synchronized (this) {
                 try {
+                    Logger.log("Handler waiting for next action...");
                     wait();
                 } catch (InterruptedException ex) {
                     Logger.log("Stopping Handler - got interrupted");
@@ -142,6 +144,7 @@ public abstract class WebSocketHandler implements Runnable {
                 }
             }
 
+            Logger.log("Handler wait done");
             a = getScheduledAction();
 
             // Allow next action to be queued
