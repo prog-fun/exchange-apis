@@ -570,10 +570,10 @@ public abstract class WebSocketHandler implements Runnable {
         }
 
         if (parser != null) {
-            Action a = parser.parseMessage(message);
-            if (a != null) {
-                Logger.log("Parser asks Handler to perform an action: " + a);
-                switch (a) {
+            ParserResponse resp = parser.parseMessage(message);
+            if (resp != null) {
+                Logger.log("Parser response: " + resp);
+                switch (resp.getAction()) {
                     case RECONNECT:
                         scheduleReconnect();
                         break;
@@ -581,14 +581,16 @@ public abstract class WebSocketHandler implements Runnable {
                         scheduleDisconnect();
                         break;
                     case SHUTDOWN:
-                        scheduleShutdown("Critical error from remote API, msg: " 
+                        scheduleShutdown("Critical error from remote API, reason: " 
+                                + resp.getReason() + ", API msg: " 
                                 + message);
                         break;
                     case SUBSCRIBE:
                         onSubscribed();
                         break;
                     default:
-                        scheduleShutdown("TODO: implement support for action " + a);
+                        scheduleShutdown("TODO: implement support for action " 
+                                + resp.getAction());
                         break;
                 }
             }

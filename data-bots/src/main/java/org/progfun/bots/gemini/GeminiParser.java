@@ -4,10 +4,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.progfun.Decimal;
-import org.progfun.Logger;
 import org.progfun.Market;
-import org.progfun.websocket.Action;
 import org.progfun.websocket.Parser;
+import org.progfun.websocket.ParserResponse;
 
 /**
  * Parses JSON updates from Gemini API
@@ -16,18 +15,16 @@ public class GeminiParser extends Parser {
     private Market market;
     
     @Override
-    public Action parseMessage(String message) {
+    public ParserResponse parseMessage(String message) {
         if (exchange == null) {
-            Logger.log("Gemini msg received without exchange, ignoring");
-            return null;
+            return shutDownAction("Gemini msg received without exchange, ignoring");
         }
         if (market == null) {
             // initialize market on first use
             market = exchange.getFirstMarket();
         }
         if (market == null) {
-            Logger.log("Gemini msg received without market, ignoring");
-            return null;
+            return shutDownAction("Gemini msg received without market, ignoring");
         }
                 
         try {
@@ -39,11 +36,11 @@ public class GeminiParser extends Parser {
                 for (Object eo : events) {
                     if (eo instanceof JSONObject) {
                         JSONObject event = (JSONObject) eo;
-                        Action a = parseUpdateEvent(event);
-                        if (a != null) {
+                        ParserResponse resp = parseUpdateEvent(event);
+                        if (resp != null) {
                             // If some action was needed as a result of parsing
                             // the event message, return it and skip parsing the rest
-                            return a;
+                            return resp;
                         }                                
                     } else {
                         System.out.println("Event not an object: " + eo);
@@ -61,7 +58,7 @@ public class GeminiParser extends Parser {
      *
      * @param event
      */
-    private Action parseUpdateEvent(JSONObject event) {
+    private ParserResponse parseUpdateEvent(JSONObject event) {
         try {
             String type = event.getString("type");
             if (type.equals("change")) {
@@ -79,7 +76,7 @@ public class GeminiParser extends Parser {
      * Parse changes in 
      * @param event 
      */
-    private Action parseOrderBookChange(JSONObject event) {
+    private ParserResponse parseOrderBookChange(JSONObject event) {
         Decimal price = new Decimal(event.getString("price"));
         boolean isBid = event.getString("side").equals("bid");
         String rs = event.getString("remaining");
@@ -102,8 +99,7 @@ public class GeminiParser extends Parser {
         return null;
     }
 
-    private Action parseTradeEvent(JSONObject event) {
-        Logger.log("Gemini Trade parsing not supported yet");
-        return null;
+    private ParserResponse parseTradeEvent(JSONObject event) {
+        return shutDownAction("Gemini Trade parsing not supported yet");
     }
 }
