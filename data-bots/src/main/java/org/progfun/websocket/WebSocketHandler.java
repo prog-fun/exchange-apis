@@ -37,6 +37,10 @@ public abstract class WebSocketHandler implements Runnable {
     // Use negative number to disable this debug feature
     private int reconnectAfterMsg = -1;
 
+    // Force shutdown after this many messages
+    // Use negative number to disable this debug feature
+    private int shutdownAfterMsg = -1;
+
     private SocketStateListener stateListener;
 
     // Subscription which is currently in processing
@@ -76,6 +80,22 @@ public abstract class WebSocketHandler implements Runnable {
             Logger.log("Enabling forced reconnect after " + numMessages + " messages");
         } else {
             Logger.log("Disabling forced reconnect");
+        }
+    }
+
+    /**
+     * Call this method to force handler to shutdown after n messages. Can be
+     * used for debugging purposes.
+     *
+     * @param numMessages set how many messages will be received from API before
+     * shutting down. Set this to a negative number to disable forced shutdown.
+     */
+    public void setDebugShutdown(int numMessages) {
+        this.shutdownAfterMsg = numMessages;
+        if (numMessages > 0) {
+            Logger.log("Enabling forced shutdown after " + numMessages + " messages");
+        } else {
+            Logger.log("Disabling forced shutdown");
         }
     }
 
@@ -192,8 +212,15 @@ public abstract class WebSocketHandler implements Runnable {
 
     /**
      * Close WebSocket connection and shut down the Handler thread
+     *
+     * @param reason explanation for the shutdown reason
      */
-    public synchronized void scheduleShutdown() {
+    public synchronized void scheduleShutdown(String reason) {
+        Logger.log(reason);
+        if (stateListener != null) {
+            // Notify state listener about shutdown reason
+            stateListener.onError(reason);
+        }
         setState(State.SHUTDOWN_SCHEDULED);
         scheduleAction(Action.SHUTDOWN);
     }
@@ -531,6 +558,17 @@ public abstract class WebSocketHandler implements Runnable {
             }
         }
 
+        if (shutdownAfterMsg > 0) {
+            // "Force shutdown" feature enabled
+            shutdownAfterMsg--;
+            if (shutdownAfterMsg == 0) {
+                Logger.log("Message limit reached, force 'Shutdown for debug purpose'");
+                shutdownAfterMsg = -1; // Disable shutdown again
+                scheduleShutdown("Forced debug shutdown");
+                return;
+            }
+        }
+
         if (parser != null) {
             Action a = parser.parseMessage(message);
             if (a != null) {
@@ -543,15 +581,14 @@ public abstract class WebSocketHandler implements Runnable {
                         scheduleDisconnect();
                         break;
                     case SHUTDOWN:
-                        Logger.log("Critical error from remote API");
-                        scheduleShutdown();
+                        scheduleShutdown("Critical error from remote API, msg: " 
+                                + message);
                         break;
                     case SUBSCRIBE:
                         onSubscribed();
                         break;
                     default:
-                        Logger.log("TODO: implement support for action " + a);
-                        scheduleShutdown();
+                        scheduleShutdown("TODO: implement support for action " + a);
                         break;
                 }
             }
