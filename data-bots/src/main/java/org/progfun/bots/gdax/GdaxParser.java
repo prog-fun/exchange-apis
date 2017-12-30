@@ -3,10 +3,9 @@ package org.progfun.bots.gdax;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.progfun.Decimal;
-import org.progfun.Logger;
 import org.progfun.Market;
-import org.progfun.websocket.Action;
 import org.progfun.websocket.Parser;
+import org.progfun.websocket.ParserResponse;
 
 /**
  * Handles the responses from the GDAX API and fills the orderbook with
@@ -22,17 +21,15 @@ public class GdaxParser extends Parser {
      * @return
      */
     @Override
-    public Action parseMessage(String message) {
+    public ParserResponse parseMessage(String message) {
         // TODO - support multiple currencies
         // TODO - give Action.SUBSCRIBE response when some kind of "subscription done" is received
         if (exchange == null) {
-            Logger.log("Trying to parse message without exchange!");
-            return Action.SHUTDOWN;
+            return shutDownAction("Trying to parse message without exchange!");
         }
         Market market = exchange.getFirstMarket();
         if (market == null) {
-            Logger.log("Trying to parse update without market!");
-            return Action.SHUTDOWN;
+            return shutDownAction("Trying to parse update without market!");
         }
 
         JSONObject JSONMessage = new JSONObject(message);

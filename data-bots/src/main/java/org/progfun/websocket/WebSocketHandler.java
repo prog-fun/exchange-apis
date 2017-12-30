@@ -1,5 +1,6 @@
 package org.progfun.websocket;
 
+import java.net.UnknownHostException;
 import org.java_websocket.handshake.ServerHandshake;
 import org.progfun.CurrencyPair;
 import org.progfun.Exchange;
@@ -36,10 +37,17 @@ public abstract class WebSocketHandler implements Runnable {
     // Use negative number to disable this debug feature
     private int reconnectAfterMsg = -1;
 
+    // Force shutdown after this many messages
+    // Use negative number to disable this debug feature
+    private int shutdownAfterMsg = -1;
+
     private SocketStateListener stateListener;
 
     // Subscription which is currently in processing
     private Subscription currentSubscription;
+
+    // How long to sleep before connecting
+    private long connSleep = 0;
 
     /**
      * Set listener for socket state changes (connected, disconnected, etc)
@@ -76,6 +84,22 @@ public abstract class WebSocketHandler implements Runnable {
     }
 
     /**
+     * Call this method to force handler to shutdown after n messages. Can be
+     * used for debugging purposes.
+     *
+     * @param numMessages set how many messages will be received from API before
+     * shutting down. Set this to a negative number to disable forced shutdown.
+     */
+    public void setDebugShutdown(int numMessages) {
+        this.shutdownAfterMsg = numMessages;
+        if (numMessages > 0) {
+            Logger.log("Enabling forced shutdown after " + numMessages + " messages");
+        } else {
+            Logger.log("Disabling forced shutdown");
+        }
+    }
+
+    /**
      * Wait a bit and try to connect. Connection must happen in the main
      * thread. This method schedules the connection command and wakes up the
      * main thread.
@@ -89,13 +113,8 @@ public abstract class WebSocketHandler implements Runnable {
             return;
         }
 
-        if (timeout > 0) {
-            try {
-                Thread.sleep(timeout);
-            } catch (InterruptedException ex) {
-                Logger.log("Someone interrupted sleeping");
-            }
-        }
+        // Sleeping will happen in the Handler thread
+        connSleep = timeout;
 
         setState(State.CONNECT_SCHEDULED);
         scheduleAction(Action.CONNECT);
@@ -152,6 +171,7 @@ public abstract class WebSocketHandler implements Runnable {
             Logger.log("Executing action " + a);
             switch (a) {
                 case CONNECT:
+                    sleepBeforeConnect();
                     connectNow();
                     break;
                 case START:
@@ -192,8 +212,15 @@ public abstract class WebSocketHandler implements Runnable {
 
     /**
      * Close WebSocket connection and shut down the Handler thread
+     *
+     * @param reason explanation for the shutdown reason
      */
-    public synchronized void scheduleShutdown() {
+    public synchronized void scheduleShutdown(String reason) {
+        Logger.log(reason);
+        if (stateListener != null) {
+            // Notify state listener about shutdown reason
+            stateListener.onError(reason);
+        }
         setState(State.SHUTDOWN_SCHEDULED);
         scheduleAction(Action.SHUTDOWN);
     }
@@ -244,6 +271,21 @@ public abstract class WebSocketHandler implements Runnable {
     private synchronized void scheduleAction(Action action) {
         scheduledAction = action;
         notifyAll();
+    }
+
+    /**
+     * Sleep before connection
+     */
+    private void sleepBeforeConnect() {
+        if (connSleep > 0) {
+            try {
+                Logger.log("Sleeping before connection...");
+                Thread.sleep(connSleep);
+            } catch (InterruptedException ex) {
+                Logger.log("Sleep before connection interrupted");
+            }
+            connSleep = 0;
+        }
     }
 
     /**
@@ -473,7 +515,6 @@ public abstract class WebSocketHandler implements Runnable {
 
         // Dispose parser to avoid it getting the initial messages 
         // after reconnect - old parser may be in wrong state
-        Logger.log("Disposing parser " + parser.hashCode());
         parser = null;
 
         if (stateListener != null) {
@@ -517,11 +558,22 @@ public abstract class WebSocketHandler implements Runnable {
             }
         }
 
+        if (shutdownAfterMsg > 0) {
+            // "Force shutdown" feature enabled
+            shutdownAfterMsg--;
+            if (shutdownAfterMsg == 0) {
+                Logger.log("Message limit reached, force 'Shutdown for debug purpose'");
+                shutdownAfterMsg = -1; // Disable shutdown again
+                scheduleShutdown("Forced debug shutdown");
+                return;
+            }
+        }
+
         if (parser != null) {
-            Action a = parser.parseMessage(message);
-            if (a != null) {
-                Logger.log("Parser asks Handler to perform an action: " + a);
-                switch (a) {
+            ParserResponse resp = parser.parseMessage(message);
+            if (resp != null) {
+                Logger.log("Parser response: " + resp);
+                switch (resp.getAction()) {
                     case RECONNECT:
                         scheduleReconnect();
                         break;
@@ -529,15 +581,16 @@ public abstract class WebSocketHandler implements Runnable {
                         scheduleDisconnect();
                         break;
                     case SHUTDOWN:
-                        Logger.log("Critical error from remote API");
-                        scheduleShutdown();
+                        scheduleShutdown("Critical error from remote API, reason: " 
+                                + resp.getReason() + ", API msg: " 
+                                + message);
                         break;
                     case SUBSCRIBE:
                         onSubscribed();
                         break;
                     default:
-                        Logger.log("TODO: implement support for action " + a);
-                        scheduleShutdown();
+                        scheduleShutdown("TODO: implement support for action " 
+                                + resp.getAction());
                         break;
                 }
             }
@@ -551,6 +604,15 @@ public abstract class WebSocketHandler implements Runnable {
      */
     private void onSocketErr(Exception ex) {
         Logger.log("Handler.onSocketErr: " + ex.getMessage());
+        if (stateListener != null) {
+            String errMsg;
+            if (ex instanceof UnknownHostException) {
+                errMsg = "Can't connect to: " + ex.getMessage();
+            } else {
+                errMsg = ex.getMessage();
+            }
+            stateListener.onError(errMsg);
+        }
         // Wait a while and reconnect
         if (mustReconnectOnClose()) {
             setState(State.WAIT_CONNECT);
@@ -790,9 +852,10 @@ public abstract class WebSocketHandler implements Runnable {
 
     /**
      * Create empty exchange object. Each handler should know which exchange it
-     * is targetting.
+     * is targeting.
      *
      * @return
      */
     protected abstract Exchange createExchange();
+
 }

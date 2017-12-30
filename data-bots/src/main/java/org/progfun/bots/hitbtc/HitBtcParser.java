@@ -5,8 +5,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.progfun.Decimal;
 import org.progfun.Market;
-import org.progfun.websocket.Action;
 import org.progfun.websocket.Parser;
+import org.progfun.websocket.ParserResponse;
 
 /**
  * Parser for HitBTC exchange API messages
@@ -15,7 +15,7 @@ import org.progfun.websocket.Parser;
 public class HitBtcParser extends Parser {
 
     @Override
-    public Action parseMessage(String message) {
+    public ParserResponse parseMessage(String message) {
         JSONObject msg = new JSONObject(message);
         try {
             // TODO - find the right market, based in session ID

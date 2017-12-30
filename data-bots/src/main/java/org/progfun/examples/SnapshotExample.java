@@ -67,8 +67,7 @@ public class SnapshotExample {
             Logger.log("Press Enter to quit");
             System.in.read(); // Wait for <Enter>
 
-            Logger.log("Shutting down Handler and connection...");
-            handler.scheduleShutdown();
+            handler.scheduleShutdown("Shutting down Handler and connection...");
         } catch (IOException ex) {
             Logger.log("Error while waiting for Enter key: " + ex.getMessage());
         }

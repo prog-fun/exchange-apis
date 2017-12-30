@@ -44,8 +44,7 @@ public class CrawlerExample {
             System.out.println("Press Enter to quit");
             System.in.read(); // Wait for <Enter>
 
-            Logger.log("Shutting down Handler and connection...");
-            handler.scheduleShutdown();
+            handler.scheduleShutdown("Shutting down Handler and connection...");
         } catch (InvalidFormatException ex) {
             System.out.println("Invlid currency pair: " + ex.getMessage());
         } catch (IOException ex) {

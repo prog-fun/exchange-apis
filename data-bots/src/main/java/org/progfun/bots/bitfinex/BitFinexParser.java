@@ -12,6 +12,7 @@ import org.progfun.Subscription;
 import org.progfun.trade.Trade;
 import org.progfun.websocket.Action;
 import org.progfun.websocket.Parser;
+import org.progfun.websocket.ParserResponse;
 
 /**
  *
@@ -27,7 +28,7 @@ public class BitFinexParser extends Parser {
     private static final int EXPECTED_VERSION = 2;
 
     @Override
-    public Action parseMessage(String message) {
+    public ParserResponse parseMessage(String message) {
         // We don't know whether we will receive a JSON Object or JSON array
         // Try one first, if it fails, try another. JSONArray is more likely,
         // we try it first
@@ -82,7 +83,7 @@ public class BitFinexParser extends Parser {
      * @param data
      * @return
      */
-    private Action parseDataMessage(int channelId, JSONArray data) {
+    private ParserResponse parseDataMessage(int channelId, JSONArray data) {
         Subscription subscription = subscriptions.getActive("" + channelId);
         if (subscription == null) {
             return shutDownAction("Wrong channel ID for data update: "
@@ -90,8 +91,7 @@ public class BitFinexParser extends Parser {
         }
         Market market = subscription.getMarket();
         if (market == null) {
-            Logger.log("Trying to parse snapshot without market!");
-            return Action.SHUTDOWN;
+            return shutDownAction("Trying to parse snapshot without market!");
         }
 
         // Check if we got snapshot or update
@@ -123,7 +123,7 @@ public class BitFinexParser extends Parser {
         }
     }
 
-    private Action parseEvent(JSONObject event) {
+    private ParserResponse parseEvent(JSONObject event) {
         String eventType = event.getString("event");
         if (eventType != null) {
             switch (eventType) {
@@ -148,7 +148,7 @@ public class BitFinexParser extends Parser {
      * @param event
      * @return
      */
-    private Action parseInfo(JSONObject event) {
+    private ParserResponse parseInfo(JSONObject event) {
         Logger.log("Info message received: " + event);
         if (event.has("version")) {
             int v = event.getInt("version");
@@ -159,13 +159,13 @@ public class BitFinexParser extends Parser {
                 return shutDownAction("Wrong version, not supported!");
             }
         } else if (isReconnectRequest(event)) {
-            return Action.RECONNECT;
+            return new ParserResponse(Action.RECONNECT, "Reconnect requested by remote API");
         } else {
             return shutDownAction("Did not know how to react on info message, shutting down");
         }
     }
 
-    private Action parseSubscriptionResponse(JSONObject msg) {
+    private ParserResponse parseSubscriptionResponse(JSONObject msg) {
         if (subscriptions == null) {
             return shutDownAction("Error: received subscription response "
                     + "but subscriptions not set in BitFinexParser!");
@@ -202,10 +202,10 @@ public class BitFinexParser extends Parser {
         }
 
         // Tell the Handler that we are ready to process next subscription
-        return Action.SUBSCRIBE;
+        return new ParserResponse(Action.SUBSCRIBE, "Subscription successful");
     }
 
-    private Action parseOrderSnapshot(Market market, JSONArray data) {
+    private ParserResponse parseOrderSnapshot(Market market, JSONArray data) {
         if (data.length() < 1) {
             return shutDownAction("Wrong snapshot received: " + data);
         }
@@ -217,9 +217,9 @@ public class BitFinexParser extends Parser {
         try {
             for (int i = 0; i < data.length(); ++i) {
                 JSONArray values = data.getJSONArray(i);
-                Action a = parseOrderUpdate(market, values);
-                if (a != null) {
-                    return a;
+                ParserResponse resp = parseOrderUpdate(market, values);
+                if (resp != null) {
+                    return resp;
                 }
             }
         } catch (JSONException ex) {
@@ -236,7 +236,7 @@ public class BitFinexParser extends Parser {
      * @param values
      * @return
      */
-    private Action parseOrderUpdate(Market market, JSONArray values) {
+    private ParserResponse parseOrderUpdate(Market market, JSONArray values) {
         try {
             Decimal price = new Decimal(values.getDouble(0));
             int count = values.getInt(1);
@@ -275,7 +275,7 @@ public class BitFinexParser extends Parser {
      * @param data JSON array containing the items
      * @return
      */
-    private Action parseTradeSnapshot(Market market, JSONArray data) {
+    private ParserResponse parseTradeSnapshot(Market market, JSONArray data) {
         if (data.length() < 1) {
             return shutDownAction("Wrong snapshot received: " + data);
         }
@@ -287,9 +287,9 @@ public class BitFinexParser extends Parser {
         try {
             for (int i = 0; i < data.length(); ++i) {
                 JSONArray values = data.getJSONArray(i);
-                Action a = parseTrade(market, values);
-                if (a != null) {
-                    return a;
+                ParserResponse resp = parseTrade(market, values);
+                if (resp != null) {
+                    return resp;
                 }
             }
         } catch (JSONException ex) {
@@ -305,7 +305,7 @@ public class BitFinexParser extends Parser {
      * @param values
      * @return 
      */
-    private Action parseTrade(Market market, JSONArray values) {
+    private ParserResponse parseTrade(Market market, JSONArray values) {
         try {
             int tradeId = values.getInt(0);
             long timestampMs = values.getLong(1);
@@ -334,21 +334,10 @@ public class BitFinexParser extends Parser {
     /**
      * Heart-beat message received from the server
      */
-    private Action heartbeatReceived() {
+    private ParserResponse heartbeatReceived() {
         // TODO - Reset alarm timer
         Logger.log("Heartbeat received");
         return null;
-    }
-
-    /**
-     * Log an error message and return action asking to shut down
-     *
-     * @param errMsg
-     * @return
-     */
-    private Action shutDownAction(String errMsg) {
-        Logger.log(errMsg);
-        return Action.SHUTDOWN;
     }
 
     /**

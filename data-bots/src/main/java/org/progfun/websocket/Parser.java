@@ -2,6 +2,7 @@ package org.progfun.websocket;
 
 import org.progfun.Channel;
 import org.progfun.Exchange;
+import org.progfun.Logger;
 import org.progfun.Subscriptions;
 
 /**
@@ -39,6 +40,17 @@ public abstract class Parser {
     }
 
     /**
+     * Log an error message and return action asking to shut down
+     *
+     * @param errMsg
+     * @return
+     */
+    protected ParserResponse shutDownAction(String errMsg) {
+        Logger.log(errMsg);
+        return new ParserResponse(Action.SHUTDOWN, errMsg);
+    }
+    
+    /**
      * This method is called by a connector when a message arrives. It may be
      * called on another thread.
      *
@@ -47,5 +59,5 @@ public abstract class Parser {
      * received message. This interface allows parser to notify that a reconnect
      * is needed, etc. When no action is needed, return null.
      */
-    public abstract Action parseMessage(String message);
+    public abstract ParserResponse parseMessage(String message);
 }
