@@ -30,4 +30,11 @@ public interface SocketStateListener {
      * handler is completely ready (Bid wall is stable)
      */
     public void onReady();
+
+    /**
+     * Error occurred
+     *
+     * @param reason readable reason for the error
+     */
+    public void onError(String reason);
 }

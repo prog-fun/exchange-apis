@@ -1,5 +1,6 @@
 package org.progfun.websocket;
 
+import java.net.UnknownHostException;
 import org.java_websocket.handshake.ServerHandshake;
 import org.progfun.CurrencyPair;
 import org.progfun.Exchange;
@@ -40,6 +41,9 @@ public abstract class WebSocketHandler implements Runnable {
 
     // Subscription which is currently in processing
     private Subscription currentSubscription;
+
+    // How long to sleep before connecting
+    private long connSleep = 0;
 
     /**
      * Set listener for socket state changes (connected, disconnected, etc)
@@ -89,13 +93,8 @@ public abstract class WebSocketHandler implements Runnable {
             return;
         }
 
-        if (timeout > 0) {
-            try {
-                Thread.sleep(timeout);
-            } catch (InterruptedException ex) {
-                Logger.log("Someone interrupted sleeping");
-            }
-        }
+        // Sleeping will happen in the Handler thread
+        connSleep = timeout;
 
         setState(State.CONNECT_SCHEDULED);
         scheduleAction(Action.CONNECT);
@@ -152,6 +151,7 @@ public abstract class WebSocketHandler implements Runnable {
             Logger.log("Executing action " + a);
             switch (a) {
                 case CONNECT:
+                    sleepBeforeConnect();
                     connectNow();
                     break;
                 case START:
@@ -244,6 +244,21 @@ public abstract class WebSocketHandler implements Runnable {
     private synchronized void scheduleAction(Action action) {
         scheduledAction = action;
         notifyAll();
+    }
+
+    /**
+     * Sleep before connection
+     */
+    private void sleepBeforeConnect() {
+        if (connSleep > 0) {
+            try {
+                Logger.log("Sleeping before connection...");
+                Thread.sleep(connSleep);
+            } catch (InterruptedException ex) {
+                Logger.log("Sleep before connection interrupted");
+            }
+            connSleep = 0;
+        }
     }
 
     /**
@@ -473,7 +488,6 @@ public abstract class WebSocketHandler implements Runnable {
 
         // Dispose parser to avoid it getting the initial messages 
         // after reconnect - old parser may be in wrong state
-        Logger.log("Disposing parser " + parser.hashCode());
         parser = null;
 
         if (stateListener != null) {
@@ -551,6 +565,15 @@ public abstract class WebSocketHandler implements Runnable {
      */
     private void onSocketErr(Exception ex) {
         Logger.log("Handler.onSocketErr: " + ex.getMessage());
+        if (stateListener != null) {
+            String errMsg;
+            if (ex instanceof UnknownHostException) {
+                errMsg = "Can't connect to: " + ex.getMessage();
+            } else {
+                errMsg = ex.getMessage();
+            }
+            stateListener.onError(errMsg);
+        }
         // Wait a while and reconnect
         if (mustReconnectOnClose()) {
             setState(State.WAIT_CONNECT);
@@ -790,9 +813,10 @@ public abstract class WebSocketHandler implements Runnable {
 
     /**
      * Create empty exchange object. Each handler should know which exchange it
-     * is targetting.
+     * is targeting.
      *
      * @return
      */
     protected abstract Exchange createExchange();
+
 }
