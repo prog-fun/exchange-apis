@@ -316,12 +316,12 @@ public class MarketTest {
         Order o = m.getBids().getOrderForPrice(PRICE);
         assertNotNull(o);
         assertEquals(AMOUNT.multiply(new Decimal(2)), o.getAmount());
-        
+
         // Test lock prohibiting to clear data
         m.addTrade(new Trade(new Date(), Decimal.ONE, Decimal.ONE, false));
         m.lockUpdates();
         Runnable r2 = () -> {
-             // Wait for lock to be released
+            // Wait for lock to be released
             m.clearData(false);
         };
         t = new Thread(r2);
@@ -406,21 +406,44 @@ public class MarketTest {
         assertEquals(P4D, prices[2]);
 
     }
-    
+
     @Test
     public void testClear() {
         Market m;
         m = new Market("BTC", "USD");
-        
+
         m.addAsk(Decimal.TEN, Decimal.ONE, 1);
         m.addBid(Decimal.ONE, Decimal.ONE, 1);
-        
+
         assertNotNull(m.getBestAsk());
         assertNotNull(m.getBestBid());
-        
+
         m.clearOrderBook(false);
         assertNull(m.getBestAsk());
         assertNull(m.getBestBid());
+    }
+
+    @Test
+    public void testOrderConsistency() {
+        Market m = new Market("BTC", "USD");
+        assertTrue(m.isOrderBookConsistent());
+        Decimal P1 = new Decimal(100);
+        Decimal P2 = new Decimal(110);
+        Decimal P3 = new Decimal(120);
+        m.addBid(P1, Decimal.ONE, 0);
+        m.addAsk(P2, Decimal.ONE, 0);
+        assertTrue(m.isOrderBookConsistent());
+
+        // Add incorrect bids
+        m.addBid(P3, Decimal.ONE, 0);
+        assertFalse(m.isOrderBookConsistent());
+        m.addBid(P2, Decimal.ONE, 0);
+        assertFalse(m.isOrderBookConsistent());
+
+        Book bids = m.getBids();
+        bids.clear();
+        m.addBid(P2, Decimal.ONE, 0);
+        assertFalse(m.isOrderBookConsistent());
     }
 
 }

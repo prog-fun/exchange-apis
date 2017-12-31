@@ -84,10 +84,11 @@ public class Market {
     public Book getAsks() {
         return asks;
     }
-    
+
     /**
      * Return all currently cached real-time trades
-     * @return 
+     *
+     * @return
      */
     public Iterable<Trade> getTrades() {
         return trades;
@@ -297,7 +298,7 @@ public class Market {
             return false;
         }
     }
-    
+
     /**
      * Remove listener. Return true if it was in the list.
      *
@@ -327,9 +328,28 @@ public class Market {
     }
 
     /**
+     * Returns true if order book seems to be consistent, false if there is an
+     * obvious error (Such as bid price > ask price)
+     *
+     * @return
+     */
+    public boolean isOrderBookConsistent() {
+        Order bb = getBestBid();
+        Order ba = getBestAsk();
+        if (ba != null && bb != null) {
+            if (!bb.getPrice().isSmallerThan(ba.getPrice())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Clear all bids and asks
+     *
      * @param ignoreLocks when true, bypass the modification locks. This is
-     * useful if orderbook must be deleted in the same thread that locked updates,
+     * useful if orderbook must be deleted in the same thread that locked
+     * updates,
      * and we want to make sure that clearing happens before any new trades are
      * added
      */
@@ -362,7 +382,7 @@ public class Market {
         for (TradeListener l : tradeListeners) {
             l.tradeAdded(this, t);
         }
-        
+
         allowUpdates();
     }
 
@@ -377,6 +397,7 @@ public class Market {
 
     /**
      * Delete all trade information
+     *
      * @param ignoreLocks when true, bypass the modification locks. This is
      * useful if trades must be deleted in the same thread that locked updates,
      * and we want to make sure that clearing happens before any new trades are
@@ -398,6 +419,7 @@ public class Market {
 
     /**
      * Delete all data
+     *
      * @param ignoreLocks when true, bypass the modification locks. This is
      * useful if trades must be deleted in the same thread that locked updates,
      * and we want to make sure that clearing happens before any new trades are
