@@ -85,6 +85,7 @@ public class Subscriptions {
      * @return true when ID successfully set, false otherwise
      */
     public boolean setInactiveId(String subsId, Subscription s) {
+        Logger.log("Storing inactive subscription with ID " + subsId);
         if (s != null && inactiveSubs.contains(s)) {
             s.setId(subsId);
             return true;

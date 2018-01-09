@@ -1,5 +1,6 @@
 package org.progfun.bots.hitbtc;
 
+import org.progfun.Channel;
 import org.progfun.CurrencyPair;
 import org.progfun.Exchange;
 import org.progfun.Logger;
@@ -31,20 +32,6 @@ public class HitBtcHandler extends WebSocketHandler {
      */
     @Override
     public void init() {
-        //Creating orderbook data request
-//        String symbol = getSymbol();
-//        if (symbol == null) {
-//            return;
-//        }
-//
-//        JSONObject obj = new JSONObject();
-//        obj.put("method", "subscribeOrderbook");
-//        JSONObject obj2 = new JSONObject();
-//        obj2.put("symbol", symbol);
-//        obj.put("params", obj2);
-//        obj.put("id", "123");
-//        String object = obj.toString();
-//        connector.send(object);
     }
 
     @Override
@@ -64,7 +51,22 @@ public class HitBtcHandler extends WebSocketHandler {
     }
 
     protected boolean subscribeToTrades(Subscription s) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        String symbol = getSymbolForMarket(s.getMarket().getCurrencyPair());
+        if (connector == null || symbol == null) {
+            return false;
+        }
+        // Save subscription so that we can find it later
+        subscriptions.setInactiveId("" + channelId, s);
+        // Send request to API
+        connector.send("{"
+                + "  \"method\": \"subscribeTrades\","
+                + "  \"params\": {"
+                + "    \"symbol\": \"" + symbol + "\""
+                + "  },"
+                + "  \"id\": " + channelId + ""
+                + "}");
+        channelId++;
+        return true;
     }
 
     protected boolean subscribeToOrderbook(Subscription s) {
@@ -72,14 +74,17 @@ public class HitBtcHandler extends WebSocketHandler {
         if (connector == null || symbol == null) {
             return false;
         }
-        connector.send("{\n"
-                + "  \"method\": \"subscribeOrderbook\",\n"
-                + "  \"params\": {\n"
-                + "    \"symbol\": \"" + symbol + "\"\n"
-                + "  },\n"
-                + "  \"id\": " + (channelId++) + "\n"
+        // Save subscription so that we can find it later
+        subscriptions.setInactiveId("" + channelId, s);
+        // Send request to API
+        connector.send("{"
+                + "  \"method\": \"subscribeOrderbook\","
+                + "  \"params\": {"
+                + "    \"symbol\": \"" + symbol + "\""
+                + "  },"
+                + "  \"id\": " + channelId + ""
                 + "}");
-        // TODO - save the channelId somewhere, map to the currency pair
+        channelId++;
         return true;
     }
 
@@ -104,8 +109,7 @@ public class HitBtcHandler extends WebSocketHandler {
         if (cp == null) {
             return null;
         }
-        return cp.getBaseCurrency().toUpperCase()
-                + cp.getQuoteCurrency().toUpperCase();
+        return HitBtcParser.getSymbol(cp.getBaseCurrency(), cp.getQuoteCurrency());
     }
 
 }

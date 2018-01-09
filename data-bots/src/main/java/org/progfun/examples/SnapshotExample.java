@@ -10,6 +10,7 @@ import org.progfun.Subscriptions;
 import org.progfun.bots.bitfinex.BitFinexHandler;
 import org.progfun.bots.gdax.GdaxHandler;
 import org.progfun.bots.gemini.GeminiHandler;
+import org.progfun.bots.hitbtc.HitBtcHandler;
 import org.progfun.websocket.WebSocketHandler;
 
 /**
@@ -27,7 +28,7 @@ public class SnapshotExample {
         // with all the crawlers: Gemini, GDAX, etc
         WebSocketHandler handler;
 //        handler = new GdaxHandler();
-        handler = new BitFinexHandler();
+        handler = new HitBtcHandler();
 //        GeminiHandler handler = new GeminiHandler();
 //        handler.setMainMarket(btcusd);
         handler.setLogging(true);
