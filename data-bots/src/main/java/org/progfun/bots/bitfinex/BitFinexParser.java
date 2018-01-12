@@ -50,13 +50,18 @@ public class BitFinexParser extends Parser {
                     String sv = (String) val;
                     if ("hb".equals(sv)) {
                         return heartbeatReceived();
-                    } else if ("tu".equals(sv) || "te".equals(sv)) {
+                    } else if ("te".equals(sv)) {
                         // Trade updates have a bit different format
                         Object val2 = updateMsg.get(2);
                         if (val2 instanceof JSONArray) {
                             JSONArray data = (JSONArray) val2;
                             return parseDataMessage(channelId, data);
                         }
+                    } else if ("tu".equals(sv)) {
+                        // "tu" is a trade update which historically included 
+                        // some additional information. Now it is just a 
+                        // duplicate of "te" message
+                        return null;
                     }
                 }
             }
@@ -301,9 +306,10 @@ public class BitFinexParser extends Parser {
 
     /**
      * Parse message that contains one update - trade
+     *
      * @param market
      * @param values
-     * @return 
+     * @return
      */
     private ParserResponse parseTrade(Market market, JSONArray values) {
         try {
