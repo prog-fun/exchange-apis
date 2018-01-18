@@ -344,9 +344,10 @@ public abstract class WebSocketHandler implements Runnable {
         }
 
         setState(State.CONNECTING);
-        // Mark all subscriptions as inactive
+        // Mark all subscriptions as inactive and clear market data
         if (subscriptions != null) {
             subscriptions.inactivateAll();
+            subscriptions.clearMarketData();
         }
 
         Logger.log("Starting bot for URL " + url);
@@ -581,15 +582,15 @@ public abstract class WebSocketHandler implements Runnable {
                         scheduleDisconnect();
                         break;
                     case SHUTDOWN:
-                        scheduleShutdown("Critical error from remote API, reason: " 
-                                + resp.getReason() + ", API msg: " 
+                        scheduleShutdown("Critical error from remote API, reason: "
+                                + resp.getReason() + ", API msg: "
                                 + message);
                         break;
                     case SUBSCRIBE:
                         onSubscribed();
                         break;
                     default:
-                        scheduleShutdown("TODO: implement support for action " 
+                        scheduleShutdown("TODO: implement support for action "
                                 + resp.getAction());
                         break;
                 }
@@ -776,6 +777,14 @@ public abstract class WebSocketHandler implements Runnable {
 
         Logger.log("Subscribing to " + s.getChannel() + " for market "
                 + s.getMarket().getCurrencyPair());
+        int existingBids = market.getBids().size();
+        if (existingBids > 0) {
+            // This should never happen: when we (re)subscribe, the market
+            // should have empty data. Otherwise we may run into inconsistent
+            // state with some old bids and duplicate trades
+            scheduleShutdown("Market " + market + " had existing bids when subscription started!");
+            return false;
+        }
         return subscribeToChannel(s);
     }
 

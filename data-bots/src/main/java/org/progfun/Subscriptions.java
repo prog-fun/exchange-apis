@@ -27,9 +27,10 @@ public class Subscriptions {
         addInactive(s);
         return s;
     }
-    
+
     /**
      * Add an inactive subscription
+     *
      * @param s
      * @return true if subscription added, false otherwise
      */
@@ -127,12 +128,31 @@ public class Subscriptions {
      * Mark all subscriptions as inactive
      */
     public void inactivateAll() {
-        for (Subscription s: activeSubs.values()) {
+        for (Subscription s : activeSubs.values()) {
             s.setId(null);
             s.setState(SubsState.INACTIVE);
             addInactive(s);
         }
         activeSubs.clear();
+    }
+
+    /**
+     * Clear data for all markets bound to both active and inactive
+     * subscriptions
+     */
+    public void clearMarketData() {
+        for (Subscription s : activeSubs.values()) {
+            Market m = s.getMarket();
+            if (m != null) {
+                m.clearData(false);
+            }
+        }
+        for (Subscription s : inactiveSubs) {
+            Market m = s.getMarket();
+            if (m != null) {
+                m.clearData(false);
+            }
+        }
     }
 
 }
