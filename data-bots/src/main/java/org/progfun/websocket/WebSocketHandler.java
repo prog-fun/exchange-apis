@@ -2,6 +2,7 @@ package org.progfun.websocket;
 
 import java.net.UnknownHostException;
 import org.java_websocket.handshake.ServerHandshake;
+import org.progfun.Channel;
 import org.progfun.CurrencyPair;
 import org.progfun.Exchange;
 import org.progfun.Logger;
@@ -778,10 +779,14 @@ public abstract class WebSocketHandler implements Runnable {
         Logger.log("Subscribing to " + s.getChannel() + " for market "
                 + s.getMarket().getCurrencyPair());
         int existingBids = market.getBids().size();
-        if (existingBids > 0) {
-            // This should never happen: when we (re)subscribe, the market
+        if (s.getChannel() == Channel.ORDERBOOK && existingBids > 0) {
+            // This should never happen: when we (re)subscribe to orderbook, 
+            // the market
             // should have empty data. Otherwise we may run into inconsistent
-            // state with some old bids and duplicate trades
+            // state with some old bids and duplicate trades.
+            // P.S. We have to check subscription type, because it can happen
+            // That this is a trade subscription and there are bids/asks as
+            // a result of previously started orderbook subscription
             scheduleShutdown("Market " + market + " had existing bids when subscription started!");
             return false;
         }
