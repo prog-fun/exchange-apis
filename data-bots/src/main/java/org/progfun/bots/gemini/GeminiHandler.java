@@ -112,4 +112,14 @@ public class GeminiHandler extends WebSocketHandler {
         return cp.getBaseCurrency().toLowerCase()
                 + cp.getQuoteCurrency().toLowerCase();
     }
+
+    @Override
+    public boolean supportsOrderbook() {
+        return true;
+    }
+
+    @Override
+    public boolean supportsTrades() {
+        return false;
+    }
 }

@@ -103,4 +103,14 @@ public class BitFinexHandler extends WebSocketHandler {
                 + cp.getQuoteCurrency().toUpperCase();
     }
 
+    @Override
+    public boolean supportsOrderbook() {
+        return true;
+    }
+
+    @Override
+    public boolean supportsTrades() {
+        return true;
+    }
+
 }

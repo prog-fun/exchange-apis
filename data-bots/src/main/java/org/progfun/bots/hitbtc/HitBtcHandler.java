@@ -1,6 +1,5 @@
 package org.progfun.bots.hitbtc;
 
-import org.progfun.Channel;
 import org.progfun.CurrencyPair;
 import org.progfun.Exchange;
 import org.progfun.Logger;
@@ -110,6 +109,16 @@ public class HitBtcHandler extends WebSocketHandler {
             return null;
         }
         return HitBtcParser.getSymbol(cp.getBaseCurrency(), cp.getQuoteCurrency());
+    }
+
+    @Override
+    public boolean supportsOrderbook() {
+        return true;
+    }
+
+    @Override
+    public boolean supportsTrades() {
+        return false;
     }
 
 }

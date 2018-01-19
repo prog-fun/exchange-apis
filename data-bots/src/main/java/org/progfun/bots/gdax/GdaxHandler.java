@@ -91,4 +91,14 @@ public class GdaxHandler extends WebSocketHandler {
         return cp.getBaseCurrency().toUpperCase()
                 +  "-" + cp.getQuoteCurrency().toUpperCase();
     }
+
+    @Override
+    public boolean supportsOrderbook() {
+        return true;
+    }
+
+    @Override
+    public boolean supportsTrades() {
+        return false;
+    }
 }

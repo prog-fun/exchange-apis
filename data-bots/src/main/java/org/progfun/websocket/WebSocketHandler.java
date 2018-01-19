@@ -871,5 +871,16 @@ public abstract class WebSocketHandler implements Runnable {
      * @return
      */
     protected abstract Exchange createExchange();
+    
+    /**
+     * Implementing class should return true if orderbook updates are supported
+     * @return 
+     */
+    public abstract boolean supportsOrderbook();
 
+    /**
+     * Implementing class should return true if tradeupdates are supported
+     * @return 
+     */
+    public abstract boolean supportsTrades();
 }
