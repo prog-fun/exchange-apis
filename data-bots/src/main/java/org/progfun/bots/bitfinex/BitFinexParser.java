@@ -248,14 +248,12 @@ public class BitFinexParser extends Parser {
             Decimal amount = new Decimal(values.getDouble(2));
             if (count > 0) {
                 // BitFinex always reports the total updated amount, 
-                // not the difference. Therefore we must first remove the
-                // old order and then add it
+                // not the difference. Therefore we must set the final value, 
+                // not increment
                 if (amount.isPositive()) {
-                    market.removeBid(price);
-                    market.addBid(price, amount, count);
+                    market.addBid(price, amount, count, false);
                 } else if (amount.isNegative()) {
-                    market.removeAsk(price);
-                    market.addAsk(price, amount.negate(), count);
+                    market.addAsk(price, amount.negate(), count, false);
                 }
             } else if (count == 0) {
                 if (amount.equals(Decimal.ONE)) {

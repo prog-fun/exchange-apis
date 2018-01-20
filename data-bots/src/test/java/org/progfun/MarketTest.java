@@ -106,6 +106,81 @@ public class MarketTest {
         assertEquals(ASK_PRICE, a1.getPrice());
     }
 
+    // Test if adding with increment=false works correctly
+    @Test
+    public void testAddNonIncrement() {
+        Market m = null;
+        m = new Market("btc", "usd");
+        final Decimal BID_PRICE = new Decimal(12.72);
+        final Decimal ASK_PRICE = new Decimal(12.72);
+        final Decimal[] BID_AMOUNTS = Decimal.createArray(new double[]{10, 20, 40});
+        final Decimal[] ASK_AMOUNTS = Decimal.createArray(new double[]{100, 200, 400});
+        final int[] BID_COUNTS = {1, 2, 0};
+        final int[] ASK_COUNTS = {20, 5, 3};
+
+        // Add first price
+        m.addBid(BID_PRICE, BID_AMOUNTS[0], BID_COUNTS[0]);
+        m.addAsk(ASK_PRICE, ASK_AMOUNTS[0], ASK_COUNTS[0]);
+        // Check bid
+        Decimal[] bidPrices = m.getBids().getOrderedPrices(false);
+        assertNotNull(bidPrices);
+        assertEquals(1, bidPrices.length);
+        Decimal bp = bidPrices[0];
+        assertTrue(BID_PRICE.equals(bp));
+        Order b1 = m.getBids().getOrderForPrice(bp);
+        assertEquals(new Order(BID_PRICE, BID_AMOUNTS[0], BID_COUNTS[0]), b1);
+        // Check ask
+        Decimal[] askPrices = m.getAsks().getOrderedPrices(true);
+        assertNotNull(askPrices);
+        assertEquals(1, bidPrices.length);
+        Decimal ap = askPrices[0];
+        assertEquals(ASK_PRICE, ap);
+        Order a1 = m.getAsks().getOrderForPrice(ap);
+        assertEquals(new Order(ASK_PRICE, ASK_AMOUNTS[0], ASK_COUNTS[0]), a1);
+        
+        // Add without increment
+        m.addBid(BID_PRICE, BID_AMOUNTS[1], BID_COUNTS[1], false);
+        m.addAsk(ASK_PRICE, ASK_AMOUNTS[1], ASK_COUNTS[1], false);
+        // Check bid
+        bidPrices = m.getBids().getOrderedPrices(false);
+        assertNotNull(bidPrices);
+        assertEquals(1, bidPrices.length);
+        bp = bidPrices[0];
+        assertTrue(BID_PRICE.equals(bp));
+        b1 = m.getBids().getOrderForPrice(bp);
+        assertEquals(new Order(BID_PRICE, BID_AMOUNTS[1], BID_COUNTS[1]), b1);
+        // Check ask
+        askPrices = m.getAsks().getOrderedPrices(true);
+        assertNotNull(askPrices);
+        assertEquals(1, bidPrices.length);
+        ap = askPrices[0];
+        assertEquals(ASK_PRICE, ap);
+        a1 = m.getAsks().getOrderForPrice(ap);
+        assertEquals(new Order(ASK_PRICE, ASK_AMOUNTS[1], ASK_COUNTS[1]), a1);
+        
+        // Add with increment
+        m.addBid(BID_PRICE, BID_AMOUNTS[2], BID_COUNTS[2], true);
+        m.addAsk(ASK_PRICE, ASK_AMOUNTS[2], ASK_COUNTS[2], true);
+        // Check bid
+        bidPrices = m.getBids().getOrderedPrices(false);
+        assertNotNull(bidPrices);
+        assertEquals(1, bidPrices.length);
+        bp = bidPrices[0];
+        assertTrue(BID_PRICE.equals(bp));
+        b1 = m.getBids().getOrderForPrice(bp);
+        assertEquals(new Order(BID_PRICE, BID_AMOUNTS[1].add(BID_AMOUNTS[2]), 
+                BID_COUNTS[1] + BID_COUNTS[2]), b1);
+        // Check ask
+        askPrices = m.getAsks().getOrderedPrices(true);
+        assertNotNull(askPrices);
+        assertEquals(1, bidPrices.length);
+        ap = askPrices[0];
+        assertEquals(ASK_PRICE, ap);
+        a1 = m.getAsks().getOrderForPrice(ap);
+        assertEquals(new Order(ASK_PRICE, ASK_AMOUNTS[1].add(ASK_AMOUNTS[2]), 
+                ASK_COUNTS[1] + ASK_COUNTS[2]), a1);
+    }
+
     // Test if prices are ordered in correct sequence
     @Test
     public void testOrdering() {

@@ -19,6 +19,10 @@ public class Book implements Iterable<Order> {
      * be negative - meaning that the order has shrunk in size.
      *
      * @param order the new order to add to the book
+     * @param increment when this is true, the amount and order will be treated
+     * as increment if an order for that price already exists. When false,
+     * these values will be seen as "new values" and instead of increment will
+     * be used as replacement for old values.
      * @return if this was a new order for the specific price, return null; if
      * an order with that price was already registered and is now updated,
      * return order with updated amount and count; If amount becomes negative,
@@ -26,7 +30,7 @@ public class Book implements Iterable<Order> {
      * amount=0, count=0 is returned If count becomes negative, count is reset
      * to null if order == null return null
      */
-    public Order add(Order order) {
+    public Order add(Order order, boolean increment) {
         if (order == null) {
             return null;
         }
@@ -37,8 +41,15 @@ public class Book implements Iterable<Order> {
             orders.put(order.getPrice(), order);
             return null;
         } else {
-            // Existing order, update amount and count
-            o.increase(order.getAmount(), order.getCount());
+            // Existing order
+            if (increment) {
+                // increment amount and count
+                o.increase(order.getAmount(), order.getCount());
+            } else {
+                // replace the amount and count
+                o.setAmount(order.getAmount());
+                o.setCount(order.getCount());
+            }
             // Check if amount became zero, then we remove the order
             if (!o.getAmount().isPositive()) {
                 orders.remove(o.getPrice());
@@ -49,6 +60,17 @@ public class Book implements Iterable<Order> {
         }
     }
 
+    /**
+     * Wrapper for add(), with increment=true
+     * See documentation of add(increment)
+     * @param order
+     * @return 
+     */
+    public Order add(Order order) {
+        return add(order, true);
+    }
+    
+    
     /**
      * Remove an order with a specific price
      *
@@ -64,7 +86,7 @@ public class Book implements Iterable<Order> {
     public void clear() {
         orders.clear();
     }
-    
+
     /**
      * Return number of orders - the different price levels in the book.
      *
@@ -108,7 +130,7 @@ public class Book implements Iterable<Order> {
     public Order getOrderForPrice(String price) {
         return getOrderForPrice(new Decimal(price));
     }
-    
+
     /**
      * Return a copy of the orders, limited by price
      *
@@ -137,7 +159,7 @@ public class Book implements Iterable<Order> {
                 // Threshold reached
                 break;
             }
-            b.add(orders.get(price));
+            b.add(orders.get(price), false);
         }
 
         return b;
@@ -163,6 +185,7 @@ public class Book implements Iterable<Order> {
     /**
      * Implement our own equality function: two books are equal as long
      * as all their orders are equal
+     *
      * @param obj
      * @return true if books equal, false if some orders differ, or comparing
      * to a non-Book object
@@ -177,11 +200,11 @@ public class Book implements Iterable<Order> {
         if (b1.size() != this.size()) {
             return false;
         }
-        
+
         if (this.size() == 0) {
             return true;
         }
-        
+
         Decimal[] p1 = b1.getOrderedPrices(true);
         Decimal[] p2 = this.getOrderedPrices(true);
         // Prices may have "some fluctuation", compare with care
@@ -200,10 +223,11 @@ public class Book implements Iterable<Order> {
         }
         return true;
     }
-    
+
     /**
      * Print meaningful book representation
-     * @return 
+     *
+     * @return
      */
     @Override
     public String toString() {
@@ -220,9 +244,10 @@ public class Book implements Iterable<Order> {
 
     /**
      * Get the first order
+     *
      * @param ascending when true - return order with the lowest price,
      * otherwise return order with the highest price
-     * @return 
+     * @return
      */
     public Order getFirstOrder(boolean ascending) {
         if (orders.isEmpty()) {

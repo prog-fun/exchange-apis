@@ -126,14 +126,19 @@ public class Market {
      * @param amount how much of the base currency buyer wants to buy
      * @param orderCount how many orders have been aggregated in this bid. Use
      * zero if count is not known.
+     * @param increment when this is true, the amount and order will be treated
+     * as increment if an order for that price already exists. When false,
+     * these values will be seen as "new values" and instead of increment will
+     * be used as replacement for old values.
      */
-    public void addBid(Decimal price, Decimal amount, int orderCount) {
+    public void addBid(Decimal price, Decimal amount, int orderCount, 
+            boolean increment) {
         if (!lockUpdates()) {
             return;
         }
 
         Order bid = new Order(price, amount, orderCount);
-        Order updatedBid = bids.add(bid);
+        Order updatedBid = bids.add(bid, increment);
         // Notify listeners about changes
         for (OrderbookListener l : bookListeners) {
             if (updatedBid != null) {
@@ -154,16 +159,40 @@ public class Market {
     }
 
     /**
+     * Wrapper for addBid with with increment=true
+     *
+     * @param price
+     * @param amount
+     * @param orderCount
+     */
+    public void addBid(Decimal price, Decimal amount, int orderCount) {
+        addBid(price, amount, orderCount, true);
+    }
+    
+    /**
      * Wrapper for addBid with Decimal parameters
+     *
+     * @param price
+     * @param amount
+     * @param orderCount
+     * @param increment 
+     */
+    public void addBid(String price, String amount, int orderCount, 
+            boolean increment) {
+        addBid(new Decimal(price), new Decimal(amount), orderCount, increment);
+    }
+
+    /**
+     * Wrapper for addBid with Decimal parameters, with increment=true
      *
      * @param price
      * @param amount
      * @param orderCount
      */
     public void addBid(String price, String amount, int orderCount) {
-        addBid(new Decimal(price), new Decimal(amount), orderCount);
+        addBid(new Decimal(price), new Decimal(amount), orderCount, true);
     }
-
+    
     /**
      * Add a new ask. If an ask with that price is already registered, the
      * amount and orderCount will be added to it.
@@ -172,14 +201,19 @@ public class Market {
      * @param amount how much of the base currency seller wants to sell
      * @param orderCount how many orders have been aggregated in this ask Use
      * zero if count is not known.
+     * @param increment when this is true, the amount and order will be treated
+     * as increment if an order for that price already exists. When false,
+     * these values will be seen as "new values" and instead of increment will
+     * be used as replacement for old values.
      */
-    public void addAsk(Decimal price, Decimal amount, int orderCount) {
+    public void addAsk(Decimal price, Decimal amount, int orderCount,
+            boolean increment) {
         if (!lockUpdates()) {
             return;
         }
 
         Order ask = new Order(price, amount, orderCount);
-        Order updatedAsk = asks.add(ask);
+        Order updatedAsk = asks.add(ask, increment);
         // Notify listeners about changes
         for (OrderbookListener l : bookListeners) {
             if (updatedAsk != null) {
@@ -199,16 +233,39 @@ public class Market {
     }
 
     /**
+     * Wrapper for addAsk with increment=true
+     *
+     * @param price
+     * @param amount
+     * @param orderCount
+     */
+    public void addAsk(Decimal price, Decimal amount, int orderCount) {
+        addAsk(price, amount, orderCount, true);
+    }
+
+    /**
      * Wrapper for addAsk with Decimal parameters
+     *
+     * @param price
+     * @param amount
+     * @param orderCount
+     * @param increment
+     */
+    public void addAsk(String price, String amount, int orderCount, boolean increment) {
+        addAsk(new Decimal(price), new Decimal(amount), orderCount, increment);
+    }
+
+    /**
+     * Wrapper for addAsk with Decimal parameters, increment=true
      *
      * @param price
      * @param amount
      * @param orderCount
      */
     public void addAsk(String price, String amount, int orderCount) {
-        addAsk(new Decimal(price), new Decimal(amount), orderCount);
+        addAsk(new Decimal(price), new Decimal(amount), orderCount, true);
     }
-
+    
     /**
      * Remove a bid - all the orders at specific price
      *

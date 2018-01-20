@@ -71,7 +71,9 @@ public class HitBtcParser extends Parser {
                 if (askSize.isZero()) {
                     market.removeAsk(askPrice);
                 } else {
-                    market.addAsk(askPrice, askSize, 0);
+                    // HitBTC always reports the final value, not difference,
+                    // therefore we should not increment
+                    market.addAsk(askPrice, askSize, 0, false);
                 }
             }
 
@@ -85,7 +87,9 @@ public class HitBtcParser extends Parser {
                 if (bidSize.isZero()) {
                     market.removeBid(bidPrice);
                 } else {
-                    market.addBid(bidPrice, bidSize, 0);
+                    // HitBTC always reports the final value, not difference,
+                    // therefore we should not increment
+                    market.addBid(bidPrice, bidSize, 0, false);
                 }
             }
         }
