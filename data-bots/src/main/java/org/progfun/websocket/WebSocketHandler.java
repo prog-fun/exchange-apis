@@ -858,13 +858,6 @@ public abstract class WebSocketHandler implements Runnable {
     protected abstract boolean subscribeToChannel(Subscription s);
 
     /**
-     * Return a symbol as used in the exchange for the particular arket
-     *
-     * @return
-     */
-    public abstract String getSymbolForMarket(CurrencyPair currencyPair);
-
-    /**
      * Create empty exchange object. Each handler should know which exchange it
      * is targeting.
      *

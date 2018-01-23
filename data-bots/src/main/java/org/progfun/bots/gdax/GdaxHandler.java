@@ -57,7 +57,8 @@ public class GdaxHandler extends WebSocketHandler {
         if (connector == null || market == null) {
             return false;
         }
-        String symbol = getSymbolForMarket(market.getCurrencyPair());
+        // Note: GDAX markets should have dash in symbol, such as BTC-USD!
+        String symbol = market.getSymbol();
         if (symbol == null) {
             return false;
         }
@@ -81,15 +82,6 @@ public class GdaxHandler extends WebSocketHandler {
                         + s.getChannel() + " not supported!");
                 return false;
         }
-    }
-
-    @Override
-    public String getSymbolForMarket(CurrencyPair cp) {
-        if (cp == null) {
-            return null;
-        }
-        return cp.getBaseCurrency().toUpperCase()
-                +  "-" + cp.getQuoteCurrency().toUpperCase();
     }
 
     @Override

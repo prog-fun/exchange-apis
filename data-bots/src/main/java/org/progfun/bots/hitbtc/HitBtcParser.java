@@ -122,7 +122,7 @@ public class HitBtcParser extends Parser {
                     // Activate the subscription, store the new ID
                     Market m = s.getMarket();
                     // BTCUSD, etc
-                    String symbol = getSymbol(m.getBaseCurrency(), m.getQuoteCurrency());
+                    String symbol = m.getSymbol();
                     String subsId = getActiveSubscriptionId(symbol, s.getChannel());
                     subscriptions.activate(subsId, s);
                 } else {
@@ -160,20 +160,6 @@ public class HitBtcParser extends Parser {
             return shutDownAction("Error in HitBTC error parsing:"
                     + ex.getMessage());
         }
-    }
-
-    /**
-     * Return symbol for currency pair, as used in API messages
-     *
-     * @param baseCurrency
-     * @param quoteCurrency
-     * @return
-     */
-    public static String getSymbol(String baseCurrency, String quoteCurrency) {
-        if (baseCurrency == null || quoteCurrency == null) {
-            return null;
-        }
-        return baseCurrency.toUpperCase() + quoteCurrency.toUpperCase();
     }
 
     /**

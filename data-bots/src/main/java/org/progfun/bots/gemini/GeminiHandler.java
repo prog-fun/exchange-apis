@@ -1,6 +1,5 @@
 package org.progfun.bots.gemini;
 
-import org.progfun.CurrencyPair;
 import org.progfun.Exchange;
 import org.progfun.Logger;
 import org.progfun.Market;
@@ -33,7 +32,7 @@ public class GeminiHandler extends WebSocketHandler {
         if (mainMarket == null) {
             return null;
         }
-        return API_URL_BASE + getSymbolForMarket(mainMarket.getCurrencyPair());
+        return API_URL_BASE + mainMarket.getSymbol();
     }
 
     @Override
@@ -102,15 +101,6 @@ public class GeminiHandler extends WebSocketHandler {
         // No additional messages must be sent, WebSocket is subscribed by default
         // TODO - somehow notify that subscription is active
         return isMarketOk(s.getMarket());
-    }
-
-    @Override
-    public String getSymbolForMarket(CurrencyPair cp) {
-        if (cp == null) {
-            return null;
-        }
-        return cp.getBaseCurrency().toLowerCase()
-                + cp.getQuoteCurrency().toLowerCase();
     }
 
     @Override

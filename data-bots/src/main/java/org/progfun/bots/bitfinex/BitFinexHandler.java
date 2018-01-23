@@ -59,7 +59,7 @@ public class BitFinexHandler extends WebSocketHandler {
             return false;
         }
 
-        String symbol = getSymbolForMarket(s.getMarket().getCurrencyPair());
+        String symbol = s.getMarket().getSymbol();
         if (connector == null || symbol == null) {
             return false;
         }
@@ -92,15 +92,6 @@ public class BitFinexHandler extends WebSocketHandler {
         subscriptions.setInactiveId(subsId, s);
         return true;
 
-    }
-
-    @Override
-    public String getSymbolForMarket(CurrencyPair cp) {
-        if (cp == null) {
-            return null;
-        }
-        return cp.getBaseCurrency().toUpperCase()
-                + cp.getQuoteCurrency().toUpperCase();
     }
 
     @Override

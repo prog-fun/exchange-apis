@@ -25,6 +25,7 @@ import org.progfun.trade.TradeListener;
 public class Market {
 
     private final CurrencyPair currencyPair;
+    private String symbol;
 
     private final Book bids = new Book();
     private final Book asks = new Book();
@@ -49,6 +50,24 @@ public class Market {
      */
     public Market(String baseCurrency, String quoteCurrency) throws InvalidFormatException {
         this(new CurrencyPair(baseCurrency, quoteCurrency));
+    }
+
+    /**
+     * Get the market symbol, as used by exchange API (such as "BTC/USD")
+     *
+     * @return
+     */
+    public String getSymbol() {
+        // Calculate it if symbol is empty
+        if (symbol != null) {
+            return symbol;
+        } else {
+            return currencyPair.getBaseCurrency() + currencyPair.getQuoteCurrency();
+        }
+    }
+
+    public void setSymbol(String symbol) {
+        this.symbol = symbol;
     }
 
     /**

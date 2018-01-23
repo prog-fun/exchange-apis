@@ -1,6 +1,5 @@
 package org.progfun.bots.hitbtc;
 
-import org.progfun.CurrencyPair;
 import org.progfun.Exchange;
 import org.progfun.Logger;
 import org.progfun.Subscription;
@@ -50,7 +49,7 @@ public class HitBtcHandler extends WebSocketHandler {
     }
 
     protected boolean subscribeToTrades(Subscription s) {
-        String symbol = getSymbolForMarket(s.getMarket().getCurrencyPair());
+        String symbol = s.getMarket().getSymbol();
         if (connector == null || symbol == null) {
             return false;
         }
@@ -69,7 +68,7 @@ public class HitBtcHandler extends WebSocketHandler {
     }
 
     protected boolean subscribeToOrderbook(Subscription s) {
-        String symbol = getSymbolForMarket(s.getMarket().getCurrencyPair());
+        String symbol = s.getMarket().getSymbol();
         if (connector == null || symbol == null) {
             return false;
         }
@@ -101,14 +100,6 @@ public class HitBtcHandler extends WebSocketHandler {
                         + s.getChannel() + " not supported!");
                 return false;
         }
-    }
-
-    @Override
-    public String getSymbolForMarket(CurrencyPair cp) {
-        if (cp == null) {
-            return null;
-        }
-        return HitBtcParser.getSymbol(cp.getBaseCurrency(), cp.getQuoteCurrency());
     }
 
     @Override

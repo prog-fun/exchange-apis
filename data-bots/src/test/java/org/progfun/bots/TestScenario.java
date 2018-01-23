@@ -190,7 +190,7 @@ public class TestScenario {
             // TODO - allow to specify subscriptions in test scenario files
             for (Market m : exchange.getMarkets()) {
                 Subscription s = subs.addInactive(m, Channel.ORDERBOOK);
-                String symbol = handler.getSymbolForMarket(m.getCurrencyPair());
+                String symbol = m.getSymbol();
                 String subsId = Parser.getInactiveSubsSymbol(symbol, Channel.ORDERBOOK);
                 subs.setInactiveId(subsId, s);
             }
