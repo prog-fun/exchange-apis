@@ -340,7 +340,7 @@ public class BitFinexParser extends Parser {
      */
     private ParserResponse heartbeatReceived() {
         // TODO - Reset alarm timer
-        Logger.log("Heartbeat received");
+        // Logger.log("Heartbeat received");
         return null;
     }
 
