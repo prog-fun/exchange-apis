@@ -13,7 +13,8 @@ public class Subscription {
 
     /**
      * Get unique ID for this subscription
-     * @return 
+     *
+     * @return
      */
     public String getId() {
         return id;
@@ -21,7 +22,8 @@ public class Subscription {
 
     /**
      * Set a unique ID for this subscription
-     * @param id 
+     *
+     * @param id
      */
     public void setId(String id) {
         this.id = id;
@@ -52,4 +54,11 @@ public class Subscription {
     public void setState(SubsState state) {
         this.state = state;
     }
+
+    @Override
+    public String toString() {
+        return "Subscription{" + "market=" + market + ", channel=" + channel 
+                + ", state=" + state + ", id=" + id + '}';
+    }
+
 }
