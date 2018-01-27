@@ -179,6 +179,14 @@ public class MarketTest {
         a1 = m.getAsks().getOrderForPrice(ap);
         assertEquals(new Order(ASK_PRICE, ASK_AMOUNTS[1].add(ASK_AMOUNTS[2]), 
                 ASK_COUNTS[1] + ASK_COUNTS[2]), a1);
+        
+        // Add without increment, order should disappear
+        m.addBid(BID_PRICE, Decimal.ZERO, 0, false);
+        m.addAsk(ASK_PRICE, Decimal.ZERO, 0, false);
+        bidPrices = m.getBids().getOrderedPrices(false);
+        askPrices = m.getAsks().getOrderedPrices(true);
+        assertEquals(0, bidPrices.length);
+        assertEquals(0, askPrices.length);
     }
 
     // Test if prices are ordered in correct sequence
@@ -361,7 +369,7 @@ public class MarketTest {
     @Test
     public void testLocking() throws InterruptedException {
         Market m = new Market("BTC", "USD");
-        m.lockUpdates();
+        m.lockAccess();
         final Decimal AMOUNT = Decimal.TEN;
         final Decimal PRICE = new Decimal(15);
         // Try to update the market in another thread
@@ -376,7 +384,7 @@ public class MarketTest {
         Thread.sleep(200);
 
         assertEquals(0, m.getBids().size());
-        m.allowUpdates();
+        m.allowAccess();
 
         // Wait a while, let the other thread to update the market
         Thread.sleep(200);
@@ -394,7 +402,7 @@ public class MarketTest {
 
         // Test lock prohibiting to clear data
         m.addTrade(new Trade(new Date(), Decimal.ONE, Decimal.ONE, false));
-        m.lockUpdates();
+        m.lockAccess();
         Runnable r2 = () -> {
             // Wait for lock to be released
             m.clearData(false);
@@ -404,12 +412,10 @@ public class MarketTest {
         Thread.sleep(200);
         assertEquals(1, m.getBids().size());
         assertEquals(1, m.getTradeCount());
-        m.allowUpdates();
+        m.allowAccess();
         Thread.sleep(200);
         assertEquals(0, m.getBids().size());
         assertEquals(0, m.getTradeCount());
-        m.allowUpdates();
-
     }
 
     /**

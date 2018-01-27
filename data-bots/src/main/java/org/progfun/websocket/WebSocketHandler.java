@@ -3,7 +3,6 @@ package org.progfun.websocket;
 import java.net.UnknownHostException;
 import org.java_websocket.handshake.ServerHandshake;
 import org.progfun.Channel;
-import org.progfun.CurrencyPair;
 import org.progfun.Exchange;
 import org.progfun.Logger;
 import org.progfun.Market;

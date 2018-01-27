@@ -18,6 +18,8 @@ public class Book implements Iterable<Order> {
      * registered, the amount and orderCount will be added to it. The amount can
      * be negative - meaning that the order has shrunk in size.
      *
+     * Warning: if you try to add an order with zero amount, it will succeed!
+     *
      * @param order the new order to add to the book
      * @param increment when this is true, the amount and order will be treated
      * as increment if an order for that price already exists. When false,
@@ -63,14 +65,14 @@ public class Book implements Iterable<Order> {
     /**
      * Wrapper for add(), with increment=true
      * See documentation of add(increment)
+     *
      * @param order
-     * @return 
+     * @return
      */
     public Order add(Order order) {
         return add(order, true);
     }
-    
-    
+
     /**
      * Remove an order with a specific price
      *
