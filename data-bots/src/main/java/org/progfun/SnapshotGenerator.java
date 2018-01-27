@@ -60,13 +60,13 @@ public class SnapshotGenerator {
             return;
         }
         // Disable updates while listeners process the snapshot
-        exchange.lockUpdates();
+        exchange.lockAccess();
         listener.onSnapshot(exchange);
         if (deleteTrades) {
             // Delete all trades
             exchange.clearTrades(true);
         }
-        exchange.allowUpdates();
+        exchange.allowAccess();
     }
 
     /**

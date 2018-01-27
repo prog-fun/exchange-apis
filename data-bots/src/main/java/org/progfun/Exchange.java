@@ -3,6 +3,7 @@ package org.progfun;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Represents one financial instrument exchange, such as GDAX, Bitfinex, etc.
@@ -11,6 +12,10 @@ public class Exchange {
 
     private final HashMap<CurrencyPair, Market> markets = new HashMap<>();
     private String symbol;
+
+    // We use lock to synchronize access
+    // Semaphore did not work, it was not re-entrant.
+    private final ReentrantLock lock = new ReentrantLock();
 
     /**
      * Set symbol identifying the exchange
@@ -127,6 +132,7 @@ public class Exchange {
 
     /**
      * Clear all data from the exchange
+     *
      * @param ignoreLocks when true, bypass the modification locks. This is
      * useful if trades must be deleted in the same thread that locked updates,
      * and we want to make sure that clearing happens before any new trades are
@@ -140,20 +146,28 @@ public class Exchange {
 
     /**
      * Lock updates for all markets
+     *
+     * @return true on success, false otherwise
      */
-    public void lockUpdates() {
+    public boolean lockAccess() {
+        // Lock access to the whole exchange
+        lock.lock();
+
         for (Market m : markets.values()) {
-            m.lockUpdates();
+            m.lockAccess();
         }
+        return true;
     }
 
     /**
      * Allow updates for all markets
      */
-    public void allowUpdates() {
+    public void allowAccess() {
         for (Market m : markets.values()) {
-            m.allowUpdates();
+            m.allowAccess();
         }
+        // Release access to the whole exchange
+        lock.unlock();
     }
 
     /**

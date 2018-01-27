@@ -3,7 +3,7 @@ package org.progfun;
 import org.progfun.trade.Trade;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.progfun.orderbook.Book;
 import org.progfun.orderbook.Order;
@@ -35,8 +35,11 @@ public class Market {
     private final List<OrderbookListener> bookListeners = new ArrayList<>();
     private final List<TradeListener> tradeListeners = new ArrayList<>();
 
-    // We use semaphore to lock updates while a snapshot is processed
-    private final Semaphore mutex = new Semaphore(1);
+    // We use lock to synchronize access to Market
+    // Semaphore did not work, it was not re-entrant. We want that call to
+    // lock() agaid from the same thread would succeed, because sometimes
+    // the same thread tries to lock the same market several times
+    private final ReentrantLock lock = new ReentrantLock();
 
     /**
      * Create a new market, convert the currencies to upper-case. Throws
@@ -150,9 +153,9 @@ public class Market {
      * these values will be seen as "new values" and instead of increment will
      * be used as replacement for old values.
      */
-    public void addBid(Decimal price, Decimal amount, int orderCount, 
+    public void addBid(Decimal price, Decimal amount, int orderCount,
             boolean increment) {
-        if (!lockUpdates()) {
+        if (!lockAccess()) {
             return;
         }
 
@@ -174,7 +177,7 @@ public class Market {
             }
         }
 
-        allowUpdates();
+        allowAccess();
     }
 
     /**
@@ -187,16 +190,16 @@ public class Market {
     public void addBid(Decimal price, Decimal amount, int orderCount) {
         addBid(price, amount, orderCount, true);
     }
-    
+
     /**
      * Wrapper for addBid with Decimal parameters
      *
      * @param price
      * @param amount
      * @param orderCount
-     * @param increment 
+     * @param increment
      */
-    public void addBid(String price, String amount, int orderCount, 
+    public void addBid(String price, String amount, int orderCount,
             boolean increment) {
         addBid(new Decimal(price), new Decimal(amount), orderCount, increment);
     }
@@ -211,7 +214,7 @@ public class Market {
     public void addBid(String price, String amount, int orderCount) {
         addBid(new Decimal(price), new Decimal(amount), orderCount, true);
     }
-    
+
     /**
      * Add a new ask. If an ask with that price is already registered, the
      * amount and orderCount will be added to it.
@@ -227,7 +230,7 @@ public class Market {
      */
     public void addAsk(Decimal price, Decimal amount, int orderCount,
             boolean increment) {
-        if (!lockUpdates()) {
+        if (!lockAccess()) {
             return;
         }
 
@@ -248,7 +251,7 @@ public class Market {
             }
         }
 
-        allowUpdates();
+        allowAccess();
     }
 
     /**
@@ -284,14 +287,14 @@ public class Market {
     public void addAsk(String price, String amount, int orderCount) {
         addAsk(new Decimal(price), new Decimal(amount), orderCount, true);
     }
-    
+
     /**
      * Remove a bid - all the orders at specific price
      *
      * @param price
      */
     public void removeBid(Decimal price) {
-        if (!lockUpdates()) {
+        if (!lockAccess()) {
             return;
         }
 
@@ -301,7 +304,7 @@ public class Market {
             l.bidRemoved(this, price);
         }
 
-        allowUpdates();
+        allowAccess();
     }
 
     /**
@@ -310,7 +313,7 @@ public class Market {
      * @param price
      */
     public void removeAsk(Decimal price) {
-        if (!lockUpdates()) {
+        if (!lockAccess()) {
             return;
         }
 
@@ -320,7 +323,7 @@ public class Market {
             l.askRemoved(this, price);
         }
 
-        allowUpdates();
+        allowAccess();
     }
 
     /**
@@ -329,20 +332,16 @@ public class Market {
      *
      * @return true on success, false if interrupted
      */
-    public boolean lockUpdates() {
-        try {
-            mutex.acquire();
-            return true;
-        } catch (InterruptedException ex) {
-            return false;
-        }
+    public boolean lockAccess() {
+        lock.lock();
+        return true;
     }
 
     /**
      * Allow updates again
      */
-    public void allowUpdates() {
-        mutex.release();
+    public void allowAccess() {
+        lock.unlock();
     }
 
     /**
@@ -431,7 +430,7 @@ public class Market {
      */
     public void clearOrderBook(boolean ignoreLocks) {
         if (!ignoreLocks) {
-            if (!lockUpdates()) {
+            if (!lockAccess()) {
                 return;
             }
         }
@@ -439,7 +438,7 @@ public class Market {
         bids.clear();
         asks.clear();
 
-        allowUpdates();
+        allowAccess();
     }
 
     /**
@@ -448,7 +447,7 @@ public class Market {
      * @param t
      */
     public void addTrade(Trade t) {
-        if (!lockUpdates()) {
+        if (!lockAccess()) {
             return;
         }
 
@@ -459,7 +458,7 @@ public class Market {
             l.tradeAdded(this, t);
         }
 
-        allowUpdates();
+        allowAccess();
     }
 
     /**
@@ -481,7 +480,7 @@ public class Market {
      */
     public void clearTrades(boolean ignoreLocks) {
         if (!ignoreLocks) {
-            if (!lockUpdates()) {
+            if (!lockAccess()) {
                 return;
             }
         }
@@ -489,7 +488,7 @@ public class Market {
         trades.clear();
 
         if (!ignoreLocks) {
-            allowUpdates();
+            allowAccess();
         }
     }
 
@@ -506,4 +505,10 @@ public class Market {
         clearTrades(ignoreLocks);
         clearOrderBook(ignoreLocks);
     }
+
+    @Override
+    public String toString() {
+        return "Market " + currencyPair;
+    }
+
 }

@@ -61,6 +61,16 @@ public class Subscriptions {
     }
 
     /**
+     * Get a list of all inactive subscriptions. Warning: you should not modify
+     * this list, as it may change the state of this object!
+     *
+     * @return
+     */
+    public List<Subscription> getAllInactive() {
+        return inactiveSubs;
+    }
+
+    /**
      * Register that a subscription is active, and assign a unique ID to it.
      * Later the ID can be used to find the subscription again.
      *
