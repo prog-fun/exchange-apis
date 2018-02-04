@@ -12,7 +12,7 @@ import org.progfun.Subscription;
 import org.progfun.trade.Trade;
 import org.progfun.websocket.Action;
 import org.progfun.websocket.Parser;
-import org.progfun.websocket.ParserResponse;
+import org.progfun.websocket.Event;
 
 /**
  *
@@ -28,7 +28,7 @@ public class BitFinexParser extends Parser {
     private static final int EXPECTED_VERSION = 2;
 
     @Override
-    public ParserResponse parseMessage(String message) {
+    public Event parseMessage(String message) {
         // We don't know whether we will receive a JSON Object or JSON array
         // Try one first, if it fails, try another. JSONArray is more likely,
         // we try it first
@@ -88,7 +88,7 @@ public class BitFinexParser extends Parser {
      * @param data
      * @return
      */
-    private ParserResponse parseDataMessage(int channelId, JSONArray data) {
+    private Event parseDataMessage(int channelId, JSONArray data) {
         Subscription subscription = subscriptions.getActive("" + channelId);
         if (subscription == null) {
             return shutDownAction("Wrong channel ID for data update: "
@@ -128,7 +128,7 @@ public class BitFinexParser extends Parser {
         }
     }
 
-    private ParserResponse parseEvent(JSONObject event) {
+    private Event parseEvent(JSONObject event) {
         String eventType = event.getString("event");
         if (eventType != null) {
             switch (eventType) {
@@ -153,7 +153,7 @@ public class BitFinexParser extends Parser {
      * @param event
      * @return
      */
-    private ParserResponse parseInfo(JSONObject event) {
+    private Event parseInfo(JSONObject event) {
         Logger.log("Info message received: " + event);
         if (event.has("version")) {
             int v = event.getInt("version");
@@ -164,13 +164,13 @@ public class BitFinexParser extends Parser {
                 return shutDownAction("Wrong version, not supported!");
             }
         } else if (isReconnectRequest(event)) {
-            return new ParserResponse(Action.RECONNECT, "Reconnect requested by remote API");
+            return new Event(Action.RECONNECT, null, "Reconnect requested by remote API");
         } else {
             return shutDownAction("Did not know how to react on info message, shutting down");
         }
     }
 
-    private ParserResponse parseSubscriptionResponse(JSONObject msg) {
+    private Event parseSubscriptionResponse(JSONObject msg) {
         if (subscriptions == null) {
             return shutDownAction("Error: received subscription response "
                     + "but subscriptions not set in BitFinexParser!");
@@ -207,22 +207,22 @@ public class BitFinexParser extends Parser {
         }
 
         // Tell the Handler that we are ready to process next subscription
-        return new ParserResponse(Action.SUBSCRIBE, "Subscription successful");
+        return new Event(Action.SUBSCRIBE, s, "Subscription successful");
     }
 
-    private ParserResponse parseOrderSnapshot(Market market, JSONArray data) {
+    private Event parseOrderSnapshot(Market market, JSONArray data) {
         if (data.length() < 1) {
             return shutDownAction("Wrong snapshot received: " + data);
         }
 
         // Clear previous orders, start fresh
-        market.clearOrderBook(false);
+        market.clearOrderBook();
 
         // Snapshot is an array of updates
         try {
             for (int i = 0; i < data.length(); ++i) {
                 JSONArray values = data.getJSONArray(i);
-                ParserResponse resp = parseOrderUpdate(market, values);
+                Event resp = parseOrderUpdate(market, values);
                 if (resp != null) {
                     return resp;
                 }
@@ -241,7 +241,7 @@ public class BitFinexParser extends Parser {
      * @param values
      * @return
      */
-    private ParserResponse parseOrderUpdate(Market market, JSONArray values) {
+    private Event parseOrderUpdate(Market market, JSONArray values) {
         try {
             Decimal price = new Decimal(values.getDouble(0));
             int count = values.getInt(1);
@@ -278,19 +278,19 @@ public class BitFinexParser extends Parser {
      * @param data JSON array containing the items
      * @return
      */
-    private ParserResponse parseTradeSnapshot(Market market, JSONArray data) {
+    private Event parseTradeSnapshot(Market market, JSONArray data) {
         if (data.length() < 1) {
             return shutDownAction("Wrong snapshot received: " + data);
         }
 
         // Clear previous trades, start fresh
-        market.clearTrades(false);
+        market.clearTrades();
 
         // Snapshot is an array of updates
         try {
             for (int i = 0; i < data.length(); ++i) {
                 JSONArray values = data.getJSONArray(i);
-                ParserResponse resp = parseTrade(market, values);
+                Event resp = parseTrade(market, values);
                 if (resp != null) {
                     return resp;
                 }
@@ -309,7 +309,7 @@ public class BitFinexParser extends Parser {
      * @param values
      * @return
      */
-    private ParserResponse parseTrade(Market market, JSONArray values) {
+    private Event parseTrade(Market market, JSONArray values) {
         try {
             int tradeId = values.getInt(0);
             long timestampMs = values.getLong(1);
@@ -338,7 +338,7 @@ public class BitFinexParser extends Parser {
     /**
      * Heart-beat message received from the server
      */
-    private ParserResponse heartbeatReceived() {
+    private Event heartbeatReceived() {
         // TODO - Reset alarm timer
         // Logger.log("Heartbeat received");
         return null;

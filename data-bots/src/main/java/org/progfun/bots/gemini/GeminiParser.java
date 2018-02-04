@@ -6,7 +6,7 @@ import org.json.JSONObject;
 import org.progfun.Decimal;
 import org.progfun.Market;
 import org.progfun.websocket.Parser;
-import org.progfun.websocket.ParserResponse;
+import org.progfun.websocket.Event;
 
 /**
  * Parses JSON updates from Gemini API
@@ -15,7 +15,7 @@ public class GeminiParser extends Parser {
     private Market market;
     
     @Override
-    public ParserResponse parseMessage(String message) {
+    public Event parseMessage(String message) {
         if (exchange == null) {
             return shutDownAction("Gemini msg received without exchange, ignoring");
         }
@@ -36,7 +36,7 @@ public class GeminiParser extends Parser {
                 for (Object eo : events) {
                     if (eo instanceof JSONObject) {
                         JSONObject event = (JSONObject) eo;
-                        ParserResponse resp = parseUpdateEvent(event);
+                        Event resp = parseUpdateEvent(event);
                         if (resp != null) {
                             // If some action was needed as a result of parsing
                             // the event message, return it and skip parsing the rest
@@ -58,7 +58,7 @@ public class GeminiParser extends Parser {
      *
      * @param event
      */
-    private ParserResponse parseUpdateEvent(JSONObject event) {
+    private Event parseUpdateEvent(JSONObject event) {
         try {
             String type = event.getString("type");
             if (type.equals("change")) {
@@ -76,7 +76,7 @@ public class GeminiParser extends Parser {
      * Parse changes in 
      * @param event 
      */
-    private ParserResponse parseOrderBookChange(JSONObject event) {
+    private Event parseOrderBookChange(JSONObject event) {
         Decimal price = new Decimal(event.getString("price"));
         boolean isBid = event.getString("side").equals("bid");
         String rs = event.getString("remaining");
@@ -99,7 +99,7 @@ public class GeminiParser extends Parser {
         return null;
     }
 
-    private ParserResponse parseTradeEvent(JSONObject event) {
+    private Event parseTradeEvent(JSONObject event) {
         return shutDownAction("Gemini Trade parsing not supported yet");
     }
 }

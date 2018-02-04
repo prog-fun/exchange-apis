@@ -34,7 +34,7 @@ public class TradeCrawlerExample {
             handler.subscribe(subs);
             handler.setVerbose(false);
             m.addTradeListener((Market market, Trade trade) -> {
-                System.out.println("Added trade: " + trade.toString());
+                Logger.log("Added trade: " + trade.toString());
             });
             
             Thread handlerThread = new Thread(handler);

@@ -1,6 +1,7 @@
 package org.progfun.websocket;
 
 import java.net.UnknownHostException;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import org.java_websocket.handshake.ServerHandshake;
 import org.progfun.Channel;
 import org.progfun.Exchange;
@@ -26,8 +27,9 @@ public abstract class WebSocketHandler implements Runnable {
     // Current state of the Handler
     private State currentState = State.DISCONNECTED;
 
-    // An action that is scheduled to be executed in the main Handler thread
-    private Action scheduledAction = null;
+    // A queue that contains events that are scheduled for execution on the main thread
+    private final ConcurrentLinkedQueue<Event> eventQueue
+            = new ConcurrentLinkedQueue<>();
 
     private boolean verbose = false; // When true, print more output
 
@@ -144,7 +146,6 @@ public abstract class WebSocketHandler implements Runnable {
      */
     @Override
     public void run() {
-        Action a;
         boolean mustRun = true;
 
         // Set name for this thread, used for debugging
@@ -152,24 +153,16 @@ public abstract class WebSocketHandler implements Runnable {
 
         while (mustRun) {
 
-            synchronized (this) {
-                try {
-                    wait();
-                } catch (InterruptedException ex) {
-                    Logger.log("Stopping Handler - got interrupted");
-                    mustRun = false;
-                }
+            // Get the next event to process, block (sleep) while there are no evente
+            Event e = getNextEvent();
+            if (e == null) {
+                Logger.log("Error: null event received!");
+                break;
             }
-
-            a = getScheduledAction();
-
-            // Allow next action to be queued
-            clearScheduledAction();
 
             // State changes must be checked within the methods, not here
             // Process the action
-            Logger.log("Executing action " + a);
-            switch (a) {
+            switch (e.getType()) {
                 case CONNECT:
                     sleepBeforeConnect();
                     connectNow();
@@ -195,6 +188,14 @@ public abstract class WebSocketHandler implements Runnable {
                 case TERMINATE:
                     // Exit immediately
                     mustRun = false;
+                    break;
+                case PARSE_MSG:
+                    String msg = (String) e.getData();
+                    parseApiMsg(msg);
+                    break;
+                case EXECUTE_METHOD:
+                    Runnable executor = (Runnable) e.getData();
+                    executor.run();
                     break;
             }
 
@@ -263,14 +264,24 @@ public abstract class WebSocketHandler implements Runnable {
     }
 
     /**
-     * Schedule an action to be performed in the main Handler thread. This
+     * Schedule an event to be parsed in the main Handler thread. The main
+     * thread is expected to be sleeping, therefore we wake it up
+     *
+     * @param action
+     */
+    private synchronized void scheduleEvent(Event event) {
+        eventQueue.offer(event);
+        notifyAll();
+    }
+
+    /**
+     * Schedule an event to be parsed in the main Handler thread. The main
      * thread is expected to be sleeping, therefore we wake it up
      *
      * @param action
      */
     private synchronized void scheduleAction(Action action) {
-        scheduledAction = action;
-        notifyAll();
+        scheduleEvent(new Event(action, null, null));
     }
 
     /**
@@ -539,11 +550,22 @@ public abstract class WebSocketHandler implements Runnable {
     }
 
     /**
-     * Message received from the socket
+     * A message received from the socket. This is called on a child thread!
      *
      * @param message
      */
     private void onSocketMsg(String message) {
+        // The message must be parsed on the main thread, schedule it
+        scheduleEvent(new Event(Action.PARSE_MSG, message, null));
+    }
+
+    /**
+     * Message received from the socket, parse it. This function should run on
+     * the main Handler thread!
+     *
+     * @param message
+     */
+    private void parseApiMsg(String message) {
         if (verbose) {
             Logger.log("API: " + message);
         }
@@ -571,10 +593,10 @@ public abstract class WebSocketHandler implements Runnable {
         }
 
         if (parser != null) {
-            ParserResponse resp = parser.parseMessage(message);
+            Event resp = parser.parseMessage(message);
             if (resp != null) {
                 Logger.log("Parser response: " + resp);
-                switch (resp.getAction()) {
+                switch (resp.getType()) {
                     case RECONNECT:
                         scheduleReconnect();
                         break;
@@ -583,7 +605,7 @@ public abstract class WebSocketHandler implements Runnable {
                         break;
                     case SHUTDOWN:
                         scheduleShutdown("Critical error from remote API, reason: "
-                                + resp.getReason() + ", API msg: "
+                                + resp.getMessage() + ", API msg: "
                                 + message);
                         break;
                     case SUBSCRIBE:
@@ -591,7 +613,7 @@ public abstract class WebSocketHandler implements Runnable {
                         break;
                     default:
                         scheduleShutdown("TODO: implement support for action "
-                                + resp.getAction());
+                                + resp.getType());
                         break;
                 }
             }
@@ -622,19 +644,25 @@ public abstract class WebSocketHandler implements Runnable {
     }
 
     /**
-     * Get an action that is scheduled to be executed in the main Handler thread
+     * Get an action that is scheduled to be executed in the main Handler
+     * thread.
+     * Method blocks (using wait()) until an event is available.
      *
-     * @return scheduled action or null if nothing is scheduled
+     * @return scheduled event (could be null if thread sleep/wait is
+     * interrupted)
      */
-    private synchronized Action getScheduledAction() {
-        return scheduledAction;
-    }
-
-    /**
-     * Mark current scheduled action as done
-     */
-    private synchronized void clearScheduledAction() {
-        scheduledAction = null;
+    private synchronized Event getNextEvent() {
+        Event e = eventQueue.poll();
+        while (e == null) {
+            try {
+                wait();
+            } catch (InterruptedException ex) {
+                Logger.log("getNextEvent interrupted");
+                return null;
+            }
+            e = eventQueue.poll();
+        }
+        return e;
     }
 
     /**
@@ -863,16 +891,28 @@ public abstract class WebSocketHandler implements Runnable {
      * @return
      */
     protected abstract Exchange createExchange();
-    
+
     /**
      * Implementing class should return true if orderbook updates are supported
-     * @return 
+     *
+     * @return
      */
     public abstract boolean supportsOrderbook();
 
     /**
-     * Implementing class should return true if tradeupdates are supported
-     * @return 
+     * Implementing class should return true if trade updates are supported
+     *
+     * @return
      */
     public abstract boolean supportsTrades();
+
+    /**
+     * Schedule execution of a specific method on the main Handler thread
+     *
+     * @param executor
+     */
+    public void scheduleExecution(Runnable executor) {
+        scheduleEvent(new Event(Action.EXECUTE_METHOD, executor, null));
+    }
+
 }

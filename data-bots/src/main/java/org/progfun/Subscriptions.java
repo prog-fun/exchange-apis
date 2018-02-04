@@ -154,13 +154,13 @@ public class Subscriptions {
         for (Subscription s : activeSubs.values()) {
             Market m = s.getMarket();
             if (m != null) {
-                m.clearData(false);
+                m.clearData();
             }
         }
         for (Subscription s : inactiveSubs) {
             Market m = s.getMarket();
             if (m != null) {
-                m.clearData(false);
+                m.clearData();
             }
         }
     }

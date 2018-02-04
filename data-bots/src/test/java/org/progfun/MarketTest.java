@@ -1,13 +1,11 @@
 package org.progfun;
 
-import java.util.Date;
 import org.junit.Test;
 import org.progfun.orderbook.Book;
 import org.progfun.orderbook.Order;
 
 import static org.junit.Assert.*;
 import org.progfun.orderbook.OrderbookListener;
-import org.progfun.trade.Trade;
 
 public class MarketTest {
 
@@ -137,7 +135,7 @@ public class MarketTest {
         assertEquals(ASK_PRICE, ap);
         Order a1 = m.getAsks().getOrderForPrice(ap);
         assertEquals(new Order(ASK_PRICE, ASK_AMOUNTS[0], ASK_COUNTS[0]), a1);
-        
+
         // Add without increment
         m.addBid(BID_PRICE, BID_AMOUNTS[1], BID_COUNTS[1], false);
         m.addAsk(ASK_PRICE, ASK_AMOUNTS[1], ASK_COUNTS[1], false);
@@ -157,7 +155,7 @@ public class MarketTest {
         assertEquals(ASK_PRICE, ap);
         a1 = m.getAsks().getOrderForPrice(ap);
         assertEquals(new Order(ASK_PRICE, ASK_AMOUNTS[1], ASK_COUNTS[1]), a1);
-        
+
         // Add with increment
         m.addBid(BID_PRICE, BID_AMOUNTS[2], BID_COUNTS[2], true);
         m.addAsk(ASK_PRICE, ASK_AMOUNTS[2], ASK_COUNTS[2], true);
@@ -168,7 +166,7 @@ public class MarketTest {
         bp = bidPrices[0];
         assertTrue(BID_PRICE.equals(bp));
         b1 = m.getBids().getOrderForPrice(bp);
-        assertEquals(new Order(BID_PRICE, BID_AMOUNTS[1].add(BID_AMOUNTS[2]), 
+        assertEquals(new Order(BID_PRICE, BID_AMOUNTS[1].add(BID_AMOUNTS[2]),
                 BID_COUNTS[1] + BID_COUNTS[2]), b1);
         // Check ask
         askPrices = m.getAsks().getOrderedPrices(true);
@@ -177,9 +175,9 @@ public class MarketTest {
         ap = askPrices[0];
         assertEquals(ASK_PRICE, ap);
         a1 = m.getAsks().getOrderForPrice(ap);
-        assertEquals(new Order(ASK_PRICE, ASK_AMOUNTS[1].add(ASK_AMOUNTS[2]), 
+        assertEquals(new Order(ASK_PRICE, ASK_AMOUNTS[1].add(ASK_AMOUNTS[2]),
                 ASK_COUNTS[1] + ASK_COUNTS[2]), a1);
-        
+
         // Add without increment, order should disappear
         m.addBid(BID_PRICE, Decimal.ZERO, 0, false);
         m.addAsk(ASK_PRICE, Decimal.ZERO, 0, false);
@@ -361,64 +359,6 @@ public class MarketTest {
     }
 
     /**
-     * Test if locking works properly
-     *
-     * @throws org.progfun.InvalidFormatException never actually throws it
-     * @throws java.lang.InterruptedException
-     */
-    @Test
-    public void testLocking() throws InterruptedException {
-        Market m = new Market("BTC", "USD");
-        m.lockAccess();
-        final Decimal AMOUNT = Decimal.TEN;
-        final Decimal PRICE = new Decimal(15);
-        // Try to update the market in another thread
-        Runnable r = () -> {
-            m.addBid(PRICE, AMOUNT, 1);
-        };
-        Thread t;
-        t = new Thread(r);
-        t.start();
-
-        // Wait a while, let the other thread ty to update the market
-        Thread.sleep(200);
-
-        assertEquals(0, m.getBids().size());
-        m.allowAccess();
-
-        // Wait a while, let the other thread to update the market
-        Thread.sleep(200);
-        assertEquals(1, m.getBids().size());
-
-        // Now update the bids without locking - it should update the same bid, 
-        // just increase amount
-        t = new Thread(r);
-        t.start();
-        Thread.sleep(200);
-        assertEquals(1, m.getBids().size());
-        Order o = m.getBids().getOrderForPrice(PRICE);
-        assertNotNull(o);
-        assertEquals(AMOUNT.multiply(new Decimal(2)), o.getAmount());
-
-        // Test lock prohibiting to clear data
-        m.addTrade(new Trade(new Date(), Decimal.ONE, Decimal.ONE, false));
-        m.lockAccess();
-        Runnable r2 = () -> {
-            // Wait for lock to be released
-            m.clearData(false);
-        };
-        t = new Thread(r2);
-        t.start();
-        Thread.sleep(200);
-        assertEquals(1, m.getBids().size());
-        assertEquals(1, m.getTradeCount());
-        m.allowAccess();
-        Thread.sleep(200);
-        assertEquals(0, m.getBids().size());
-        assertEquals(0, m.getTradeCount());
-    }
-
-    /**
      * Test if order limiting by price works
      *
      * @throws org.progfun.InvalidFormatException never throws it
@@ -499,7 +439,7 @@ public class MarketTest {
         assertNotNull(m.getBestAsk());
         assertNotNull(m.getBestBid());
 
-        m.clearOrderBook(false);
+        m.clearOrderBook();
         assertNull(m.getBestAsk());
         assertNull(m.getBestBid());
     }

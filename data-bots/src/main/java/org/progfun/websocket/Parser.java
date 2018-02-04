@@ -45,9 +45,9 @@ public abstract class Parser {
      * @param errMsg
      * @return
      */
-    protected ParserResponse shutDownAction(String errMsg) {
+    protected Event shutDownAction(String errMsg) {
         Logger.log(errMsg);
-        return new ParserResponse(Action.SHUTDOWN, errMsg);
+        return new Event(Action.SHUTDOWN, null, errMsg);
     }
     
     /**
@@ -59,5 +59,5 @@ public abstract class Parser {
      * received message. This interface allows parser to notify that a reconnect
      * is needed, etc. When no action is needed, return null.
      */
-    public abstract ParserResponse parseMessage(String message);
+    public abstract Event parseMessage(String message);
 }

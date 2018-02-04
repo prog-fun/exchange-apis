@@ -3,7 +3,6 @@ package org.progfun;
 import org.progfun.trade.Trade;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.progfun.orderbook.Book;
 import org.progfun.orderbook.Order;
@@ -21,6 +20,8 @@ import org.progfun.trade.TradeListener;
  * we can buy Bitcoin for US Dollars, and then sell the Bitcoin for US Dollars.
  * Bitcoin would be the base currency that we are trading while US Dollar is
  * used as a quote currency.
+ *
+ * The class is NOT Thread safe!
  */
 public class Market {
 
@@ -34,12 +35,6 @@ public class Market {
 
     private final List<OrderbookListener> bookListeners = new ArrayList<>();
     private final List<TradeListener> tradeListeners = new ArrayList<>();
-
-    // We use lock to synchronize access to Market
-    // Semaphore did not work, it was not re-entrant. We want that call to
-    // lock() agaid from the same thread would succeed, because sometimes
-    // the same thread tries to lock the same market several times
-    private final ReentrantLock lock = new ReentrantLock();
 
     /**
      * Create a new market, convert the currencies to upper-case. Throws
@@ -155,10 +150,6 @@ public class Market {
      */
     public void addBid(Decimal price, Decimal amount, int orderCount,
             boolean increment) {
-        if (!lockAccess()) {
-            return;
-        }
-
         Order bid = new Order(price, amount, orderCount);
         Order updatedBid = bids.add(bid, increment);
         // Notify listeners about changes
@@ -176,8 +167,6 @@ public class Market {
                 l.bidAdded(this, bid);
             }
         }
-
-        allowAccess();
     }
 
     /**
@@ -230,10 +219,6 @@ public class Market {
      */
     public void addAsk(Decimal price, Decimal amount, int orderCount,
             boolean increment) {
-        if (!lockAccess()) {
-            return;
-        }
-
         Order ask = new Order(price, amount, orderCount);
         Order updatedAsk = asks.add(ask, increment);
         // Notify listeners about changes
@@ -250,8 +235,6 @@ public class Market {
                 l.askAdded(this, ask);
             }
         }
-
-        allowAccess();
     }
 
     /**
@@ -294,17 +277,11 @@ public class Market {
      * @param price
      */
     public void removeBid(Decimal price) {
-        if (!lockAccess()) {
-            return;
-        }
-
         bids.remove(price);
         // Notify listeners about changes
         for (OrderbookListener l : bookListeners) {
             l.bidRemoved(this, price);
         }
-
-        allowAccess();
     }
 
     /**
@@ -313,35 +290,11 @@ public class Market {
      * @param price
      */
     public void removeAsk(Decimal price) {
-        if (!lockAccess()) {
-            return;
-        }
-
         asks.remove(price);
         // Notify listeners about changes
         for (OrderbookListener l : bookListeners) {
             l.askRemoved(this, price);
         }
-
-        allowAccess();
-    }
-
-    /**
-     * Lock market for updates. May be useful to avoid updates while processing
-     * a snapshot
-     *
-     * @return true on success, false if interrupted
-     */
-    public boolean lockAccess() {
-        lock.lock();
-        return true;
-    }
-
-    /**
-     * Allow updates again
-     */
-    public void allowAccess() {
-        lock.unlock();
     }
 
     /**
@@ -421,24 +374,10 @@ public class Market {
 
     /**
      * Clear all bids and asks
-     *
-     * @param ignoreLocks when true, bypass the modification locks. This is
-     * useful if orderbook must be deleted in the same thread that locked
-     * updates,
-     * and we want to make sure that clearing happens before any new trades are
-     * added
      */
-    public void clearOrderBook(boolean ignoreLocks) {
-        if (!ignoreLocks) {
-            if (!lockAccess()) {
-                return;
-            }
-        }
-
+    public void clearOrderBook() {
         bids.clear();
         asks.clear();
-
-        allowAccess();
     }
 
     /**
@@ -447,18 +386,12 @@ public class Market {
      * @param t
      */
     public void addTrade(Trade t) {
-        if (!lockAccess()) {
-            return;
-        }
-
         trades.add(t);
 
         // Notify listeners about changes
         for (TradeListener l : tradeListeners) {
             l.tradeAdded(this, t);
         }
-
-        allowAccess();
     }
 
     /**
@@ -472,38 +405,18 @@ public class Market {
 
     /**
      * Delete all trade information
-     *
-     * @param ignoreLocks when true, bypass the modification locks. This is
-     * useful if trades must be deleted in the same thread that locked updates,
-     * and we want to make sure that clearing happens before any new trades are
-     * added
      */
-    public void clearTrades(boolean ignoreLocks) {
-        if (!ignoreLocks) {
-            if (!lockAccess()) {
-                return;
-            }
-        }
-
+    public void clearTrades() {
         trades.clear();
-
-        if (!ignoreLocks) {
-            allowAccess();
-        }
     }
 
     /**
      * Delete all data
-     *
-     * @param ignoreLocks when true, bypass the modification locks. This is
-     * useful if trades must be deleted in the same thread that locked updates,
-     * and we want to make sure that clearing happens before any new trades are
-     * added
      */
-    public void clearData(boolean ignoreLocks) {
+    public void clearData() {
         // Update locking should happen inside the method calls
-        clearTrades(ignoreLocks);
-        clearOrderBook(ignoreLocks);
+        clearTrades();
+        clearOrderBook();
     }
 
     @Override

@@ -2,6 +2,7 @@ package org.progfun;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import org.progfun.websocket.WebSocketHandler;
 
 /**
  * Creates periodic snapshots of the market, notifies listeners
@@ -12,14 +13,22 @@ public class SnapshotGenerator {
     private SnapshotListener listener;
     private Timer timer;
     private final boolean deleteTrades;
+    private final WebSocketHandler handler;
+    
+    // Notifier that will execute notification function on the Handler thread
+    private final Runnable notifier = () -> {
+        notifyListener();
+    };
 
     /**
      * Create a new snapshot generator
      *
+     * @param handler associated WebSocket handler
      * @param deleteTrades when true, trades will be cleared after each snapshot
      */
-    public SnapshotGenerator(boolean deleteTrades) {
+    public SnapshotGenerator(WebSocketHandler handler, boolean deleteTrades) {
         this.deleteTrades = deleteTrades;
+        this.handler = handler;
     }
 
     private TimerTask task;
@@ -45,7 +54,8 @@ public class SnapshotGenerator {
         task = new TimerTask() {
             @Override
             public void run() {
-                notifyListener();
+                // We want to handle the notification on the main HandlerThread
+                handler.scheduleExecution(notifier);
             }
         };
         timer.scheduleAtFixedRate(task, interval, interval);
@@ -59,14 +69,11 @@ public class SnapshotGenerator {
         if (exchange == null || listener == null) {
             return;
         }
-        // Disable updates while listeners process the snapshot
-        exchange.lockAccess();
         listener.onSnapshot(exchange);
         if (deleteTrades) {
             // Delete all trades
-            exchange.clearTrades(true);
+            exchange.clearTrades();
         }
-        exchange.allowAccess();
     }
 
     /**

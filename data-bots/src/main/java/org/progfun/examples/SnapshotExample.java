@@ -52,7 +52,7 @@ public class SnapshotExample {
         handler.scheduleConnect(0);
 
         // Print a snapshot every second
-        SnapshotGenerator sg = new SnapshotGenerator(true);
+        SnapshotGenerator sg = new SnapshotGenerator(handler, true);
         Exchange e = handler.getExchange();
         if (e == null) {
             Logger.log("Can't start Snapshot Generator without an exchange!");

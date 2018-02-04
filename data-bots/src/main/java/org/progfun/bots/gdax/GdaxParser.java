@@ -5,7 +5,7 @@ import org.json.JSONObject;
 import org.progfun.Decimal;
 import org.progfun.Market;
 import org.progfun.websocket.Parser;
-import org.progfun.websocket.ParserResponse;
+import org.progfun.websocket.Event;
 
 /**
  * Handles the responses from the GDAX API and fills the orderbook with
@@ -21,7 +21,7 @@ public class GdaxParser extends Parser {
      * @return
      */
     @Override
-    public ParserResponse parseMessage(String message) {
+    public Event parseMessage(String message) {
         // TODO - support multiple currencies
         // TODO - give Action.SUBSCRIBE response when some kind of "subscription done" is received
         if (exchange == null) {

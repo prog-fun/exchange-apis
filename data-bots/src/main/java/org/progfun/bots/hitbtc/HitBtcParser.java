@@ -9,7 +9,7 @@ import org.progfun.Market;
 import org.progfun.Subscription;
 import org.progfun.websocket.Action;
 import org.progfun.websocket.Parser;
-import org.progfun.websocket.ParserResponse;
+import org.progfun.websocket.Event;
 
 /**
  * Parser for HitBTC exchange API messages
@@ -18,7 +18,7 @@ import org.progfun.websocket.ParserResponse;
 public class HitBtcParser extends Parser {
 
     @Override
-    public ParserResponse parseMessage(String message) {
+    public Event parseMessage(String message) {
         JSONObject msg = new JSONObject(message);
         if (msg.has("result")) {
             return parseSubscriptionResult(msg);
@@ -48,7 +48,7 @@ public class HitBtcParser extends Parser {
         return null;
     }
 
-    private ParserResponse parseOderbookUpdate(JSONObject params) {
+    private Event parseOderbookUpdate(JSONObject params) {
         // Find market
         Subscription subscription = null;
         if (params.has("symbol")) {
@@ -96,15 +96,15 @@ public class HitBtcParser extends Parser {
         return null;
     }
 
-    private ParserResponse parseTradeSnapshot(JSONObject params) {
+    private Event parseTradeSnapshot(JSONObject params) {
         return shutDownAction("Trade snapshot parsing not implemented!");
     }
 
-    private ParserResponse parseTradeUpdate(JSONObject params) {
+    private Event parseTradeUpdate(JSONObject params) {
         return shutDownAction("Trade update parsing not implemented!");
     }
 
-    private ParserResponse parseSubscriptionResult(JSONObject msg) {
+    private Event parseSubscriptionResult(JSONObject msg) {
         if (subscriptions == null) {
             return shutDownAction("Error: received subscription response "
                     + "but subscriptions not set in HitBTCParser!");
@@ -131,7 +131,7 @@ public class HitBtcParser extends Parser {
                 }
 
                 // Tell the Handler that we are ready to process next subscription
-                return new ParserResponse(Action.SUBSCRIBE, "Subscription successful");
+                return new Event(Action.SUBSCRIBE, s, "Subscription successful");
             }
         } catch (JSONException ex) {
             return shutDownAction("Error in HitBTC result parsing:"
@@ -139,7 +139,7 @@ public class HitBtcParser extends Parser {
         }
     }
 
-    private ParserResponse parseErrorMsg(JSONObject msg, int id) {
+    private Event parseErrorMsg(JSONObject msg, int id) {
         try {
             JSONObject error = msg.getJSONObject("error");
             int code = error.getInt("code");
@@ -152,7 +152,7 @@ public class HitBtcParser extends Parser {
                     + ": " + errMsg + "; " + description;
             if (notCriticalError(code)) {
                 // We can recover from the error, retry connection
-                return new ParserResponse(Action.RECONNECT, errLog);
+                return new Event(Action.RECONNECT, null, errLog);
             } else {
                 return shutDownAction(errLog);
             }
