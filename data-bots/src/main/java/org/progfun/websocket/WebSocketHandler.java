@@ -415,6 +415,12 @@ public abstract class WebSocketHandler implements Runnable {
      * @return true when subscription was initiated, false otherwise
      */
     private boolean subscribeNext() {
+        if (isShuttingDown() || isReconnecting()) {
+            // Cancel all subscriptions if connection is changing
+            Logger.log("Ignoring subscription, connection is changing");
+            return false;
+        }
+
         // Take the next inactive subscription, subscribe to it
         if (subscriptions == null) {
             Logger.log("No subscriptions defined");
@@ -427,7 +433,9 @@ public abstract class WebSocketHandler implements Runnable {
             if (startSubscription(s)) {
                 // Mark this channel as initiated
                 s.setState(SubsState.INITIATED);
-                setState(State.SUBSCRIBING);
+                if (!isConnectionChanging()) {
+                    setState(State.SUBSCRIBING);
+                }
                 return true;
             }
         } else {
@@ -592,6 +600,11 @@ public abstract class WebSocketHandler implements Runnable {
             }
         }
 
+        if (isConnectionChanging()) {
+            Logger.log("Ignoring API message because shutdown/reconnect in progress");
+            return;
+        }
+
         if (parser != null) {
             Event resp = parser.parseMessage(message);
             if (resp != null) {
@@ -727,6 +740,40 @@ public abstract class WebSocketHandler implements Runnable {
         return valid;
     }
 
+    /**
+     * Return true if the handler is shutting down
+     *
+     * @return
+     */
+    private boolean isShuttingDown() {
+        return currentState == State.DISCONNECTED
+                || currentState == State.DISCONNECTING
+                || currentState == State.DISCONNECT_SCHEDULED
+                || currentState == State.SHUTDOWN_SCHEDULED
+                || currentState == State.SHUTTING_DOWN
+                || currentState == State.TERMINATED;
+    }
+
+    /**
+     * Return true if the handler is reconnecting
+     *
+     * @return
+     */
+    private boolean isReconnecting() {
+        return currentState == State.CONNECTING
+                || currentState == State.CONNECT_SCHEDULED
+                || currentState == State.RECONNECT_SCHEDULED
+                || currentState == State.REC_DISCONNECTING;
+    }
+
+    /**
+     * Return true if connection is changing: reconnecting or shutting down
+     * @return 
+     */
+    private boolean isConnectionChanging() {
+        return isShuttingDown() || isReconnecting();
+    }
+    
     /**
      * Return true if we must reconnect in case connection is closed in the
      * current state
