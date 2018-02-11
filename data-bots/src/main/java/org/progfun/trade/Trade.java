@@ -7,7 +7,7 @@ import org.progfun.Decimal;
  * Represents one historical trade
  */
 public class Trade {
-    private int id;
+    private long id;
     private final Date time;
     private final Decimal price;
     private final Decimal amount;
@@ -31,11 +31,11 @@ public class Trade {
         this.sellSide = sellSide;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
     
