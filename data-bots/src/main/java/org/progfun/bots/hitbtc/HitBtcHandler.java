@@ -109,7 +109,7 @@ public class HitBtcHandler extends WebSocketHandler {
 
     @Override
     public boolean supportsTrades() {
-        return false;
+        return true;
     }
 
 }

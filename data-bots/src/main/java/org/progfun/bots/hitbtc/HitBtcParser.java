@@ -1,5 +1,8 @@
 package org.progfun.bots.hitbtc;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -7,6 +10,7 @@ import org.progfun.Channel;
 import org.progfun.Decimal;
 import org.progfun.Market;
 import org.progfun.Subscription;
+import org.progfun.trade.Trade;
 import org.progfun.websocket.Action;
 import org.progfun.websocket.Parser;
 import org.progfun.websocket.Event;
@@ -16,6 +20,11 @@ import org.progfun.websocket.Event;
  * TODO - this class needs polishing and tests
  */
 public class HitBtcParser extends Parser {
+
+    // Parser of timestamps reported by the API, see 
+    // https://api.hitbtc.com/#datetime-format
+    private static final SimpleDateFormat TIMESTAMP_PARSER
+            = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
 
     @Override
     public Event parseMessage(String message) {
@@ -36,9 +45,9 @@ public class HitBtcParser extends Parser {
                 case "updateOrderbook":
                     return parseOderbookUpdate(params);
                 case "snapshotTrades":
-                    return parseTradeSnapshot(params);
+                    return parseTrades(params);
                 case "updateTrades":
-                    return parseTradeUpdate(params);
+                    return parseTrades(params);
                 default:
                     return shutDownAction("Unknwon response: " + message);
             }
@@ -76,7 +85,6 @@ public class HitBtcParser extends Parser {
                     market.addAsk(askPrice, askSize, 0, false);
                 }
             }
-
         }
         if (params.has("bid")) {
             JSONArray bids = params.getJSONArray("bid");
@@ -96,12 +104,44 @@ public class HitBtcParser extends Parser {
         return null;
     }
 
-    private Event parseTradeSnapshot(JSONObject params) {
-        return shutDownAction("Trade snapshot parsing not implemented!");
-    }
+    private Event parseTrades(JSONObject params) {
+        // Find market
+        Subscription subscription = null;
+        if (params.has("symbol")) {
+            String symbol = params.getString("symbol");
+            String subsId = getActiveSubscriptionId(symbol, Channel.TRADES);
+            subscription = subscriptions.getActive(subsId);
+        }
+        if (subscription == null) {
+            return shutDownAction("Trade snapshot for unknown subscription!");
+        }
+        // TODO - check sequence number, reconnect when gap detected
+        Market market = subscription.getMarket();
 
-    private Event parseTradeUpdate(JSONObject params) {
-        return shutDownAction("Trade update parsing not implemented!");
+        if (params.has("data")) {
+            JSONArray trades = params.getJSONArray("data");
+            for (Object obj : trades) {
+                JSONObject t = (JSONObject) obj;
+                long tradeId = t.getLong("id");
+                Decimal volume = new Decimal(t.getString("quantity"));
+                Decimal price = new Decimal(t.getString("price"));
+                boolean sellSide = "sell".equals(t.getString("side"));
+                Date time;
+                String ts = null;
+                try {
+                    ts = t.getString("timestamp");
+                    time = TIMESTAMP_PARSER.parse(ts);
+                } catch (ParseException ex) {
+                    return shutDownAction("Wrong trade timestamp: " + ts 
+                            + ": " + ex.getMessage());
+                }
+                Trade trade = new Trade(time, price, volume, sellSide);
+                trade.setId(tradeId);
+                market.addTrade(trade);
+            }
+        }
+
+        return null;
     }
 
     private Event parseSubscriptionResult(JSONObject msg) {
