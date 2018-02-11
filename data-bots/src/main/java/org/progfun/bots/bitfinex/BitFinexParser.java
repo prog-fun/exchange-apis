@@ -325,6 +325,7 @@ public class BitFinexParser extends Parser {
             Decimal price = new Decimal(values.getDouble(3));
             Date time = new Date(timestampMs);
             Trade trade = new Trade(time, price, amount, sellSide);
+            trade.setId(tradeId);
             market.addTrade(trade);
 
             return null;
