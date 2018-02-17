@@ -36,6 +36,8 @@ public class Market {
     private final List<OrderbookListener> bookListeners = new ArrayList<>();
     private final List<TradeListener> tradeListeners = new ArrayList<>();
 
+    private final Prices prices = new Prices();
+    
     /**
      * Create a new market, convert the currencies to upper-case. Throws
      * exception if one of currencies is null or empty
@@ -109,6 +111,14 @@ public class Market {
      */
     public Iterable<Trade> getTrades() {
         return trades;
+    }
+    
+    /**
+     * Return the list of price candles
+     * @return 
+     */
+    public Prices getPrices() {
+        return prices;
     }
 
     /**
@@ -404,6 +414,14 @@ public class Market {
     }
 
     /**
+     * Add (or update) a price candle
+     * @param price 
+     */
+    public void addPrice(PriceCandle price) {
+        prices.add(price);
+    }
+    
+    /**
      * Delete all trade information
      */
     public void clearTrades() {
@@ -411,12 +429,20 @@ public class Market {
     }
 
     /**
+     * Delete all price candle information
+     */
+    public void clearPrices() {
+        prices.clear();
+    }
+    
+    /**
      * Delete all data
      */
     public void clearData() {
         // Update locking should happen inside the method calls
         clearTrades();
         clearOrderBook();
+        clearPrices();
     }
 
     @Override

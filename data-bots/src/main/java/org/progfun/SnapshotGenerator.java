@@ -13,8 +13,9 @@ public class SnapshotGenerator {
     private SnapshotListener listener;
     private Timer timer;
     private final boolean deleteTrades;
+    private final boolean deletePrices;
     private final WebSocketHandler handler;
-    
+
     // Notifier that will execute notification function on the Handler thread
     private final Runnable notifier = () -> {
         notifyListener();
@@ -25,10 +26,13 @@ public class SnapshotGenerator {
      *
      * @param handler associated WebSocket handler
      * @param deleteTrades when true, trades will be cleared after each snapshot
+     * @param deletePrices when true, prices will be cleared after each snapshot
      */
-    public SnapshotGenerator(WebSocketHandler handler, boolean deleteTrades) {
+    public SnapshotGenerator(WebSocketHandler handler, boolean deleteTrades,
+            boolean deletePrices) {
         this.deleteTrades = deleteTrades;
         this.handler = handler;
+        this.deletePrices = deletePrices;
     }
 
     private TimerTask task;
@@ -73,6 +77,9 @@ public class SnapshotGenerator {
         if (deleteTrades) {
             // Delete all trades
             exchange.clearTrades();
+        }
+        if (deletePrices) {
+            exchange.clearPrices();
         }
     }
 

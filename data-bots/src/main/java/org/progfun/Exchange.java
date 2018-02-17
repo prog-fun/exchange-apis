@@ -143,4 +143,13 @@ public class Exchange {
             m.clearTrades();
         }
     }
+
+    /**
+     * Delete all prices, in all markets
+     */
+    public void clearPrices() {
+        for (Market m : markets.values()) {
+            m.clearPrices();
+        }
+    }
 }
