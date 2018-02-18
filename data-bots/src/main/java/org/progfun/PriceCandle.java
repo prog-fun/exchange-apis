@@ -112,7 +112,7 @@ public class PriceCandle {
         if (openTime <= 0 || resolution <= 0) {
             return -1;
         }
-        return openTime + resolution * 60; // resolution is in minutes
+        return openTime + resolution * 60000; // resolution is in minutes
     }
 
     @Override

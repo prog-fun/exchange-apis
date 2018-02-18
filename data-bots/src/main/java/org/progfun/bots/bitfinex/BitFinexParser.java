@@ -373,6 +373,7 @@ public class BitFinexParser extends Parser {
         if (data.length() < 1) {
             return shutDownAction("Wrong snapshot received: " + data);
         }
+        Logger.log(data.length() + " prices in snapshot");
 
         // Clear previous prices, start fresh
         market.clearPrices();
