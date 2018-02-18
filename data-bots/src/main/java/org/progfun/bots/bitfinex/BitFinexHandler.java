@@ -1,7 +1,6 @@
 package org.progfun.bots.bitfinex;
 
 import org.progfun.Channel;
-import org.progfun.CurrencyPair;
 import org.progfun.Exchange;
 import org.progfun.Logger;
 import org.progfun.Subscription;
@@ -75,6 +74,10 @@ public class BitFinexHandler extends WebSocketHandler {
             case TRADES:
                 channelName = "trades";
                 break;
+            case PRICES:
+                channelName = "candles";
+                optionalParams = ", \"key\":\"trade:1m:t" + symbol + "\"";
+                break;
             default:
                 Logger.log("Channel "
                         + s.getChannel() + " not supported!");
@@ -101,6 +104,11 @@ public class BitFinexHandler extends WebSocketHandler {
 
     @Override
     public boolean supportsTrades() {
+        return true;
+    }
+
+    @Override
+    public boolean supportsPriceCandles() {
         return true;
     }
 

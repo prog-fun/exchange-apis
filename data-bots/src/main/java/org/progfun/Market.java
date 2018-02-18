@@ -2,6 +2,7 @@ package org.progfun;
 
 import org.progfun.trade.Trade;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.progfun.orderbook.Book;
@@ -109,7 +110,7 @@ public class Market {
      *
      * @return
      */
-    public Iterable<Trade> getTrades() {
+    public Collection<Trade> getTrades() {
         return trades;
     }
     

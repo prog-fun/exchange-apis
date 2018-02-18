@@ -8,6 +8,7 @@ import org.progfun.Channel;
 import org.progfun.Decimal;
 import org.progfun.Logger;
 import org.progfun.Market;
+import org.progfun.PriceCandle;
 import org.progfun.Subscription;
 import org.progfun.trade.Trade;
 import org.progfun.websocket.Action;
@@ -108,8 +109,11 @@ public class BitFinexParser extends Parser {
                         return parseOrderSnapshot(market, data);
                     case TRADES:
                         return parseTradeSnapshot(market, data);
+                    case PRICES:
+                        return parsePriceSnapshot(market, data);
                     default:
-                        return shutDownAction("Snapshot for unsupported channel: "
+                        return shutDownAction(
+                                "Snapshot for unsupported channel: "
                                 + subscription.getChannel());
                 }
             } else {
@@ -118,13 +122,16 @@ public class BitFinexParser extends Parser {
                         return parseOrderUpdate(market, data);
                     case TRADES:
                         return parseTrade(market, data);
+                    case PRICES:
+                        return parsePrice(market, data);
                     default:
                         return shutDownAction("Update for unsupported channel: "
                                 + subscription.getChannel());
                 }
             }
         } else {
-            return shutDownAction("Wrong data message, not enough items: " + data);
+            return shutDownAction("Wrong data message, not enough items: "
+                    + data);
         }
     }
 
@@ -164,9 +171,11 @@ public class BitFinexParser extends Parser {
                 return shutDownAction("Wrong version, not supported!");
             }
         } else if (isReconnectRequest(event)) {
-            return new Event(Action.RECONNECT, null, "Reconnect requested by remote API");
+            return new Event(Action.RECONNECT, null,
+                    "Reconnect requested by remote API");
         } else {
-            return shutDownAction("Did not know how to react on info message, shutting down");
+            return shutDownAction(
+                    "Did not know how to react on info message, shutting down");
         }
     }
 
@@ -186,14 +195,31 @@ public class BitFinexParser extends Parser {
             case "trades":
                 channel = Channel.TRADES;
                 break;
+            case "candles":
+                channel = Channel.PRICES;
+                break;
             default:
                 return shutDownAction("Invalid channel received: " + ch);
         }
 
         // Find the inactive subscription 
-        String symbol = msg.getString("symbol");
+        String symbol;
+        if (channel == Channel.PRICES) {
+            // Candle channel does not include a symbol, rather a key
+            String key = msg.getString("key");
+            // The key is expected to be in the format trades:1m:t<Symbol>
+            if (key != null && key.length() > 10
+                    && key.substring(0, 10).equals("trade:1m:t")) {
+                // We keep the "t", it will be stripped later
+                symbol = key.substring(9);
+            } else {
+                symbol = null;
+            }
+        } else {
+            symbol = msg.getString("symbol");
+        }
         // strip the first "t"
-        if (symbol.length() < 1) {
+        if (symbol == null || symbol.length() < 1) {
             return shutDownAction("Wrong symbol received, msg: " + msg);
         }
         symbol = symbol.substring(1);
@@ -327,6 +353,64 @@ public class BitFinexParser extends Parser {
             Trade trade = new Trade(time, price, amount, sellSide);
             trade.setId(tradeId);
             market.addTrade(trade);
+
+            return null;
+        } catch (JSONException e) {
+            Logger.log("Error while parsing JSON msg: " + values);
+            return shutDownAction("Error in BitFinex update parsing:"
+                    + e.getMessage());
+        }
+    }
+
+    /**
+     * Parse message that contains snapshot of price candles
+     *
+     * @param market
+     * @param data JSON array containing the items
+     * @return
+     */
+    private Event parsePriceSnapshot(Market market, JSONArray data) {
+        if (data.length() < 1) {
+            return shutDownAction("Wrong snapshot received: " + data);
+        }
+
+        // Clear previous prices, start fresh
+        market.clearPrices();
+
+        // Snapshot is an array of updates
+        try {
+            for (int i = 0; i < data.length(); ++i) {
+                JSONArray values = data.getJSONArray(i);
+                Event resp = parsePrice(market, values);
+                if (resp != null) {
+                    return resp;
+                }
+            }
+        } catch (JSONException ex) {
+            return shutDownAction("Error in BitFinex snapshot parsing:"
+                    + ex.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * Parse message that contains one update - price candle
+     *
+     * @param market
+     * @param values
+     * @return
+     */
+    private Event parsePrice(Market market, JSONArray values) {
+        try {
+            long timestampMs = values.getLong(0);
+            Decimal openPrice = new Decimal(values.getDouble(1));
+            Decimal closePrice = new Decimal(values.getDouble(2));
+            Decimal highPrice = new Decimal(values.getDouble(3));
+            Decimal lowPrice = new Decimal(values.getDouble(4));
+            Decimal amount = new Decimal(values.getDouble(5));
+            PriceCandle price = new PriceCandle(timestampMs, openPrice, closePrice,
+                    lowPrice, highPrice, amount, 1);
+            market.addPrice(price);
 
             return null;
         } catch (JSONException e) {

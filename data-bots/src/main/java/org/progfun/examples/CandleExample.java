@@ -8,15 +8,12 @@ import org.progfun.Exchange;
 import org.progfun.Market;
 import org.progfun.Subscriptions;
 import org.progfun.bots.bitfinex.BitFinexHandler;
-import org.progfun.bots.gdax.GdaxHandler;
-import org.progfun.bots.gemini.GeminiHandler;
-import org.progfun.bots.hitbtc.HitBtcHandler;
 import org.progfun.websocket.WebSocketHandler;
 
 /**
- * Example for printing Orderbook snapshots for different Exchange API crawlers
+ * Example for printing Price Candle snapshots
  */
-public class SnapshotExample {
+public class CandleExample {
 
     /**
      * Launch a proof-of-concept test
@@ -28,22 +25,15 @@ public class SnapshotExample {
         // with all the crawlers: Gemini, GDAX, etc
         WebSocketHandler handler;
 //        handler = new GdaxHandler();
-        handler = new HitBtcHandler();
+        handler = new BitFinexHandler();
 //        GeminiHandler handler = new GeminiHandler();
 //        handler.setMainMarket(btcusd);
         handler.setLogging(true);
-//        handler.setVerbose(true);
+        handler.setVerbose(true);
 
         Subscriptions subs = new Subscriptions();
-        subs.addInactive(new Market("BTC", "USD"), Channel.ORDERBOOK);
-        subs.addInactive(new Market("ETH", "USD"), Channel.ORDERBOOK);
-        subs.addInactive(new Market("LTC", "USD"), Channel.ORDERBOOK);
-//        subs.add(new Market("LTC", "BTC"), Channel.ORDERBOOK);
-//        subs.add(new Market("ETH", "BTC"), Channel.ORDERBOOK);
-//        subs.add(new Market("DAT", "USD"), Channel.ORDERBOOK);
-//        subs.add(new Market("QTM", "USD"), Channel.ORDERBOOK);
-//        subs.add(new Market("QSH", "USD"), Channel.ORDERBOOK);
-//        subs.add(new Market("YYW", "USD"), Channel.ORDERBOOK);
+        subs.addInactive(new Market("BTC", "USD"), Channel.PRICES);        
+        subs.addInactive(new Market("YYW", "ETH"), Channel.PRICES);
         handler.subscribe(subs);
         // Start handler in a separate thread
         Thread handlerThread = new Thread(handler);
@@ -54,13 +44,14 @@ public class SnapshotExample {
         // Print a snapshot every second
         SnapshotGenerator sg = new SnapshotGenerator(handler, true, true);
         Exchange e = handler.getExchange();
+        
         if (e == null) {
             Logger.log("Can't start Snapshot Generator without an exchange!");
             return;
         }
         sg.setExchange(e);
-        ExchangeLogger ml = new ExchangeLogger(true, false, false);
-        ml.setLimits(3, 3, 3); // Show only top 3 bids and asks
+        ExchangeLogger ml = new ExchangeLogger(false, false, true);
+        ml.setLimits(3, 4, 4); // Show only top X items
         sg.setListener(ml);
         sg.schedule(2000);
 

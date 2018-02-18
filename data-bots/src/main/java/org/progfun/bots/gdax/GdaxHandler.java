@@ -1,6 +1,5 @@
 package org.progfun.bots.gdax;
 
-import org.progfun.CurrencyPair;
 import org.progfun.Exchange;
 import org.progfun.Logger;
 import org.progfun.Market;
@@ -91,6 +90,11 @@ public class GdaxHandler extends WebSocketHandler {
 
     @Override
     public boolean supportsTrades() {
+        return false;
+    }
+
+    @Override
+    public boolean supportsPriceCandles() {
         return false;
     }
 }

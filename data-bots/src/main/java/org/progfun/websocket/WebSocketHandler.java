@@ -954,6 +954,14 @@ public abstract class WebSocketHandler implements Runnable {
     public abstract boolean supportsTrades();
 
     /**
+     * Implementing class should return true if price candle updates are
+     * supported
+     *
+     * @return
+     */
+    public abstract boolean supportsPriceCandles();
+
+    /**
      * Schedule execution of a specific method on the main Handler thread
      *
      * @param executor

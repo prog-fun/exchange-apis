@@ -112,4 +112,9 @@ public class GeminiHandler extends WebSocketHandler {
     public boolean supportsTrades() {
         return false;
     }
+
+    @Override
+    public boolean supportsPriceCandles() {
+        return false;
+    }
 }

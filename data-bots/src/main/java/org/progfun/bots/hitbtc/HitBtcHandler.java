@@ -112,4 +112,9 @@ public class HitBtcHandler extends WebSocketHandler {
         return true;
     }
 
+    @Override
+    public boolean supportsPriceCandles() {
+        return false;
+    }
+
 }

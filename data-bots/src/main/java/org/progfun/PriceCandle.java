@@ -5,6 +5,7 @@ package org.progfun;
  * Open, Close, High, Low prices, volume and resolution
  */
 public class PriceCandle {
+
     private long openTime;
     private Decimal openPrice;
     private Decimal closePrice;
@@ -14,9 +15,20 @@ public class PriceCandle {
     // Resolution, in minutes
     private int resolution;
 
-    public PriceCandle(long openTime, Decimal openPrice, Decimal closePrice,
+    /**
+     * Create price candle
+     *
+     * @param msTime timestamp, in milliseconds! (not seconds)
+     * @param openPrice
+     * @param closePrice
+     * @param lowPrice
+     * @param highPrice
+     * @param volume
+     * @param resolution
+     */
+    public PriceCandle(long msTime, Decimal openPrice, Decimal closePrice,
             Decimal lowPrice, Decimal highPrice, Decimal volume, int resolution) {
-        this.openTime = openTime;
+        this.openTime = msTime;
         this.openPrice = openPrice;
         this.closePrice = closePrice;
         this.lowPrice = lowPrice;
@@ -27,7 +39,8 @@ public class PriceCandle {
 
     /**
      * Get unix timestamp of period start
-     * @return 
+     *
+     * @return
      */
     public long getOpenTime() {
         return openTime;
@@ -35,6 +48,7 @@ public class PriceCandle {
 
     /**
      * Set unix timestamp of period start
+     *
      * @param openTime
      */
     public void setOpenTime(long openTime) {
@@ -88,9 +102,10 @@ public class PriceCandle {
     public void setResolution(int resolution) {
         this.resolution = resolution;
     }
-    
+
     /**
      * Get unix timestamp of period end
+     *
      * @return period end timestamp or -1 on error
      */
     public long getCloseTime() {
@@ -99,4 +114,12 @@ public class PriceCandle {
         }
         return openTime + resolution * 60; // resolution is in minutes
     }
+
+    @Override
+    public String toString() {
+        return "Price {" + "openTime=" + openTime + ", prices: [open="
+                + openPrice + ", close=" + closePrice + ", low=" + lowPrice
+                + ", high=" + highPrice + "], volume=" + volume + '}';
+    }
+
 }
