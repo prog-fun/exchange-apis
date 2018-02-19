@@ -32,8 +32,11 @@ public class CandleExample {
         handler.setVerbose(true);
 
         Subscriptions subs = new Subscriptions();
-        subs.addInactive(new Market("BTC", "USD"), Channel.PRICES);        
-        subs.addInactive(new Market("YYW", "ETH"), Channel.PRICES);
+        Market m = new Market("BTC", "USD");
+        subs.addInactive(m, Channel.PRICES_1MIN);        
+        subs.addInactive(m, Channel.PRICES_1H);        
+        Market m2 = new Market("YYW", "ETH");
+        subs.addInactive(m2, Channel.PRICES_1D);
         handler.subscribe(subs);
         // Start handler in a separate thread
         Thread handlerThread = new Thread(handler);
@@ -44,6 +47,9 @@ public class CandleExample {
         // Print a snapshot every second
         SnapshotGenerator sg = new SnapshotGenerator(handler, true, true);
         Exchange e = handler.getExchange();
+        // Make sure we don't create copies of the same market
+        e.addMarket(m);
+        e.addMarket(m2);
         
         if (e == null) {
             Logger.log("Can't start Snapshot Generator without an exchange!");

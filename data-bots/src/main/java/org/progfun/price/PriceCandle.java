@@ -1,10 +1,46 @@
-package org.progfun;
+package org.progfun.price;
+
+import org.progfun.Channel;
+import org.progfun.Decimal;
 
 /**
  * Represents a Price "Candle": aggregated trades in a specific period. Contains
  * Open, Close, High, Low prices, volume and resolution
  */
 public class PriceCandle {
+
+    /**
+     * Convert resolution from Channel to integer representing number of minutes
+     *
+     * @param resolution
+     * @return number of minutes, or -1 if resolution is incorrect
+     */
+    public static int resolutionToMinutes(Channel resolution) {
+        switch (resolution) {
+            case PRICES_1MIN:
+                return 1;
+            case PRICES_5MIN:
+                return 5;
+            case PRICES_15MIN:
+                return 15;
+            case PRICES_30MIN:
+                return 30;
+            case PRICES_1H:
+                return 60;
+            case PRICES_3H:
+                return 180;
+            case PRICES_6H:
+                return 360;
+            case PRICES_12H:
+                return 720;
+            case PRICES_1D:
+                return 1440;
+            case PRICES_1W:
+                return 10080;
+            default:
+                return -1;
+        }
+    }
 
     private long openTime;
     private Decimal openPrice;
@@ -18,7 +54,7 @@ public class PriceCandle {
     /**
      * Create price candle
      *
-     * @param msTime timestamp, in milliseconds! (not seconds)
+     * @param msTime open timestamp, in milliseconds! (not seconds)
      * @param openPrice
      * @param closePrice
      * @param lowPrice

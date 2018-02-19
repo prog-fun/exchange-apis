@@ -149,7 +149,7 @@ public class Exchange {
      */
     public void clearPrices() {
         for (Market m : markets.values()) {
-            m.clearPrices();
+            m.clearAllPrices();
         }
     }
 }

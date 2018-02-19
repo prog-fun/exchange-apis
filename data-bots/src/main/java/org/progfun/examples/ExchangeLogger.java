@@ -2,14 +2,15 @@ package org.progfun.examples;
 
 import java.util.Collection;
 import java.util.Iterator;
+import org.progfun.Channel;
 import org.progfun.Decimal;
 import org.progfun.Exchange;
 import org.progfun.Market;
-import org.progfun.PriceCandle;
-import org.progfun.Prices;
+import org.progfun.price.PriceCandle;
 import org.progfun.SnapshotListener;
 import org.progfun.orderbook.Book;
 import org.progfun.orderbook.Order;
+import org.progfun.price.Prices;
 import org.progfun.trade.Trade;
 
 /**
@@ -81,7 +82,16 @@ public class ExchangeLogger implements SnapshotListener {
                 printTrades(market.getTrades());
             }
             if (printPrices) {
-                printPrices(market.getPrices());
+                printPrices(market.getPrices(Channel.PRICES_1MIN), "1m");
+                printPrices(market.getPrices(Channel.PRICES_5MIN), "5m");
+                printPrices(market.getPrices(Channel.PRICES_15MIN), "15m");
+                printPrices(market.getPrices(Channel.PRICES_30MIN), "30m");
+                printPrices(market.getPrices(Channel.PRICES_1H), "1h");
+                printPrices(market.getPrices(Channel.PRICES_3H), "3h");
+                printPrices(market.getPrices(Channel.PRICES_6H), "6h");
+                printPrices(market.getPrices(Channel.PRICES_12H), "12h");
+                printPrices(market.getPrices(Channel.PRICES_1D), "1d");
+                printPrices(market.getPrices(Channel.PRICES_1W), "1w");
             }
         }
     }
@@ -118,8 +128,11 @@ public class ExchangeLogger implements SnapshotListener {
      * Print price candles
      * @param prices 
      */
-    private void printPrices(Prices prices) {
-        System.out.println("  Prices: ");
+    private void printPrices(Prices prices, String resolution) {
+        if (prices == null) {
+            return;
+        }
+        System.out.println("  Prices " + resolution + ": ");
         Iterator<PriceCandle> it = prices.getAll().iterator();
         for (int i = 0; i < priceLimit && it.hasNext(); ++i) {
             PriceCandle p = it.next();

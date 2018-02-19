@@ -8,7 +8,7 @@ import org.progfun.Channel;
 import org.progfun.Decimal;
 import org.progfun.Logger;
 import org.progfun.Market;
-import org.progfun.PriceCandle;
+import org.progfun.price.PriceCandle;
 import org.progfun.Subscription;
 import org.progfun.trade.Trade;
 import org.progfun.websocket.Action;
@@ -102,31 +102,50 @@ public class BitFinexParser extends Parser {
 
         // Check if we got snapshot or update
         if (data.length() > 1) {
+            // TODO - check if this works correctly for some rare markets (such as YYW/ETH)
             Object firstItem = data.get(0);
+            Channel channel = subscription.getChannel();
             if (firstItem instanceof JSONArray) {
-                switch (subscription.getChannel()) {
+                switch (channel) {
                     case ORDERBOOK:
                         return parseOrderSnapshot(market, data);
                     case TRADES:
                         return parseTradeSnapshot(market, data);
-                    case PRICES:
-                        return parsePriceSnapshot(market, data);
+                    case PRICES_1MIN:
+                    case PRICES_5MIN:
+                    case PRICES_15MIN:
+                    case PRICES_30MIN:
+                    case PRICES_1H:
+                    case PRICES_3H:
+                    case PRICES_6H:
+                    case PRICES_12H:
+                    case PRICES_1D:
+                    case PRICES_1W:
+                        return parsePriceSnapshot(market, data, channel);
                     default:
                         return shutDownAction(
-                                "Snapshot for unsupported channel: "
-                                + subscription.getChannel());
+                                "Snapshot for unsupported channel: " + channel);
                 }
             } else {
-                switch (subscription.getChannel()) {
+                switch (channel) {
                     case ORDERBOOK:
                         return parseOrderUpdate(market, data);
                     case TRADES:
                         return parseTrade(market, data);
-                    case PRICES:
-                        return parsePrice(market, data);
+                    case PRICES_1MIN:
+                    case PRICES_5MIN:
+                    case PRICES_15MIN:
+                    case PRICES_30MIN:
+                    case PRICES_1H:
+                    case PRICES_3H:
+                    case PRICES_6H:
+                    case PRICES_12H:
+                    case PRICES_1D:
+                    case PRICES_1W:
+                        return parsePrice(market, data, channel);
                     default:
                         return shutDownAction("Update for unsupported channel: "
-                                + subscription.getChannel());
+                                + channel);
                 }
             }
         } else {
@@ -196,7 +215,8 @@ public class BitFinexParser extends Parser {
                 channel = Channel.TRADES;
                 break;
             case "candles":
-                channel = Channel.PRICES;
+                // We will fix the resolution a bit later...
+                channel = Channel.PRICES_1MIN;
                 break;
             default:
                 return shutDownAction("Invalid channel received: " + ch);
@@ -204,16 +224,31 @@ public class BitFinexParser extends Parser {
 
         // Find the inactive subscription 
         String symbol;
-        if (channel == Channel.PRICES) {
+        if (channel == Channel.PRICES_1MIN) {
+            // Fixing the resolution and symbol
+            symbol = null;
+
             // Candle channel does not include a symbol, rather a key
             String key = msg.getString("key");
-            // The key is expected to be in the format trades:1m:t<Symbol>
+            // The key is expected to be in the format trades:<resolution>:t<symbol>
             if (key != null && key.length() > 10
-                    && key.substring(0, 10).equals("trade:1m:t")) {
-                // We keep the "t", it will be stripped later
-                symbol = key.substring(9);
+                    && key.substring(0, 6).equals("trade:")) {
+                String resSym = key.substring(6); // <resolution>:t<symbol>
+                int colonPos = resSym.indexOf(':');
+                if (colonPos >= 2) {
+                    String resolution = resSym.substring(0, colonPos);
+                    // Now we set the correct channel
+                    channel = stringResolutionToChannel(resolution);
+                    if (channel != null) {
+                        // We keep the "t", it will be stripped later
+                        symbol = resSym.substring(colonPos + 1);
+                    } else {
+                        symbol = null;
+                    }
+                } else {
+                    symbol = null;
+                }
             } else {
-                symbol = null;
             }
         } else {
             symbol = msg.getString("symbol");
@@ -367,22 +402,25 @@ public class BitFinexParser extends Parser {
      *
      * @param market
      * @param data JSON array containing the items
+     * @param resolution a channel representing price candle resolution
      * @return
      */
-    private Event parsePriceSnapshot(Market market, JSONArray data) {
+    private Event parsePriceSnapshot(Market market, JSONArray data,
+            Channel resolution) {
         if (data.length() < 1) {
             return shutDownAction("Wrong snapshot received: " + data);
         }
-        Logger.log(data.length() + " prices in snapshot");
+        Logger.log(data.length() + " prices in snapshot for resolution "
+                + resolution);
 
         // Clear previous prices, start fresh
-        market.clearPrices();
+        market.clearPrices(resolution);
 
         // Snapshot is an array of updates
         try {
             for (int i = 0; i < data.length(); ++i) {
                 JSONArray values = data.getJSONArray(i);
-                Event resp = parsePrice(market, values);
+                Event resp = parsePrice(market, values, resolution);
                 if (resp != null) {
                     return resp;
                 }
@@ -399,9 +437,10 @@ public class BitFinexParser extends Parser {
      *
      * @param market
      * @param values
+     * @param resolution a channel representing price candle resolution
      * @return
      */
-    private Event parsePrice(Market market, JSONArray values) {
+    private Event parsePrice(Market market, JSONArray values, Channel resolution) {
         try {
             long timestampMs = values.getLong(0);
             Decimal openPrice = new Decimal(values.getDouble(1));
@@ -409,9 +448,12 @@ public class BitFinexParser extends Parser {
             Decimal highPrice = new Decimal(values.getDouble(3));
             Decimal lowPrice = new Decimal(values.getDouble(4));
             Decimal amount = new Decimal(values.getDouble(5));
-            PriceCandle price = new PriceCandle(timestampMs, openPrice, closePrice,
-                    lowPrice, highPrice, amount, 1);
-            market.addPrice(price);
+            // Convert resolution from Channel to minutes
+            int resMin = PriceCandle.resolutionToMinutes(resolution);
+            PriceCandle price = new PriceCandle(timestampMs, openPrice,
+                    closePrice,
+                    lowPrice, highPrice, amount, resMin);
+            market.addPrice(resolution, price);
 
             return null;
         } catch (JSONException e) {
@@ -450,6 +492,39 @@ public class BitFinexParser extends Parser {
         } catch (JSONException ex) {
             // Nope, not a valid info message
             return false;
+        }
+    }
+
+    /**
+     * Converts a string channel ("1m", "30min", "1w", etc) to Channel.PRICES_xx
+     *
+     * @param resolution
+     * @return the channel or null if string is incorrect
+     */
+    private Channel stringResolutionToChannel(String resolution) {
+        switch (resolution) {
+            case "1m":
+                return Channel.PRICES_1MIN;
+            case "5m":
+                return Channel.PRICES_5MIN;
+            case "15m":
+                return Channel.PRICES_15MIN;
+            case "30m":
+                return Channel.PRICES_30MIN;
+            case "1h":
+                return Channel.PRICES_1H;
+            case "3h":
+                return Channel.PRICES_3H;
+            case "6h":
+                return Channel.PRICES_6H;
+            case "12h":
+                return Channel.PRICES_12H;
+            case "1d":
+                return Channel.PRICES_1D;
+            case "1w":
+                return Channel.PRICES_1W;
+            default:
+                return null;
         }
     }
 }

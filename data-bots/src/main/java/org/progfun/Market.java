@@ -1,5 +1,7 @@
 package org.progfun;
 
+import org.progfun.price.PriceCandle;
+import org.progfun.price.Prices;
 import org.progfun.trade.Trade;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -8,6 +10,7 @@ import java.util.List;
 import org.progfun.orderbook.Book;
 import org.progfun.orderbook.Order;
 import org.progfun.orderbook.OrderbookListener;
+import org.progfun.price.MultiResolutionPrices;
 import org.progfun.trade.TradeListener;
 
 /**
@@ -37,8 +40,8 @@ public class Market {
     private final List<OrderbookListener> bookListeners = new ArrayList<>();
     private final List<TradeListener> tradeListeners = new ArrayList<>();
 
-    private final Prices prices = new Prices();
-    
+    private final MultiResolutionPrices prices = new MultiResolutionPrices();
+
     /**
      * Create a new market, convert the currencies to upper-case. Throws
      * exception if one of currencies is null or empty
@@ -49,7 +52,8 @@ public class Market {
      * NOK, etc
      * @throws InvalidFormatException when one of currencies missing
      */
-    public Market(String baseCurrency, String quoteCurrency) throws InvalidFormatException {
+    public Market(String baseCurrency, String quoteCurrency) throws
+            InvalidFormatException {
         this(new CurrencyPair(baseCurrency, quoteCurrency));
     }
 
@@ -63,7 +67,8 @@ public class Market {
         if (symbol != null) {
             return symbol;
         } else {
-            return currencyPair.getBaseCurrency() + currencyPair.getQuoteCurrency();
+            return currencyPair.getBaseCurrency() + currencyPair
+                    .getQuoteCurrency();
         }
     }
 
@@ -113,13 +118,16 @@ public class Market {
     public Collection<Trade> getTrades() {
         return trades;
     }
-    
+
     /**
      * Return the list of price candles
-     * @return 
+     *
+     * @param resolution desired resolution for price candles (1MIN, 15MIN,
+     * etc). Warning: only PRICES_xx values should be used as resolution here!
+     * @return
      */
-    public Prices getPrices() {
-        return prices;
+    public Prices getPrices(Channel resolution) {
+        return prices.get(resolution);
     }
 
     /**
@@ -267,7 +275,8 @@ public class Market {
      * @param orderCount
      * @param increment
      */
-    public void addAsk(String price, String amount, int orderCount, boolean increment) {
+    public void addAsk(String price, String amount, int orderCount,
+            boolean increment) {
         addAsk(new Decimal(price), new Decimal(amount), orderCount, increment);
     }
 
@@ -415,13 +424,15 @@ public class Market {
     }
 
     /**
-     * Add (or update) a price candle
-     * @param price 
+     * Add (or update) a price candle, for a given resolution
+     *
+     * @param resolution
+     * @param price
      */
-    public void addPrice(PriceCandle price) {
-        prices.add(price);
+    public void addPrice(Channel resolution, PriceCandle price) {
+        prices.add(resolution, price);
     }
-    
+
     /**
      * Delete all trade information
      */
@@ -430,9 +441,17 @@ public class Market {
     }
 
     /**
+     * Delete price candles for one specific resolution
+     * @param resolution
+     */
+    public void clearPrices(Channel resolution) {
+        prices.remove(resolution);
+    }
+
+    /**
      * Delete all price candle information
      */
-    public void clearPrices() {
+    public void clearAllPrices() {
         prices.clear();
     }
     
@@ -443,7 +462,7 @@ public class Market {
         // Update locking should happen inside the method calls
         clearTrades();
         clearOrderBook();
-        clearPrices();
+        clearAllPrices();
     }
 
     @Override

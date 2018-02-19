@@ -1,11 +1,11 @@
-package org.progfun;
+package org.progfun.price;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Contains a list of prices for a single market
+ * Contains a list of prices for a single market, single resolution!
  */
 public class Prices {
 

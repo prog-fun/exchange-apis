@@ -74,11 +74,48 @@ public class BitFinexHandler extends WebSocketHandler {
             case TRADES:
                 channelName = "trades";
                 break;
-            case PRICES:
+            case PRICES_1MIN:
+                // TODO - could be handled by a HashMap<Channel, symbol>
                 channelName = "candles";
                 optionalParams = ", \"key\":\"trade:1m:t" + symbol + "\"";
                 break;
-            default:
+            case PRICES_5MIN:
+                channelName = "candles";
+                optionalParams = ", \"key\":\"trade:5m:t" + symbol + "\"";
+                break;
+             case PRICES_15MIN:
+                channelName = "candles";
+                optionalParams = ", \"key\":\"trade:15m:t" + symbol + "\"";
+                break;
+            case PRICES_30MIN:
+                channelName = "candles";
+                optionalParams = ", \"key\":\"trade:30m:t" + symbol + "\"";
+                break;
+            case PRICES_1H:
+                channelName = "candles";
+                optionalParams = ", \"key\":\"trade:1h:t" + symbol + "\"";
+                break;
+            case PRICES_3H:
+                channelName = "candles";
+                optionalParams = ", \"key\":\"trade:3h:t" + symbol + "\"";
+                break;
+            case PRICES_6H:
+                channelName = "candles";
+                optionalParams = ", \"key\":\"trade:6h:t" + symbol + "\"";
+                break;
+            case PRICES_12H:
+                channelName = "candles";
+                optionalParams = ", \"key\":\"trade:12h:t" + symbol + "\"";
+                break;
+            case PRICES_1D:
+                channelName = "candles";
+                optionalParams = ", \"key\":\"trade:1d:t" + symbol + "\"";
+                break;
+            case PRICES_1W:
+                channelName = "candles";
+                optionalParams = ", \"key\":\"trade:1w:t" + symbol + "\"";
+                break;
+           default:
                 Logger.log("Channel "
                         + s.getChannel() + " not supported!");
                 return false;
