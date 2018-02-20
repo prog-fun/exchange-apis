@@ -1,5 +1,8 @@
 package org.progfun.bots.gdax;
 
+import java.util.LinkedList;
+import java.util.List;
+import org.progfun.Channel;
 import org.progfun.Exchange;
 import org.progfun.Logger;
 import org.progfun.Market;
@@ -96,5 +99,10 @@ public class GdaxHandler extends WebSocketHandler {
     @Override
     public boolean supportsPriceCandles() {
         return false;
+    }
+
+    @Override
+    public List<Channel> getCandleResolutions() {
+        return new LinkedList<>();
     }
 }

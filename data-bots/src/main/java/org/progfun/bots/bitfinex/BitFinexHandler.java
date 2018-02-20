@@ -1,5 +1,7 @@
 package org.progfun.bots.bitfinex;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.progfun.Channel;
 import org.progfun.Exchange;
 import org.progfun.Logger;
@@ -147,6 +149,26 @@ public class BitFinexHandler extends WebSocketHandler {
     @Override
     public boolean supportsPriceCandles() {
         return true;
+    }
+
+    /**
+     * Return supported price candle resolutions
+     * @return 
+     */
+    @Override
+    public List<Channel> getCandleResolutions() {
+        List<Channel> res = new LinkedList<>();
+        res.add(Channel.PRICES_1MIN);
+        res.add(Channel.PRICES_5MIN);
+        res.add(Channel.PRICES_15MIN);
+        res.add(Channel.PRICES_30MIN);
+        res.add(Channel.PRICES_1H);
+        res.add(Channel.PRICES_3H);
+        res.add(Channel.PRICES_6H);
+        res.add(Channel.PRICES_12H);
+        res.add(Channel.PRICES_1D);
+        res.add(Channel.PRICES_1W);
+        return res;
     }
 
 }

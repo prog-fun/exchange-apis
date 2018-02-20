@@ -129,7 +129,7 @@ public class ExchangeLogger implements SnapshotListener {
      * @param prices 
      */
     private void printPrices(Prices prices, String resolution) {
-        if (prices == null) {
+        if (prices == null || prices.size() == 0) {
             return;
         }
         System.out.println("  Prices " + resolution + ": ");

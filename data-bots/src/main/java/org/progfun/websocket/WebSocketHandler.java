@@ -1,6 +1,7 @@
 package org.progfun.websocket;
 
 import java.net.UnknownHostException;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import org.java_websocket.handshake.ServerHandshake;
 import org.progfun.Channel;
@@ -961,6 +962,13 @@ public abstract class WebSocketHandler implements Runnable {
      */
     public abstract boolean supportsPriceCandles();
 
+    /**
+     * Return a list of supported price candle resolutions
+     * If none supported, return an empty list, never return a null!
+     * @return 
+     */
+    public abstract List<Channel> getCandleResolutions();
+    
     /**
      * Schedule execution of a specific method on the main Handler thread
      *

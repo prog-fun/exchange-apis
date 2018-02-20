@@ -124,7 +124,7 @@ public class Market {
      *
      * @param resolution desired resolution for price candles (1MIN, 15MIN,
      * etc). Warning: only PRICES_xx values should be used as resolution here!
-     * @return
+     * @return price list or null if no prices found
      */
     public Prices getPrices(Channel resolution) {
         return prices.get(resolution);

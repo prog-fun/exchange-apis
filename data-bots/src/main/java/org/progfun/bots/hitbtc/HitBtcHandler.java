@@ -1,5 +1,8 @@
 package org.progfun.bots.hitbtc;
 
+import java.util.LinkedList;
+import java.util.List;
+import org.progfun.Channel;
 import org.progfun.Exchange;
 import org.progfun.Logger;
 import org.progfun.Subscription;
@@ -117,4 +120,8 @@ public class HitBtcHandler extends WebSocketHandler {
         return false;
     }
 
+    @Override
+    public List<Channel> getCandleResolutions() {
+        return new LinkedList<>();
+    }
 }
