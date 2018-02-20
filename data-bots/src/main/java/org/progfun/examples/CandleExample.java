@@ -29,7 +29,7 @@ public class CandleExample {
 //        GeminiHandler handler = new GeminiHandler();
 //        handler.setMainMarket(btcusd);
         handler.setLogging(true);
-        handler.setVerbose(true);
+//        handler.setVerbose(true);
 
         Subscriptions subs = new Subscriptions();
         Market m = new Market("BTC", "USD");
