@@ -102,7 +102,6 @@ public class BitFinexParser extends Parser {
 
         // Check if we got snapshot or update
         if (data.length() > 1) {
-            // TODO - check if this works correctly for some rare markets (such as YYW/ETH)
             Object firstItem = data.get(0);
             Channel channel = subscription.getChannel();
             if (firstItem instanceof JSONArray) {
@@ -496,7 +495,7 @@ public class BitFinexParser extends Parser {
     }
 
     /**
-     * Converts a string channel ("1m", "30min", "1w", etc) to Channel.PRICES_xx
+     * Converts a string channel ("1m", "30min", "1D", etc) to Channel.PRICES_xx
      *
      * @param resolution
      * @return the channel or null if string is incorrect
@@ -519,9 +518,9 @@ public class BitFinexParser extends Parser {
                 return Channel.PRICES_6H;
             case "12h":
                 return Channel.PRICES_12H;
-            case "1d":
+            case "1D":
                 return Channel.PRICES_1D;
-            case "1w":
+            case "7D":
                 return Channel.PRICES_1W;
             default:
                 return null;

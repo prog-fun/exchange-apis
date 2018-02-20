@@ -109,11 +109,11 @@ public class BitFinexHandler extends WebSocketHandler {
                 break;
             case PRICES_1D:
                 channelName = "candles";
-                optionalParams = ", \"key\":\"trade:1d:t" + symbol + "\"";
+                optionalParams = ", \"key\":\"trade:1D:t" + symbol + "\"";
                 break;
             case PRICES_1W:
                 channelName = "candles";
-                optionalParams = ", \"key\":\"trade:1w:t" + symbol + "\"";
+                optionalParams = ", \"key\":\"trade:7D:t" + symbol + "\"";
                 break;
            default:
                 Logger.log("Channel "

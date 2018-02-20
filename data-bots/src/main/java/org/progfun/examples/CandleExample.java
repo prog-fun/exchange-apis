@@ -34,9 +34,9 @@ public class CandleExample {
         Subscriptions subs = new Subscriptions();
         Market m = new Market("BTC", "USD");
         subs.addInactive(m, Channel.PRICES_1MIN);        
-        subs.addInactive(m, Channel.PRICES_1H);        
+        subs.addInactive(m, Channel.PRICES_1D);        
         Market m2 = new Market("YYW", "ETH");
-        subs.addInactive(m2, Channel.PRICES_1D);
+        subs.addInactive(m2, Channel.PRICES_1H);
         handler.subscribe(subs);
         // Start handler in a separate thread
         Thread handlerThread = new Thread(handler);
