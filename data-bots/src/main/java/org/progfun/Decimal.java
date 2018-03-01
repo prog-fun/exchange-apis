@@ -217,6 +217,30 @@ public class Decimal implements Comparable<Decimal> {
     }
 
     /**
+     * Get string representation, with all trailing zeros cut-off
+     * @return 
+     */
+    public String getNiceString() {
+        if (isZero()) {
+            return "0";
+        }
+        String s = number.toPlainString();
+        // Find first non-zero character
+        int i = s.length() - 1;
+        while (i > 0 && s.charAt(i) == '0') {
+            --i;
+        }
+        if (s.charAt(i) == '.') {
+            --i;
+        }
+        if (i > 0) {
+            return s.substring(0, i + 1);
+        } else {
+            return "0";
+        }
+    }
+    
+    /**
      * Create an array of Decimals from an array of doubles
      * @param d
      * @return 

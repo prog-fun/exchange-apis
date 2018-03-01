@@ -134,4 +134,27 @@ public class DecimalTest {
         Decimal d3 = d1.multiply(d2);
         assertEquals(new Decimal("0.000000000001"), d3);
     }
+    
+    @Test
+    public void testNiceString() {
+        Decimal d;
+        d = new Decimal("0");
+        assertEquals("0", d.getNiceString());
+        d = new Decimal("-0");
+        assertEquals("0", d.getNiceString());
+        d = new Decimal("-0.00000");
+        assertEquals("0", d.getNiceString());
+        d = new Decimal("0.00000000000");
+        assertEquals("0", d.getNiceString());
+        d = new Decimal("0.0000000001");
+        assertEquals("0.0000000001", d.getNiceString());
+        d = new Decimal("0.1000000000");
+        assertEquals("0.1", d.getNiceString());
+        d = new Decimal("0.007080000000");
+        assertEquals("0.00708", d.getNiceString());
+        d = new Decimal("-3.28");
+        assertEquals("-3.28", d.getNiceString());
+        d = new Decimal("-3.28000");
+        assertEquals("-3.28", d.getNiceString());
+    }
 }
