@@ -1,5 +1,7 @@
 package org.progfun;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import org.progfun.websocket.WebSocketHandler;
@@ -10,7 +12,7 @@ import org.progfun.websocket.WebSocketHandler;
 public class SnapshotGenerator {
 
     private Exchange exchange;
-    private SnapshotListener listener;
+    private final List<SnapshotListener> listeners = new LinkedList<>();
     private Timer timer;
     private final boolean deleteTrades;
     private final boolean deletePrices;
@@ -41,8 +43,22 @@ public class SnapshotGenerator {
         this.exchange = exchange;
     }
 
-    public void setListener(SnapshotListener listener) {
-        this.listener = listener;
+    /**
+     * Add a listener for snapshot notifications
+     * @param listener 
+     */
+    public void addListener(SnapshotListener listener) {
+        if (!listeners.contains(listener)) {
+            listeners.add(listener);
+        }
+    }
+    
+    /**
+     * Remove a listener, it will not receive notifications anymore
+     * @param listener 
+     */
+    public void removeListener(SnapshotListener listener) {
+        listeners.remove(listener);
     }
 
     /**
@@ -70,10 +86,12 @@ public class SnapshotGenerator {
      * Send snapshot of the market to the listeners
      */
     private void notifyListener() {
-        if (exchange == null || listener == null) {
+        if (exchange == null || listeners.isEmpty()) {
             return;
         }
-        listener.onSnapshot(exchange);
+        for (SnapshotListener listener : listeners) {
+            listener.onSnapshot(exchange);
+        }
         if (deleteTrades) {
             // Delete all trades
             exchange.clearTrades();

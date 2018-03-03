@@ -58,7 +58,7 @@ public class CandleExample {
         sg.setExchange(e);
         ExchangeLogger ml = new ExchangeLogger(false, false, true);
         ml.setLimits(3, 4, 4); // Show only top X items
-        sg.setListener(ml);
+        sg.addListener(ml);
         sg.schedule(2000);
 
         try {

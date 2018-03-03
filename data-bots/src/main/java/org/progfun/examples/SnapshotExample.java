@@ -61,7 +61,7 @@ public class SnapshotExample {
         sg.setExchange(e);
         ExchangeLogger ml = new ExchangeLogger(true, false, false);
         ml.setLimits(3, 3, 3); // Show only top 3 bids and asks
-        sg.setListener(ml);
+        sg.addListener(ml);
         sg.schedule(2000);
 
         try {
