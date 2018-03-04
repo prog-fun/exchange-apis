@@ -225,6 +225,10 @@ public class Decimal implements Comparable<Decimal> {
             return "0";
         }
         String s = number.toPlainString();
+        if (s.indexOf('.') < 0) {
+            // When not a decimal, don't strip off anything
+            return s;
+        }
         // Find first non-zero character
         int i = s.length() - 1;
         while (i > 0 && s.charAt(i) == '0') {

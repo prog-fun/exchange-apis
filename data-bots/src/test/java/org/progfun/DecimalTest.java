@@ -156,5 +156,7 @@ public class DecimalTest {
         assertEquals("-3.28", d.getNiceString());
         d = new Decimal("-3.28000");
         assertEquals("-3.28", d.getNiceString());
+        d = new Decimal("500");
+        assertEquals("500", d.getNiceString());
     }
 }
