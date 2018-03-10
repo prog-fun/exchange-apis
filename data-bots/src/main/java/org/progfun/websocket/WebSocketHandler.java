@@ -268,9 +268,20 @@ public abstract class WebSocketHandler implements Runnable {
      * Schedule an event to be parsed in the main Handler thread. The main
      * thread is expected to be sleeping, therefore we wake it up
      *
+     * @param signle when true, check the event queue for event of the same
+     * type. If it already exists, do not add a duplicate. This can be useful
+     * for scheduling timer events.
      * @param action
      */
-    private synchronized void scheduleEvent(Event event) {
+    private synchronized void scheduleEvent(Event event, boolean single) {
+        if (single) {
+            // If event of this type is already in the queue, ignore this one
+            for (Event e : eventQueue) {
+                if (e.getType() == event.getType()) {
+                    return;
+                }
+            }
+        }
         eventQueue.offer(event);
         notifyAll();
     }
@@ -282,7 +293,7 @@ public abstract class WebSocketHandler implements Runnable {
      * @param action
      */
     private synchronized void scheduleAction(Action action) {
-        scheduleEvent(new Event(action, null, null));
+        scheduleEvent(new Event(action, null, null), false);
     }
 
     /**
@@ -565,7 +576,7 @@ public abstract class WebSocketHandler implements Runnable {
      */
     private void onSocketMsg(String message) {
         // The message must be parsed on the main thread, schedule it
-        scheduleEvent(new Event(Action.PARSE_MSG, message, null));
+        scheduleEvent(new Event(Action.PARSE_MSG, message, null), false);
     }
 
     /**
@@ -769,12 +780,13 @@ public abstract class WebSocketHandler implements Runnable {
 
     /**
      * Return true if connection is changing: reconnecting or shutting down
-     * @return 
+     *
+     * @return
      */
     private boolean isConnectionChanging() {
         return isShuttingDown() || isReconnecting();
     }
-    
+
     /**
      * Return true if we must reconnect in case connection is closed in the
      * current state
@@ -965,17 +977,18 @@ public abstract class WebSocketHandler implements Runnable {
     /**
      * Return a list of supported price candle resolutions
      * If none supported, return an empty list, never return a null!
-     * @return 
+     *
+     * @return
      */
     public abstract List<Channel> getCandleResolutions();
-    
+
     /**
      * Schedule execution of a specific method on the main Handler thread
      *
      * @param executor
      */
     public void scheduleExecution(Runnable executor) {
-        scheduleEvent(new Event(Action.EXECUTE_METHOD, executor, null));
+        scheduleEvent(new Event(Action.EXECUTE_METHOD, executor, null), true);
     }
 
 }
