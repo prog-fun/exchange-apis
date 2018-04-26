@@ -46,9 +46,6 @@ public abstract class WebSocketHandler implements Runnable {
 
     private SocketStateListener stateListener;
 
-    // Subscription which is currently in processing
-    private Subscription currentSubscription;
-
     // How long to sleep before connecting
     private long connSleep = 0;
 
@@ -441,7 +438,6 @@ public abstract class WebSocketHandler implements Runnable {
 
         Subscription s = subscriptions.getNextInactive();
         if (s != null) {
-            currentSubscription = s;
             if (startSubscription(s)) {
                 // Mark this channel as initiated
                 s.setState(SubsState.INITIATED);
@@ -634,7 +630,8 @@ public abstract class WebSocketHandler implements Runnable {
                                 + message);
                         break;
                     case SUBSCRIBE:
-                        onSubscribed();
+                        Subscription s = (Subscription) resp.getData();
+                        onSubscribed(s);
                         break;
                     default:
                         scheduleShutdown("TODO: implement support for action "
@@ -883,12 +880,11 @@ public abstract class WebSocketHandler implements Runnable {
     /**
      * Subscription successful
      */
-    private void onSubscribed() {
+    private void onSubscribed(Subscription s) {
         Logger.log("Subscription done, process next one");
         if (stateListener != null) {
-            stateListener.onSubscribed(currentSubscription);
+            stateListener.onSubscribed(s);
         }
-        currentSubscription = null;
         scheduleAction(Action.SUBSCRIBE);
     }
 
