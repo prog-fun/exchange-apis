@@ -11,7 +11,7 @@ import java.math.RoundingMode;
 public class Decimal implements Comparable<Decimal> {
 
     // Default rounding options
-    private static final int DEFAULT_SCALE = 12;
+    private static final int DEFAULT_SCALE = 8;
     private static final RoundingMode DEFAULT_ROUNDING = RoundingMode.HALF_UP;
     private static final MathContext DEFAULT_PRECISION
             = new MathContext(DEFAULT_SCALE, DEFAULT_ROUNDING);
