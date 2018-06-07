@@ -45,5 +45,19 @@ public class Prices {
     public Collection<PriceCandle> getAll() {
         return prices.values();
     }
+    
+    /**
+     * Get price candle with the most recent timestamp
+     * @return price candle or null if prices are empty
+     */
+    public PriceCandle getLatest() {
+        long latestTime = -1;
+        for (Long timestamp : prices.keySet()) {
+            if (timestamp > latestTime) {
+                latestTime = timestamp;
+            }
+        }
+        return prices.get(latestTime);
+    }
 
 }
