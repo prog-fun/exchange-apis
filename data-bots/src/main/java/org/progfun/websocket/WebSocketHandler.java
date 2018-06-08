@@ -442,7 +442,17 @@ public abstract class WebSocketHandler implements Runnable {
                 // Mark this channel as initiated
                 s.setState(SubsState.INITIATED);
                 if (!isConnectionChanging()) {
-                    setState(State.SUBSCRIBING);
+                    // Some handlers may have auto-activated subscriptions
+                    // Check if all subscriptions active alreay
+                    if (subscriptions.getNextInactive() != null) {
+                        setState(State.SUBSCRIBING);
+                    } else {
+                        Logger.log("Done with all subscriptions");
+                        setState(State.RUNNING);
+                        if (stateListener != null) {
+                            stateListener.onReady();
+                        }
+                    }
                 }
                 return true;
             }
