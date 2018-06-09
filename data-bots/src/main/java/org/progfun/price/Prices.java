@@ -1,15 +1,15 @@
 package org.progfun.price;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Contains a list of prices for a single market, single resolution!
  */
 public class Prices {
 
-    private final Map<Long, PriceCandle> prices = new HashMap<>();
+    private final List<PriceCandle> prices = new LinkedList<>();
 
     /**
      * Add a price to the collection. If there is already a price with the same
@@ -23,7 +23,7 @@ public class Prices {
         }
 
         // Either replace an existing price, or add a new price to the list
-        prices.put(price.getOpenTime(), price);
+        prices.add(price);
     }
 
     /**
@@ -43,7 +43,7 @@ public class Prices {
     }
     
     public Collection<PriceCandle> getAll() {
-        return prices.values();
+        return prices;
     }
     
     /**
@@ -52,12 +52,14 @@ public class Prices {
      */
     public PriceCandle getLatest() {
         long latestTime = -1;
-        for (Long timestamp : prices.keySet()) {
-            if (timestamp > latestTime) {
-                latestTime = timestamp;
+        PriceCandle latestPrice = null;
+        for (PriceCandle p : prices) {
+            if (p.getOpenTime() > latestTime) {
+                latestTime = p.getOpenTime();
+                latestPrice = p;
             }
         }
-        return prices.get(latestTime);
+        return latestPrice;
     }
 
 }

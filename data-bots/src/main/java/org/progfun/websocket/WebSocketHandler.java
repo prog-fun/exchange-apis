@@ -20,7 +20,7 @@ public abstract class WebSocketHandler implements Runnable {
     // How long to wait (milliseconds) before reconnection attempt
     private static final long RECONNECT_TIMEOUT = 3000;
 
-    private Exchange exchange;
+    protected Exchange exchange;
     protected Parser parser;
     protected WebSocketConnector connector;
     private boolean logEnabled = false;
