@@ -20,6 +20,8 @@ public class PriceCandle {
         switch (resolution) {
             case PRICES_1MIN:
                 return 1;
+            case PRICES_3MIN:
+                return 3;
             case PRICES_5MIN:
                 return 5;
             case PRICES_15MIN:
@@ -56,6 +58,8 @@ public class PriceCandle {
         switch (resMin) {
             case 1:
                 return Channel.PRICES_1MIN;
+            case 3:
+                return Channel.PRICES_3MIN;
             case 5:
                 return Channel.PRICES_5MIN;
             case 15:

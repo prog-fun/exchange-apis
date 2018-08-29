@@ -8,6 +8,7 @@ public enum Channel {
     ORDERBOOK, // Orderbook updates (bids/asks)
     TRADES, // Last trade updates
     PRICES_1MIN, // Price (candle) updates: 1min resolution
+    PRICES_3MIN, // Price (candle) updates: 1min resolution
     PRICES_5MIN, // Price (candle) updates: 5min resolution
     PRICES_15MIN, // Price (candle) updates: 15min resolution
     PRICES_30MIN, // Price (candle) updates: 30min resolution
@@ -34,6 +35,8 @@ public enum Channel {
         switch (res.toLowerCase()) {
             case "1m":
                 return PRICES_1MIN;
+            case "3m":
+                return PRICES_3MIN;
             case "5m":
                 return PRICES_5MIN;
             case "15m":
