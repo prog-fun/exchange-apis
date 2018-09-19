@@ -51,6 +51,7 @@ public class PriceCandle {
 
     /**
      * Convert resolution from integer representing number of minutes to Channel
+     *
      * @param resMin resolution in minutes
      * @return resolution as Channel, null on error
      */
@@ -86,13 +87,17 @@ public class PriceCandle {
                 return null;
         }
     }
-    
+
     private long openTime;
     private Decimal openPrice;
     private Decimal closePrice;
     private Decimal lowPrice;
     private Decimal highPrice;
     private Decimal volume;
+    /**
+     * How large part of the volume are market-buys
+     */
+    private Decimal buyRatio;
     // Resolution, in minutes
     private int resolution;
 
@@ -184,10 +189,46 @@ public class PriceCandle {
         this.resolution = resolution;
     }
 
+    public Decimal getBuyRatio() {
+        return buyRatio;
+    }
+
+    public void setBuyRatio(Decimal buyRatio) {
+        this.buyRatio = buyRatio;
+    }
+
+    /**
+     * Get volume of market-buy orders
+     *
+     * @return
+     */
+    public Decimal getBuyVolume() {
+        if (volume != null && buyRatio != null) {
+            return volume.multiply(buyRatio);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Get volume of market-sell orders
+     *
+     * @return
+     */
+    public Decimal getSellVolume() {
+        // sellVolume = totalVolume * (1 - buyRatio)
+        if (volume != null && buyRatio != null) {
+            return volume.multiply(Decimal.ONE.subtract(buyRatio));
+        } else {
+            return null;
+        }
+    }
+
     /**
      * Get Unix timestamp of period end, WITH milliseconds
      *
-     * @return period end timestamp (timestamp where the next candle should start) or -1 on error
+     * @return period end timestamp (timestamp where the next candle should
+     * start) or -1 on error
      */
     public long getCloseTime() {
         if (openTime <= 0 || resolution <= 0) {
@@ -252,5 +293,4 @@ public class PriceCandle {
         return hash;
     }
 
-    
 }
