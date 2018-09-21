@@ -109,7 +109,7 @@ public class Decimal implements Comparable<Decimal> {
      * @return
      */
     public Decimal divide(Decimal d) {
-        return new Decimal(number.divide(d.number));
+        return new Decimal(number.divide(d.number, DEFAULT_PRECISION));
     }
 
     /**
